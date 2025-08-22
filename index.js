@@ -19,7 +19,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const CLIPTUNE_API = 'http://localhost:3001/api';
+const CLIPTUNE_API = 'https://nback-6gqw.onrender.com/api';
 
 // Firebase Admin Set
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
@@ -179,8 +179,8 @@ app.post('/signup', async (req, res) => {
     await newUser.save();
 
     // Send verification email
-    const verificationLink = `http://localhost:3001/api/verify-email/${verificationToken}`;
-    
+    const verificationLink = `https://nback-6gqw.onrender.com/api/verify-email/${verificationToken}`;
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -319,7 +319,7 @@ app.post('/upgrade-to-premium', async (req, res) => {
       customer: user.stripeCustomerId,
       payment_method: customer.invoice_settings.default_payment_method,
       confirm: true,
-      return_url: 'http://localhost:3000/settings', // Add return URL for compliance
+      return_url: 'https://nback-6gqw.onrender.com/settings', // Add return URL for compliance
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: 'never' // Prevent redirects for immediate confirmation
@@ -4824,10 +4824,10 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       });
       
       const stats = await fsPromises.stat(outputPath);
-      const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
-      
-      return res.json({ 
-        success: true, 
+      const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
+
+      return res.json({
+        success: true,
         combinedUrl,
         activeSegments: 0,
         totalSegments: parsedSegments.length,
@@ -4949,8 +4949,8 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
 
     console.log('Ã¢Å“â€¦ Progressive video ready:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
-    const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
-    
+    const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
+
     console.log('\nÃ°Å¸Å½â€° ===============================================');
     console.log('Ã°Å¸Å½â€° PROGRESSIVE VIDEO UPDATE SUCCESSFUL');
     console.log('Ã°Å¸Å½â€° ===============================================');
@@ -7011,8 +7011,8 @@ if (activeAudioSegments.length === 1) {
     console.log('Ã¢Å“â€¦ Complete video created with EXACT timing placement:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Return the URL for the complete video
-    const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
-    
+    const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
+
     console.log('\nÃ°Å¸Å½â€° ===============================================');
     console.log('Ã°Å¸Å½â€° COMPLETE VIDEO WITH EXACT MUSIC TIMING READY');
     console.log('Ã°Å¸Å½â€° ===============================================');
@@ -7111,7 +7111,7 @@ app.post('/api/trim-audio', async (req, res) => {
         .run();
     });
 
-    const trimmedUrl = `http://localhost:${PORT}/trimmed/${outputFileName}`;
+    const trimmedUrl = `https://nback-6gqw.onrender.com/trimmed/${outputFileName}`;
     res.json({ trimmedUrl });
   } catch (err) {
     console.error('Error trimming audio:', err);
@@ -7164,7 +7164,7 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
     });
 
     const stats = await fsPromises.stat(outputPath);
-    const restoredUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
+    const restoredUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
     console.log('Ã°Å¸â€Å  Volume restoration completed');
     console.log('Ã°Å¸â€â€” Restored video URL:', restoredUrl);
@@ -7251,7 +7251,7 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
         
         preRenderedAudio[segmentIndex][volumeLevel] = {
           path: outputPath,
-          url: `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`,
+          url: `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`,
           volume: volumeLevel,
           segmentIndex: segmentIndex,
           ready: true
@@ -7302,7 +7302,7 @@ app.post('/api/get-volume-variation', async (req, res) => {
     
     // In a real app, you'd store preRenderedAudio in Redis or similar
     // For now, we'll return a placeholder response
-    const volumeVariationUrl = `http://localhost:${PORT}/trimmed/volume_${segmentIndex}_${volumeLevel}.mp3`;
+    const volumeVariationUrl = `https://nback-6gqw.onrender.com/trimmed/volume_${segmentIndex}_${volumeLevel}.mp3`;
     
     res.json({
       success: true,
@@ -7487,8 +7487,8 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         
         // Verify output
         const stats = await fsPromises.stat(outputPath);
-        const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
-        
+        const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
+
         console.log('\nÃ°Å¸Å½â€° ===============================================');
         console.log('Ã°Å¸Å½â€° ORIGINAL VIDEO VOLUME FULLY RESTORED');
         console.log('Ã°Å¸Å½â€° ===============================================');
@@ -7676,8 +7676,8 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       throw new Error('Output file is empty');
     }
 
-    const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
-    
+    const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
+
     console.log('\nÃ°Å¸Å½â€° ===============================================');
     console.log('Ã°Å¸Å½â€° COMPLETE VIDEO WITH REMOVE/RESTORE READY');
     console.log('Ã°Å¸Å½â€° ===============================================');
@@ -7871,7 +7871,7 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
     console.log('Ã¢Å“â€¦ Combined video created:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Return the URL for the combined video
-    const combinedUrl = `http://localhost:${PORT}/trimmed/${path.basename(outputPath)}`;
+    const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
     res.json({ combinedUrl });
 
   } catch (err) {
