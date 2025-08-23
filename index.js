@@ -2473,10 +2473,27 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
     console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ Track name:', track_name);
     console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhook_url || 'Not provided');
 
-    // Save original video temporarily
-    originalPath = path.join(tempDir, `original_${Date.now()}.mp4`);
-    await fsPromises.writeFile(originalPath, req.file.buffer);
+// 🔧 FIXED: Handle multer disk storage properly
+console.log('📁 Processing uploaded file...');
+console.log('📄 File path:', req.file.path);
+console.log('📊 File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
 
+// Check if file was saved to disk by multer
+if (req.file.path) {
+  // File is already on disk - use the existing path
+  originalPath = req.file.path;
+  console.log('✅ Using existing disk file:', originalPath);
+} else if (req.file.buffer) {
+  // File is in memory - save to disk
+  originalPath = path.join(tempDir, `original_${Date.now()}.mp4`);
+  await fsPromises.writeFile(originalPath, req.file.buffer);
+  console.log('✅ Saved buffer to disk:', originalPath);
+} else {
+  throw new Error('No file data available - neither path nor buffer found');
+}
+
+// Add to cleanup list
+const filesToClean = [originalPath];
     // Extract segment timing
     const start = parseInt(video_start);
     const end = parseInt(video_end);
