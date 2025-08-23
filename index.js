@@ -8790,21 +8790,13 @@ await new Promise((resolve, reject) => {
     });
     
   // Set timeout to prevent hanging (important for Render)
-  const timeout = setTimeout(() => {
-    clearInterval(memoryCheckInterval);
-    console.log('⏰ FFmpeg timeout - killing process');
-    if (ffmpegProcess) {
-      ffmpegProcess.kill('SIGKILL');
-    }
-    reject(new Error('Video processing timeout (60s limit for memory protection)'));
-  }, 60000); // 60 second timeout
+// 60 second timeout
   
   // Start the process
   ffmpegProcess.run();
   
   // Clear timeout if process ends normally
-  ffmpegProcess.on('end', () => clearTimeout(timeout));
-  ffmpegProcess.on('error', () => clearTimeout(timeout));
+ 
 });
     // Remove original file to save disk space
     await fsPromises.unlink(originalPath);
