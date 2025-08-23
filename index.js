@@ -20,6 +20,37 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 const CLIPTUNE_API = 'https://nback-6gqw.onrender.com/api';
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const uploadDir = '/var/data/temp_videos';
+    try {
+      await fsPromises.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: function (req, file, cb) {
+    const timestamp = Date.now();
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `upload_${timestamp}_${sanitizedName}`);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { 
+    fileSize: 200 * 1024 * 1024, // 200MB limit for Render
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only video files are allowed'));
+    }
+  }
+});
 
 // Firebase Admin Set
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
@@ -8438,37 +8469,6 @@ app.post('/complete-checkout', async (req, res) => {
   }
 });
 
-const storage = multer.diskStorage({
-  destination: async function (req, file, cb) {
-    const uploadDir = '/var/data/temp_videos';
-    try {
-      await fsPromises.mkdir(uploadDir, { recursive: true });
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: function (req, file, cb) {
-    const timestamp = Date.now();
-    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, `upload_${timestamp}_${sanitizedName}`);
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: { 
-    fileSize: 200 * 1024 * 1024, // 200MB limit for Render
-    files: 1
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('video/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only video files are allowed'));
-    }
-  }
-});
 
 // Helper function for disk-based compression
 async function smartCompressVideoToDisk(inputPath, outputPath, targetSizeMB) {
