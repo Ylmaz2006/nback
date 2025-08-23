@@ -18,7 +18,7 @@ const admin = require('firebase-admin');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 const CLIPTUNE_API = 'https://nback-6gqw.onrender.com/api';
 
 // Firebase Admin Set
@@ -64,9 +64,9 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 // Temp directory setup
 const tempDir = path.join(__dirname, 'temp_videos');
 fsPromises.mkdir(tempDir, { recursive: true }).then(() => {
-  console.log(`Ã¢Å“â€¦ Temp directory ready: ${tempDir}`);
+  console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Temp directory ready: ${tempDir}`);
 }).catch(err => {
-  console.error("Ã¢ÂÅ’ Temp dir error:", err);
+  console.error("ÃƒÂ¢Ã‚ÂÃ…â€™ Temp dir error:", err);
   process.exit(1);
 });
 
@@ -119,10 +119,10 @@ app.post('/signup', async (req, res) => {
       paymentStatus
     });
 
-    // Ã¢Å“â€¦ NEW: If premium signup, retrieve and save the payment method
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: If premium signup, retrieve and save the payment method
     if (paymentIntentId) {
       try {
-        console.log('Ã°Å¸â€™Â³ Premium signup detected - saving payment method...');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â³ Premium signup detected - saving payment method...');
         
         // Retrieve the PaymentIntent to get the payment method
         const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
@@ -164,14 +164,14 @@ app.post('/signup', async (req, res) => {
             lastPaymentDate: new Date()
           };
 
-          console.log('Ã¢Å“â€¦ Payment method saved for premium signup:', {
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Payment method saved for premium signup:', {
             paymentMethodId: paymentMethod.id,
             cardBrand: card.brand,
             last4: card.last4
           });
         }
       } catch (paymentMethodError) {
-        console.error('Ã¢Å¡ Ã¯Â¸Â Failed to save payment method during signup:', paymentMethodError);
+        console.error('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Failed to save payment method during signup:', paymentMethodError);
         // Don't fail the entire signup, just log the error
       }
     }
@@ -179,8 +179,8 @@ app.post('/signup', async (req, res) => {
     await newUser.save();
 
     // Send verification email
-    const verificationLink = `https://nback-6gqw.onrender.com/api/verify-email/${verificationToken}`;
-
+    const verificationLink = `http://https://nback-6gqw.onrender.com/api/verify-email/${verificationToken}`;
+    
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -189,7 +189,7 @@ app.post('/signup', async (req, res) => {
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
           <h2 style="color: #333;">Welcome to SoundAI!</h2>
           <p>Thank you for signing up for a ${paymentStatus} account.</p>
-          ${paymentStatus === 'Premium' ? '<p>Ã°Å¸Å½â€° Your payment method has been saved for future billing.</p>' : ''}
+          ${paymentStatus === 'Premium' ? '<p>ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Your payment method has been saved for future billing.</p>' : ''}
           <p>Please click the button below to verify your email address:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationLink}" 
@@ -233,7 +233,7 @@ app.post('/check-credit-card', async (req, res) => {
   const { email } = req.body;
   
   try {
-    console.log('Ã°Å¸â€Â Checking credit card for user:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Checking credit card for user:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -258,7 +258,7 @@ app.post('/check-credit-card', async (req, res) => {
 
     const hasCreditCard = paymentMethods.data.length > 0;
     
-    console.log(`Ã¢Å“â€¦ Credit card check: ${hasCreditCard ? 'HAS' : 'NO'} cards for ${email}`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Credit card check: ${hasCreditCard ? 'HAS' : 'NO'} cards for ${email}`);
     
     res.json({ 
       hasCreditCard,
@@ -269,7 +269,7 @@ app.post('/check-credit-card', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error checking credit card:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error checking credit card:', error);
     res.status(500).json({ 
       error: 'Failed to check credit card status',
       details: error.message,
@@ -283,7 +283,7 @@ app.post('/upgrade-to-premium', async (req, res) => {
   const { email } = req.body;
   
   try {
-    console.log('Ã°Å¸Å¡â‚¬ Upgrading user to premium:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Upgrading user to premium:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -332,7 +332,7 @@ app.post('/upgrade-to-premium', async (req, res) => {
       user.lastPaymentIntentId = paymentIntent.id;
       await user.save();
 
-      console.log('Ã¢Å“â€¦ User upgraded to Premium successfully');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ User upgraded to Premium successfully');
       
       res.json({ 
         message: 'Successfully upgraded to Premium!',
@@ -340,7 +340,7 @@ app.post('/upgrade-to-premium', async (req, res) => {
         paymentIntentId: paymentIntent.id
       });
     } else {
-      console.warn('Ã¢Å¡ Ã¯Â¸Â Payment intent not succeeded:', paymentIntent.status);
+      console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Payment intent not succeeded:', paymentIntent.status);
       res.status(400).json({ 
         message: `Payment not completed. Status: ${paymentIntent.status}`,
         paymentStatus: paymentIntent.status
@@ -348,7 +348,7 @@ app.post('/upgrade-to-premium', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error upgrading to premium:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error upgrading to premium:', error);
     
     // Handle specific Stripe errors
     if (error.type === 'StripeCardError') {
@@ -390,7 +390,7 @@ app.post('/cancel-premium', async (req, res) => {
   const { email } = req.body;
   
   try {
-    console.log('Ã°Å¸Å¡Â« Canceling premium for user:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Canceling premium for user:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -409,7 +409,7 @@ app.post('/cancel-premium', async (req, res) => {
     user.paymentStatus = 'Free';
     await user.save();
 
-    console.log('Ã¢Å“â€¦ Premium subscription canceled successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Premium subscription canceled successfully');
     
     res.json({ 
       message: 'Premium subscription canceled successfully',
@@ -417,7 +417,7 @@ app.post('/cancel-premium', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error canceling premium:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error canceling premium:', error);
     res.status(500).json({ 
       message: 'Failed to cancel premium subscription',
       details: error.message
@@ -435,13 +435,13 @@ async function analyzeVideoSegmentsShared(videoBuffer, mimeType, options = {}) {
     } = options;
 
     if (showTerminalOutput) {
-      console.log('Ã°Å¸Å½Â¬ ===============================================');
-      console.log('Ã°Å¸Å½Â¬ SHARED SEGMENT ANALYSIS STARTING');
-      console.log('Ã°Å¸Å½Â¬ ===============================================');
-      console.log('Ã°Å¸â€œÅ  Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-      console.log('Ã°Å¸Å½Â¯ Analysis type:', analysisType);
-      console.log('Ã°Å¸â€œÂ Custom prompt:', customPrompt || 'None provided');
-      console.log('Ã°Å¸â€Â Detail level:', detailLevel);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ SHARED SEGMENT ANALYSIS STARTING');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Analysis type:', analysisType);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Custom prompt:', customPrompt || 'None provided');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Detail level:', detailLevel);
     }
 
     // Import Gemini utilities
@@ -483,7 +483,7 @@ async function analyzeVideoSegmentsShared(videoBuffer, mimeType, options = {}) {
     };
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in shared segment analysis:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in shared segment analysis:', error);
     return {
       success: false,
       segments: [],
@@ -502,24 +502,24 @@ async function analyzeVideoSegmentsShared(videoBuffer, mimeType, options = {}) {
  * @param {number} minRequests - Minimum number of POST requests to wait for (default: 3)
  * @returns {Promise<Object>} - The webhook data or null if not found
  */
-// Ã°Å¸Å¡Â¨ REPLACE your existing monitorWebhookForMusicGPT function in index.js with this FIXED version:
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ REPLACE your existing monitorWebhookForMusicGPT function in index.js with this FIXED version:
 
-// Ã¢Å“â€¦ REPLACE your existing monitorWebhookForMusicGPT function with this enhanced version
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REPLACE your existing monitorWebhookForMusicGPT function with this enhanced version
 // This version will display final timing recommendations at the end
 
-// Ã°Å¸Å¡Â¨ REPLACE your existing monitorWebhookForMusicGPT function in index.js with this ENHANCED version
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ REPLACE your existing monitorWebhookForMusicGPT function in index.js with this ENHANCED version
 // This version collects ALL 3 requests and finds MP3 URLs in any of them
 
 async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInterval = 10000, minRequests = 3) {
   const API_KEY = '563460a6-5c0b-4f4f-9240-2c714823510c';
   
-  console.log('🎵 ===============================================');
-  console.log('🎵 ENHANCED WEBHOOK MONITORING FOR ALL 3 MUSICGPT REQUESTS');
-  console.log('🎵 ===============================================');
-  console.log('🔑 Webhook Token:', webhookToken);
-  console.log('🔄 Max retries:', maxRetries);
-  console.log('⏰ Poll interval:', pollInterval / 1000, 'seconds');
-  console.log('🎯 Waiting for', minRequests, 'NEW POST requests (album cover + processing + final MP3)');
+  console.log('ðŸŽµ ===============================================');
+  console.log('ðŸŽµ ENHANCED WEBHOOK MONITORING FOR ALL 3 MUSICGPT REQUESTS');
+  console.log('ðŸŽµ ===============================================');
+  console.log('ðŸ”‘ Webhook Token:', webhookToken);
+  console.log('ðŸ”„ Max retries:', maxRetries);
+  console.log('â° Poll interval:', pollInterval / 1000, 'seconds');
+  console.log('ðŸŽ¯ Waiting for', minRequests, 'NEW POST requests (album cover + processing + final MP3)');
   
   const webhookApiUrl = `https://webhook.site/token/${webhookToken}/requests`;
   let seenRequestUuids = new Set();
@@ -533,7 +533,7 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
   };
   
   // Get baseline requests to mark as seen
-  console.log('\n🔍 Getting baseline requests...');
+  console.log('\nðŸ” Getting baseline requests...');
   try {
     const baselineResponse = await axios.get(webhookApiUrl, {
       timeout: 15000,
@@ -544,20 +544,20 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
       baselineResponse.data.data.forEach(request => {
         seenRequestUuids.add(request.uuid);
       });
-      console.log('✅ Marked', seenRequestUuids.size, 'existing requests as seen');
+      console.log('âœ… Marked', seenRequestUuids.size, 'existing requests as seen');
     }
   } catch (error) {
-    console.log('⚠️ Could not get baseline requests:', error.message);
+    console.log('âš ï¸ Could not get baseline requests:', error.message);
     if (error.response?.status === 401) {
-      console.log('🔑 Authentication failed - check API key');
+      console.log('ðŸ”‘ Authentication failed - check API key');
     }
   }
   
-  console.log('\n🎵 Starting monitoring for NEW requests...');
+  console.log('\nðŸŽµ Starting monitoring for NEW requests...');
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`\n🔍 Poll ${attempt}/${maxRetries} - Checking for NEW requests...`);
+      console.log(`\nðŸ” Poll ${attempt}/${maxRetries} - Checking for NEW requests...`);
       
       const response = await axios.get(webhookApiUrl, {
         timeout: 15000,
@@ -578,14 +578,14 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
         });
         
         if (newPostRequests.length > 0) {
-          console.log(`🎉 Found ${newPostRequests.length} NEW POST request(s)!`);
+          console.log(`ðŸŽ‰ Found ${newPostRequests.length} NEW POST request(s)!`);
           
           // Process each NEW request
           for (const request of newPostRequests) {
             try {
               const content = JSON.parse(request.content);
               
-              // 🎨 ENHANCED: Detect ANY MusicGPT-related request
+              // ðŸŽ¨ ENHANCED: Detect ANY MusicGPT-related request
               const isMusicGPTRequest = content.conversion_path || 
                                         content.audio_url || 
                                         content.task_id || 
@@ -615,66 +615,66 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
                 newMusicGPTRequests.push(newRequest);
                 seenRequestUuids.add(request.uuid);
                 
-                console.log(`\n🎵 ===============================================`);
-                console.log(`🎵 NEW MUSICGPT REQUEST #${newMusicGPTRequests.length} DETECTED!`);
-                console.log(`🎵 ===============================================`);
-                console.log('🕐 Time:', request.created_at);
-                console.log('🔑 UUID:', request.uuid);
-                console.log('📊 Size:', request.size, 'bytes');
+                console.log(`\nðŸŽµ ===============================================`);
+                console.log(`ðŸŽµ NEW MUSICGPT REQUEST #${newMusicGPTRequests.length} DETECTED!`);
+                console.log(`ðŸŽµ ===============================================`);
+                console.log('ðŸ• Time:', request.created_at);
+                console.log('ðŸ”‘ UUID:', request.uuid);
+                console.log('ðŸ“Š Size:', request.size, 'bytes');
                 
                 // Enhanced content logging
-                console.log('\n📄 REQUEST CONTENT:');
+                console.log('\nðŸ“„ REQUEST CONTENT:');
                 console.log('='.repeat(60));
                 console.log(JSON.stringify(content, null, 2));
                 console.log('='.repeat(60));
                 
-                // 🎨 ENHANCED: Check for different types of MusicGPT responses
-                console.log('\n🎵 CONTENT ANALYSIS:');
-                console.log('🎵 ===============================================');
+                // ðŸŽ¨ ENHANCED: Check for different types of MusicGPT responses
+                console.log('\nðŸŽµ CONTENT ANALYSIS:');
+                console.log('ðŸŽµ ===============================================');
                 
                 if (content.subtype === 'album_cover_generation') {
-                  console.log('🎨 REQUEST TYPE: Album Cover Generation');
-                  console.log('🖼️ Image path:', content.image_path || 'None');
-                  console.log('🎯 Task ID:', content.task_id || 'None');
+                  console.log('ðŸŽ¨ REQUEST TYPE: Album Cover Generation');
+                  console.log('ðŸ–¼ï¸ Image path:', content.image_path || 'None');
+                  console.log('ðŸŽ¯ Task ID:', content.task_id || 'None');
                 } else if (content.conversion_path || content.audio_url) {
-                  console.log('🎵 REQUEST TYPE: Audio File Ready!');
+                  console.log('ðŸŽµ REQUEST TYPE: Audio File Ready!');
                   const audioUrl = content.conversion_path || content.audio_url;
-                  console.log('🎵 ✅ MP3 URL FOUND:', audioUrl);
-                  console.log('⏱️ Duration:', content.conversion_duration || 'Unknown', 'seconds');
-                  console.log('🎼 Title:', content.title || 'Untitled');
+                  console.log('ðŸŽµ âœ… MP3 URL FOUND:', audioUrl);
+                  console.log('â±ï¸ Duration:', content.conversion_duration || 'Unknown', 'seconds');
+                  console.log('ðŸŽ¼ Title:', content.title || 'Untitled');
                 } else if (content.task_id || content.conversion_id) {
-                  console.log('🔄 REQUEST TYPE: Processing Status');
-                  console.log('🎯 Task ID:', content.task_id || content.conversion_id);
-                  console.log('📊 Status:', content.status || 'Processing');
+                  console.log('ðŸ”„ REQUEST TYPE: Processing Status');
+                  console.log('ðŸŽ¯ Task ID:', content.task_id || content.conversion_id);
+                  console.log('ðŸ“Š Status:', content.status || 'Processing');
                 } else {
-                  console.log('❓ REQUEST TYPE: Unknown MusicGPT Response');
-                  console.log('🔍 Available fields:', Object.keys(content).join(', '));
+                  console.log('â“ REQUEST TYPE: Unknown MusicGPT Response');
+                  console.log('ðŸ” Available fields:', Object.keys(content).join(', '));
                 }
                 
-                console.log(`⏳ Progress: ${newMusicGPTRequests.length}/${minRequests} NEW requests`);
+                console.log(`â³ Progress: ${newMusicGPTRequests.length}/${minRequests} NEW requests`);
                 
-                // 🎨 CONTINUE COLLECTING until we reach minRequests
+                // ðŸŽ¨ CONTINUE COLLECTING until we reach minRequests
                 if (newMusicGPTRequests.length >= minRequests) {
-                  console.log(`\n🎯 ===============================================`);
-                  console.log(`🎯 COLLECTED ${minRequests} NEW REQUESTS!`);
-                  console.log(`🎯 ===============================================`);
+                  console.log(`\nðŸŽ¯ ===============================================`);
+                  console.log(`ðŸŽ¯ COLLECTED ${minRequests} NEW REQUESTS!`);
+                  console.log(`ðŸŽ¯ ===============================================`);
                   
-                  // 🎨 ENHANCED: Extract MP3 files from ALL collected requests
+                  // ðŸŽ¨ ENHANCED: Extract MP3 files from ALL collected requests
                   const mp3Files = extractMP3FilesFromAllRequests(newMusicGPTRequests);
                   
-                  console.log(`📊 Total MP3 files found across all requests: ${mp3Files.length}`);
+                  console.log(`ðŸ“Š Total MP3 files found across all requests: ${mp3Files.length}`);
                   
                   if (mp3Files.length > 0) {
-                    // 🎨 SUCCESS: Found MP3 file(s) in collected requests
+                    // ðŸŽ¨ SUCCESS: Found MP3 file(s) in collected requests
                     const primaryMp3 = mp3Files[0]; // Use the first MP3 found
                     
-                    console.log('\n🎵 ===============================================');
-                    console.log('🎵 MP3 FILE FOUND IN COLLECTED REQUESTS!');
-                    console.log('🎵 ===============================================');
-                    console.log('🎵 Primary MP3 URL:', primaryMp3.url);
-                    console.log('🎼 Title:', primaryMp3.title);
-                    console.log('⏱️ Duration:', primaryMp3.mp3Duration, 'seconds');
-                    console.log(`📊 Found in request #${primaryMp3.requestNumber} of ${newMusicGPTRequests.length}`);
+                    console.log('\nðŸŽµ ===============================================');
+                    console.log('ðŸŽµ MP3 FILE FOUND IN COLLECTED REQUESTS!');
+                    console.log('ðŸŽµ ===============================================');
+                    console.log('ðŸŽµ Primary MP3 URL:', primaryMp3.url);
+                    console.log('ðŸŽ¼ Title:', primaryMp3.title);
+                    console.log('â±ï¸ Duration:', primaryMp3.mp3Duration, 'seconds');
+                    console.log(`ðŸ“Š Found in request #${primaryMp3.requestNumber} of ${newMusicGPTRequests.length}`);
                     
                     return {
                       success: true,
@@ -686,71 +686,71 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
                       totalRequestsFound: newMusicGPTRequests.length,
                       onlyNewRequests: true,
                       mp3Files: mp3Files,
-                      allMP3Files: mp3Files  // 🎨 IMPORTANT: Include all MP3 files
+                      allMP3Files: mp3Files  // ðŸŽ¨ IMPORTANT: Include all MP3 files
                     };
                   } else {
-                    // 🎨 NO MP3 found yet - continue collecting more requests
-                    console.log(`⚠️ No MP3 URLs found in ${newMusicGPTRequests.length} requests yet, continuing...`);
+                    // ðŸŽ¨ NO MP3 found yet - continue collecting more requests
+                    console.log(`âš ï¸ No MP3 URLs found in ${newMusicGPTRequests.length} requests yet, continuing...`);
                     
-                    // 🎨 OPTIONAL: Increase minRequests if no MP3 found
+                    // ðŸŽ¨ OPTIONAL: Increase minRequests if no MP3 found
                     if (newMusicGPTRequests.length >= 5) {
-                      console.log('⚠️ Already collected 5+ requests with no MP3 - something may be wrong');
+                      console.log('âš ï¸ Already collected 5+ requests with no MP3 - something may be wrong');
                       break;
                     }
                   }
                 }
               } else {
-                console.log('⚠️ Non-MusicGPT request detected, skipping');
+                console.log('âš ï¸ Non-MusicGPT request detected, skipping');
               }
             } catch (parseError) {
-              console.log('⚠️ Could not parse request content:', parseError.message);
+              console.log('âš ï¸ Could not parse request content:', parseError.message);
             }
           }
         } else {
-          console.log('🔍 No NEW requests found');
+          console.log('ðŸ” No NEW requests found');
         }
       } else {
-        console.log('🔍 No requests at all');
+        console.log('ðŸ” No requests at all');
       }
       
       if (attempt < maxRetries) {
-        console.log(`⏳ Waiting ${pollInterval / 1000}s for next check... (${newMusicGPTRequests.length}/${minRequests})`);
+        console.log(`â³ Waiting ${pollInterval / 1000}s for next check... (${newMusicGPTRequests.length}/${minRequests})`);
         await new Promise(resolve => setTimeout(resolve, pollInterval));
       }
       
     } catch (error) {
-      console.error(`❌ Webhook polling error (attempt ${attempt}):`, error.message);
+      console.error(`âŒ Webhook polling error (attempt ${attempt}):`, error.message);
       
       if (error.response?.status === 401) {
-        console.error('🔑 Authentication failed - check API key');
+        console.error('ðŸ”‘ Authentication failed - check API key');
       } else if (error.response?.status === 404) {
-        console.error('🔍 Webhook token not found');
+        console.error('ðŸ” Webhook token not found');
       }
       
       if (attempt < maxRetries) {
-        console.log(`🔄 Retrying in ${pollInterval / 1000} seconds...`);
+        console.log(`ðŸ”„ Retrying in ${pollInterval / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, pollInterval));
       }
     }
   }
   
-  console.log('\n⏰ ===============================================');
-  console.log('⏰ WEBHOOK MONITORING TIMEOUT');
-  console.log('⏰ ===============================================');
-  console.log(`❌ Collected ${newMusicGPTRequests.length}/${minRequests} requests`);
+  console.log('\nâ° ===============================================');
+  console.log('â° WEBHOOK MONITORING TIMEOUT');
+  console.log('â° ===============================================');
+  console.log(`âŒ Collected ${newMusicGPTRequests.length}/${minRequests} requests`);
   
-  // 🎨 ENHANCED: Even on timeout, show what we collected and check for MP3s
+  // ðŸŽ¨ ENHANCED: Even on timeout, show what we collected and check for MP3s
   if (newMusicGPTRequests.length > 0) {
     const mp3Files = extractMP3FilesFromAllRequests(newMusicGPTRequests);
-    console.log(`🎵 Partial collection: ${mp3Files.length} MP3 files found`);
+    console.log(`ðŸŽµ Partial collection: ${mp3Files.length} MP3 files found`);
     
     if (mp3Files.length > 0) {
-      console.log('\n🎵 PARTIAL MP3 COLLECTION:');
+      console.log('\nðŸŽµ PARTIAL MP3 COLLECTION:');
       mp3Files.forEach((mp3, index) => {
         console.log(`${index + 1}. "${mp3.title}" - ${mp3.url}`);
       });
       
-      // 🎨 RETURN SUCCESS if we found MP3s even on timeout
+      // ðŸŽ¨ RETURN SUCCESS if we found MP3s even on timeout
       return {
         success: true,
         webhookData: mp3Files[0].originalContent,
@@ -774,22 +774,22 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
     mp3Files: extractMP3FilesFromAllRequests(newMusicGPTRequests)
   };
 }
-// Ã°Å¸Å¡Â¨ ENHANCED: Extract MP3 files from ALL collected requests
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED: Extract MP3 files from ALL collected requests
 function extractMP3FilesFromAllRequests(requests) {
   const mp3Files = [];
   
-  console.log('\nÃ°Å¸Å½Âµ ===============================================');
-  console.log('Ã°Å¸Å½Âµ EXTRACTING MP3 FILES FROM ALL WEBHOOK REQUESTS');
-  console.log('Ã°Å¸Å½Âµ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING MP3 FILES FROM ALL WEBHOOK REQUESTS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
   
   requests.forEach((request, index) => {
     const content = request.content;
     
-    console.log(`\nÃ°Å¸â€Â Checking request #${index + 1}:`);
+    console.log(`\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Checking request #${index + 1}:`);
     console.log(`   Type: ${content.subtype || content.conversion_type || 'Unknown'}`);
     console.log(`   UUID: ${request.requestInfo.uuid}`);
     
-    // Ã°Å¸Å¡Â¨ ENHANCED: Check multiple possible audio URL fields
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED: Check multiple possible audio URL fields
     const audioFields = [
       'conversion_path',
       'audio_url', 
@@ -828,7 +828,7 @@ function extractMP3FilesFromAllRequests(requests) {
         // Keep original content for reference
         originalContent: content,
         requestInfo: request.requestInfo,
-        // Ã¢Å“â€¦ NEW: Add timing metadata for full video coverage
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Add timing metadata for full video coverage
         suggestedStartTime: 0,
         suggestedEndTime: null, // Will be set to video duration
         placementType: 'FULL_VIDEO_BACKGROUND'
@@ -836,35 +836,35 @@ function extractMP3FilesFromAllRequests(requests) {
       
       mp3Files.push(mp3File);
       
-      console.log(`Ã°Å¸Å½Âµ Ã¢Å“â€¦ FOUND MP3 #${index + 1}:`);
-      console.log(`   Ã°Å¸Å½Â¼ Title: "${mp3File.title}"`);
-      console.log(`   Ã°Å¸â€â€” URL: ${mp3File.url}`);
-      console.log(`   Ã°Å¸â€œÅ  Found in field: ${foundField}`);
-      console.log(`   Ã¢ÂÂ±Ã¯Â¸Â Duration: ${mp3File.mp3Duration || 'Unknown'} seconds`);
-      console.log(`   Ã°Å¸â€œâ€¦ Generated: ${mp3File.timestamp}`);
-      console.log(`   Ã°Å¸Å½Â¯ Suggested Placement: Full video background (0s to end)`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FOUND MP3 #${index + 1}:`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ Title: "${mp3File.title}"`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ URL: ${mp3File.url}`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Found in field: ${foundField}`);
+      console.log(`   ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Duration: ${mp3File.mp3Duration || 'Unknown'} seconds`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ Generated: ${mp3File.timestamp}`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Suggested Placement: Full video background (0s to end)`);
       
     } else {
-      console.log(`   Ã¢ÂÅ’ No MP3 URL found in request #${index + 1}`);
-      console.log(`   Ã°Å¸â€Â Available fields: ${Object.keys(content).join(', ')}`);
+      console.log(`   ÃƒÂ¢Ã‚ÂÃ…â€™ No MP3 URL found in request #${index + 1}`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Available fields: ${Object.keys(content).join(', ')}`);
     }
     
     console.log('   ---');
   });
   
-  console.log(`Ã°Å¸â€œÅ  Total MP3 files extracted: ${mp3Files.length} from ${requests.length} requests`);
-  console.log('Ã°Å¸Å½Âµ ===============================================\n');
+  console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total MP3 files extracted: ${mp3Files.length} from ${requests.length} requests`);
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================\n');
   
   return mp3Files;
 }
 
-// Ã¢Å“â€¦ ENHANCED: Update your extractMP3FilesFromRequests function to include more metadata
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Update your extractMP3FilesFromRequests function to include more metadata
 function extractMP3FilesFromRequests(requests) {
   const mp3Files = [];
   
-  console.log('\nÃ°Å¸Å½Âµ ===============================================');
-  console.log('Ã°Å¸Å½Âµ EXTRACTING MP3 FILES FROM WEBHOOK REQUESTS');
-  console.log('Ã°Å¸Å½Âµ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING MP3 FILES FROM WEBHOOK REQUESTS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
   
   requests.forEach((request, index) => {
     const content = request.content;
@@ -884,7 +884,7 @@ function extractMP3FilesFromRequests(requests) {
         albumCover: content.album_cover_path || null,
         isFlagged: content.is_flagged || false,
         taskId: content.task_id || content.conversion_id || null,
-        // Ã¢Å“â€¦ NEW: Add timing metadata for full video coverage
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Add timing metadata for full video coverage
         suggestedStartTime: 0,
         suggestedEndTime: null, // Will be set to video duration
         placementType: 'FULL_VIDEO_BACKGROUND'
@@ -892,73 +892,73 @@ function extractMP3FilesFromRequests(requests) {
       
       mp3Files.push(mp3File);
       
-      console.log(`Ã°Å¸Å½Âµ Extracted MP3 #${index + 1}:`);
-      console.log(`   Ã°Å¸Å½Â¼ Title: "${mp3File.title}"`);
-      console.log(`   Ã°Å¸â€â€” URL: ${mp3File.url}`);
-      console.log(`   Ã¢ÂÂ±Ã¯Â¸Â Duration: ${mp3File.mp3Duration || 'Unknown'} seconds`);
-      console.log(`   Ã°Å¸â€œâ€¦ Generated: ${mp3File.timestamp}`);
-      console.log(`   Ã°Å¸Å½Â¯ Suggested Placement: Full video background (0s to end)`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Extracted MP3 #${index + 1}:`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ Title: "${mp3File.title}"`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ URL: ${mp3File.url}`);
+      console.log(`   ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Duration: ${mp3File.mp3Duration || 'Unknown'} seconds`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ Generated: ${mp3File.timestamp}`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Suggested Placement: Full video background (0s to end)`);
       console.log('   ---');
     }
   });
   
-  console.log(`Ã°Å¸â€œÅ  Total MP3 files extracted: ${mp3Files.length}`);
-  console.log('Ã°Å¸Å½Âµ ===============================================\n');
+  console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total MP3 files extracted: ${mp3Files.length}`);
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================\n');
   
   return mp3Files;
 }
 
-// Ã¢Å“â€¦ ADD this function to your main endpoint's success section
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADD this function to your main endpoint's success section
 // Insert this right before your final res.json() response:
 
 function displayWebhookTimingResults(musicResult, videoDurationSeconds) {
   if (!musicResult || !musicResult.allMP3Files) {
-    console.log('Ã¢Å¡ Ã¯Â¸Â No music result or MP3 files to display timing for');
+    console.log('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â No music result or MP3 files to display timing for');
     return;
   }
 
-  console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-  console.log('Ã°Å¸Å½Â¼ FINAL WEBHOOK TIMING RECOMMENDATIONS');
-  console.log('Ã°Å¸Å½Â¼ ===============================================');
-  console.log(`Ã°Å¸Å½Â¬ Video Duration: ${videoDurationSeconds} seconds`);
-  console.log(`Ã°Å¸Å½Âµ Total Tracks Generated: ${musicResult.allMP3Files.length}`);
-  console.log('Ã°Å¸â€œâ€¹ All tracks will cover the COMPLETE video duration');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ FINAL WEBHOOK TIMING RECOMMENDATIONS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ Video Duration: ${videoDurationSeconds} seconds`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total Tracks Generated: ${musicResult.allMP3Files.length}`);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ All tracks will cover the COMPLETE video duration');
   
-  console.log('\nÃ°Å¸â€œÅ  TRACK TIMING DETAILS:');
-  console.log('Ã°Å¸â€œÅ  ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  TRACK TIMING DETAILS:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================');
 
   musicResult.allMP3Files.forEach((track, index) => {
     const trackNumber = index + 1;
     const startTime = 0;
     const endTime = videoDurationSeconds;
     
-    console.log(`\nÃ°Å¸Å½Âµ TRACK ${trackNumber}: "${track.title}"`);
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log(`Ã°Å¸â€œÂ START TIME: ${startTime} seconds`);
-    console.log(`Ã°Å¸ÂÂ END TIME: ${endTime} seconds`);
-    console.log(`Ã¢ÂÂ±Ã¯Â¸Â DURATION: ${endTime - startTime} seconds (FULL VIDEO)`);
-    console.log(`Ã°Å¸Å½Â¼ SONG NAME: "${track.title}"`);
-    console.log(`Ã°Å¸â€â€” MP3 URL: ${track.url}`);
-    console.log(`Ã°Å¸Å½Âµ ORIGINAL MP3 LENGTH: ${track.mp3Duration || 'Unknown'} seconds`);
-    console.log(`Ã°Å¸â€œâ€¦ GENERATED AT: ${track.timestamp}`);
-    console.log(`Ã°Å¸Å½Â¯ PLACEMENT: Full video background music`);
-    console.log(`Ã¢Å“â€¦ COVERAGE: Complete ${videoDurationSeconds}s video duration`);
-    console.log('Ã°Å¸Å½Âµ ===============================================');
+    console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ TRACK ${trackNumber}: "${track.title}"`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â START TIME: ${startTime} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â END TIME: ${endTime} seconds`);
+    console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â DURATION: ${endTime - startTime} seconds (FULL VIDEO)`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ SONG NAME: "${track.title}"`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ MP3 URL: ${track.url}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ORIGINAL MP3 LENGTH: ${track.mp3Duration || 'Unknown'} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ GENERATED AT: ${track.timestamp}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ PLACEMENT: Full video background music`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ COVERAGE: Complete ${videoDurationSeconds}s video duration`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
   });
 
-  console.log('\nÃ°Å¸â€œâ€¹ QUICK REFERENCE - COPY THIS:');
-  console.log('Ã°Å¸â€œâ€¹ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ QUICK REFERENCE - COPY THIS:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
   musicResult.allMP3Files.forEach((track, index) => {
     console.log(`Track ${index + 1}: "${track.title}" | 0s-${videoDurationSeconds}s | ${track.url}`);
   });
-  console.log('Ã°Å¸â€œâ€¹ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
   
-  console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-  console.log('Ã°Å¸Å½Â¼ END OF WEBHOOK TIMING RECOMMENDATIONS');
-  console.log('Ã°Å¸Å½Â¼ ===============================================\n');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ END OF WEBHOOK TIMING RECOMMENDATIONS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================\n');
 }
 
-// Ã¢Å“â€¦ IN YOUR MAIN ENDPOINT: Add this right before res.json():
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ IN YOUR MAIN ENDPOINT: Add this right before res.json():
 /*
     // Just before your res.json() call, add:
     
@@ -970,7 +970,7 @@ function displayWebhookTimingResults(musicResult, videoDurationSeconds) {
     // Then your existing res.json()...
 */
 
-// Ã°Å¸Å¡Â¨ NEW: Extract MP3 files from webhook requests
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Extract MP3 files from webhook requests
 function extractMP3FilesFromRequests(requests) {
   const mp3Files = [];
   
@@ -994,13 +994,13 @@ function extractMP3FilesFromRequests(requests) {
         taskId: content.task_id || content.conversion_id || null
       });
       
-      console.log(`Ã°Å¸Å½Âµ Extracted MP3 #${index + 1}: ${content.title || 'Untitled'}`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Extracted MP3 #${index + 1}: ${content.title || 'Untitled'}`);
       console.log(`   URL: ${mp3Url}`);
       console.log(`   Duration: ${content.conversion_duration || 'Unknown'}s`);
     }
   });
   
-  console.log(`Ã°Å¸â€œÅ  Total MP3 files extracted: ${mp3Files.length}`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total MP3 files extracted: ${mp3Files.length}`);
   return mp3Files;
 }
 
@@ -1038,18 +1038,18 @@ function extractWebhookToken(webhookUrl) {
  * @param {Array} mp3Files - Array of MP3 file objects
  * @returns {Array} - Array of timing recommendations
  */
-// Ã°Å¸Å¡Â¨ REPLACE your existing extractTimingFromAnalysis function in index.js with this FIXED version:
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ REPLACE your existing extractTimingFromAnalysis function in index.js with this FIXED version:
 
-// Ã¢Å“â€¦ CRITICAL FIX: Replace your existing extractTimingFromAnalysis function in index.js with this:
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL FIX: Replace your existing extractTimingFromAnalysis function in index.js with this:
 
-// Ã¢Å“â€¦ FIXED VERSION - Replace the extractTimingFromAnalysis function in your index.js
-// Ã¢Å“â€¦ REPLACE your extractTimingFromAnalysis function with this enhanced version
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED VERSION - Replace the extractTimingFromAnalysis function in your index.js
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REPLACE your extractTimingFromAnalysis function with this enhanced version
 // This version extracts the ACTUAL start/end times from Gemini's analysis
 
 
 
 
-// Ã¢Å“â€¦ IN YOUR MAIN ENDPOINT: Replace the existing timing display with this simple version
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ IN YOUR MAIN ENDPOINT: Replace the existing timing display with this simple version
 // Find this section in your /api/analyze-gcs-video-for-music-with-generation endpoint:
 
 /*
@@ -1061,66 +1061,66 @@ function extractWebhookToken(webhookUrl) {
     }
 */
 
-// Ã¢Å“â€¦ REPLACE it with this simpler version:
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REPLACE it with this simpler version:
 
     // Show ONLY the final Gemini timing at the very end
     
-// Ã¢Å“â€¦ ADD this function to display final timing summary
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADD this function to display final timing summary
 
 
-// Ã¢Å“â€¦ ADD this function to display webhook timing results
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADD this function to display webhook timing results
 function displayWebhookTimingResults(musicResult, videoDurationSeconds) {
   if (!musicResult || !musicResult.allMP3Files) {
-    console.log('Ã¢Å¡ Ã¯Â¸Â No music result or MP3 files to display timing for');
+    console.log('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â No music result or MP3 files to display timing for');
     return;
   }
 
-  console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-  console.log('Ã°Å¸Å½Â¼ FINAL WEBHOOK TIMING RECOMMENDATIONS');
-  console.log('Ã°Å¸Å½Â¼ ===============================================');
-  console.log(`Ã°Å¸Å½Â¬ Video Duration: ${videoDurationSeconds} seconds`);
-  console.log(`Ã°Å¸Å½Âµ Total Tracks Generated: ${musicResult.allMP3Files.length}`);
-  console.log('Ã°Å¸â€œâ€¹ All tracks will cover the COMPLETE video duration');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ FINAL WEBHOOK TIMING RECOMMENDATIONS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ Video Duration: ${videoDurationSeconds} seconds`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total Tracks Generated: ${musicResult.allMP3Files.length}`);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ All tracks will cover the COMPLETE video duration');
   
-  console.log('\nÃ°Å¸â€œÅ  TRACK TIMING DETAILS:');
-  console.log('Ã°Å¸â€œÅ  ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  TRACK TIMING DETAILS:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================');
 
   musicResult.allMP3Files.forEach((track, index) => {
     const trackNumber = index + 1;
     const startTime = 0;
     const endTime = videoDurationSeconds;
     
-    console.log(`\nÃ°Å¸Å½Âµ TRACK ${trackNumber}: "${track.title}"`);
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log(`Ã°Å¸â€œÂ START TIME: ${startTime} seconds`);
-    console.log(`Ã°Å¸ÂÂ END TIME: ${endTime} seconds`);
-    console.log(`Ã¢ÂÂ±Ã¯Â¸Â DURATION: ${endTime - startTime} seconds (FULL VIDEO)`);
-    console.log(`Ã°Å¸Å½Â¼ SONG NAME: "${track.title}"`);
-    console.log(`Ã°Å¸â€â€” MP3 URL: ${track.url}`);
-    console.log(`Ã°Å¸Å½Âµ ORIGINAL MP3 LENGTH: ${track.mp3Duration || 'Unknown'} seconds`);
-    console.log(`Ã°Å¸â€œâ€¦ GENERATED AT: ${track.timestamp}`);
-    console.log(`Ã°Å¸Å½Â¯ PLACEMENT: Full video background music`);
-    console.log(`Ã¢Å“â€¦ COVERAGE: Complete ${videoDurationSeconds}s video duration`);
-    console.log('Ã°Å¸Å½Âµ ===============================================');
+    console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ TRACK ${trackNumber}: "${track.title}"`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â START TIME: ${startTime} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â END TIME: ${endTime} seconds`);
+    console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â DURATION: ${endTime - startTime} seconds (FULL VIDEO)`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ SONG NAME: "${track.title}"`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ MP3 URL: ${track.url}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ORIGINAL MP3 LENGTH: ${track.mp3Duration || 'Unknown'} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ GENERATED AT: ${track.timestamp}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ PLACEMENT: Full video background music`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ COVERAGE: Complete ${videoDurationSeconds}s video duration`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
   });
 
-  console.log('\nÃ°Å¸â€œâ€¹ QUICK REFERENCE - COPY THIS:');
-  console.log('Ã°Å¸â€œâ€¹ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ QUICK REFERENCE - COPY THIS:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
   musicResult.allMP3Files.forEach((track, index) => {
     console.log(`Track ${index + 1}: "${track.title}" | 0s-${videoDurationSeconds}s | ${track.url}`);
   });
-  console.log('Ã°Å¸â€œâ€¹ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
   
-  console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-  console.log('Ã°Å¸Å½Â¼ END OF WEBHOOK TIMING RECOMMENDATIONS');
-  console.log('Ã°Å¸Å½Â¼ ===============================================\n');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ END OF WEBHOOK TIMING RECOMMENDATIONS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================\n');
 }
 // ===============================================
 // ENHANCED ENDPOINT - REPLACE YOUR EXISTING ONE
 // ===============================================
 // Add this endpoint to your index.js file
 
-// Ã°Å¸Å½Â¬ NEW: Analyze video for optimal music placement segments
+// ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ NEW: Analyze video for optimal music placement segments
 app.post('/api/analyze-video-music-segments', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -1132,12 +1132,12 @@ app.post('/api/analyze-video-music-segments', upload.single('video'), async (req
 
     const { customPrompt = '' } = req.body;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ VIDEO MUSIC SEGMENTATION ANALYSIS REQUEST');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
-    console.log('Ã°Å¸â€œÂ Custom prompt:', customPrompt || 'None provided');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ VIDEO MUSIC SEGMENTATION ANALYSIS REQUEST');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Custom prompt:', customPrompt || 'None provided');
 
     // Import the music segmentation function
     const { analyzeVideoForMusicSegments } = require('./gemini-utils');
@@ -1150,15 +1150,15 @@ app.post('/api/analyze-video-music-segments', upload.single('video'), async (req
     );
 
     if (segmentationResult.success) {
-      console.log('\nÃ°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸Å½â€° MUSIC SEGMENTATION ANALYSIS COMPLETED');
-      console.log('Ã°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸â€œÅ  Total music segments found:', segmentationResult.totalSegments);
-      console.log('Ã¢ÂÂ±Ã¯Â¸Â Processing time:', segmentationResult.processingTime);
+      console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSIC SEGMENTATION ANALYSIS COMPLETED');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total music segments found:', segmentationResult.totalSegments);
+      console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Processing time:', segmentationResult.processingTime);
       
       // Log segment summary
       if (segmentationResult.musicSegments.length > 0) {
-        console.log('\nÃ°Å¸â€œâ€¹ SEGMENT SUMMARY:');
+        console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ SEGMENT SUMMARY:');
         segmentationResult.musicSegments.forEach((segment, index) => {
           console.log(`   ${index + 1}. ${segment.start}s-${segment.end}s: ${segment.type} (${segment.intensity})`);
         });
@@ -1184,7 +1184,7 @@ app.post('/api/analyze-video-music-segments', upload.single('video'), async (req
       });
 
     } else {
-      console.error('Ã¢ÂÅ’ Music segmentation analysis failed:', segmentationResult.error);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Music segmentation analysis failed:', segmentationResult.error);
       
       res.status(500).json({
         success: false,
@@ -1195,7 +1195,7 @@ app.post('/api/analyze-video-music-segments', upload.single('video'), async (req
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in music segmentation endpoint:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in music segmentation endpoint:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to perform video music segmentation analysis',
@@ -1204,7 +1204,7 @@ app.post('/api/analyze-video-music-segments', upload.single('video'), async (req
   }
 });
 
-// Ã°Å¸Å’Â NEW: Analyze GCS video for music segments
+// ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â NEW: Analyze GCS video for music segments
 app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
   try {
     const { 
@@ -1222,11 +1222,11 @@ app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
 
     const videoUrl = publicUrl || gcsUrl;
 
-    console.log('Ã°Å¸Å’Â ===============================================');
-    console.log('Ã°Å¸Å’Â GCS VIDEO MUSIC SEGMENTATION ANALYSIS REQUEST');
-    console.log('Ã°Å¸Å’Â ===============================================');
-    console.log('Ã°Å¸â€â€” Video URL:', videoUrl);
-    console.log('Ã°Å¸â€œÂ Custom prompt:', customPrompt || 'None provided');
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â GCS VIDEO MUSIC SEGMENTATION ANALYSIS REQUEST');
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', videoUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Custom prompt:', customPrompt || 'None provided');
 
     // Import the GCS music segmentation function
     const { analyzeGCSVideoForMusicSegments } = require('./gemini-utils');
@@ -1235,12 +1235,12 @@ app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
     const segmentationResult = await analyzeGCSVideoForMusicSegments(videoUrl, { customPrompt });
 
     if (segmentationResult.success) {
-      console.log('\nÃ°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸Å½â€° GCS MUSIC SEGMENTATION ANALYSIS COMPLETED');
-      console.log('Ã°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸â€œÅ  Total music segments found:', segmentationResult.totalSegments);
-      console.log('Ã¢ÂÂ±Ã¯Â¸Â Processing time:', segmentationResult.processingTime);
-      console.log('Ã°Å¸â€œÂ Source file:', segmentationResult.sourceFile);
+      console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° GCS MUSIC SEGMENTATION ANALYSIS COMPLETED');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total music segments found:', segmentationResult.totalSegments);
+      console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Processing time:', segmentationResult.processingTime);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Source file:', segmentationResult.sourceFile);
 
       res.json({
         success: true,
@@ -1259,7 +1259,7 @@ app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
       });
 
     } else {
-      console.error('Ã¢ÂÅ’ GCS music segmentation analysis failed:', segmentationResult.error);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ GCS music segmentation analysis failed:', segmentationResult.error);
       
       const statusCode = segmentationResult.error.includes('404') ? 404 :
                         segmentationResult.error.includes('403') ? 403 : 500;
@@ -1274,7 +1274,7 @@ app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in GCS music segmentation endpoint:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in GCS music segmentation endpoint:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to perform GCS video music segmentation analysis',
@@ -1283,14 +1283,14 @@ app.post('/api/analyze-gcs-video-music-segments', async (req, res) => {
   }
 });
 
-// Ã°Å¸Â§Âª NEW: Test music segmentation with sample video
+// ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª NEW: Test music segmentation with sample video
 app.post('/api/test-music-segmentation', async (req, res) => {
   try {
     const { testPrompt = '' } = req.body;
 
-    console.log('Ã°Å¸Â§Âª ===============================================');
-    console.log('Ã°Å¸Â§Âª TESTING MUSIC SEGMENTATION FUNCTIONALITY');
-    console.log('Ã°Å¸Â§Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª TESTING MUSIC SEGMENTATION FUNCTIONALITY');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
 
     // This is a test endpoint that explains the functionality
     const sampleResponse = {
@@ -1336,7 +1336,7 @@ app.post('/api/test-music-segmentation', async (req, res) => {
     res.json(sampleResponse);
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in test music segmentation endpoint:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in test music segmentation endpoint:', error);
     res.status(500).json({
       success: false,
       error: 'Test endpoint error',
@@ -1346,30 +1346,30 @@ app.post('/api/test-music-segmentation', async (req, res) => {
 });
 // Find and REPLACE your existing /api/analyze-gcs-video-for-music-with-generation endpoint with this:
 // REPLACE your existing /api/analyze-gcs-video-for-music-with-generation endpoint with this enhanced version
-// Ã¢Å“â€¦ CORRECT ORDER: Dual Analysis Ã¢â€ â€™ Main Music + Webhook Ã¢â€ â€™ Segmentation Ã¢â€ â€™ Segment Music Ã¢â€ â€™ Final Analysis
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CORRECT ORDER: Dual Analysis ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Main Music + Webhook ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Segmentation ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Segment Music ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Final Analysis
 
-// Ã¢Å“â€¦ COMPLETE /api/analyze-gcs-video-for-music-with-generation ENDPOINT
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ COMPLETE /api/analyze-gcs-video-for-music-with-generation ENDPOINT
 // Replace your existing endpoint with this complete version
 
 
 // ===============================================
 // BONUS: Standalone webhook monitoring endpoint
 // ===============================================
-// Ã¢Å“â€¦ STEP 1: Add this function to your index.js file (before your endpoints)
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ STEP 1: Add this function to your index.js file (before your endpoints)
 
-// Ã°Å¸Å¡Â¨ PROBLEM: Backend ignores Gemini timing recommendations and uses default values
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ PROBLEM: Backend ignores Gemini timing recommendations and uses default values
 // GEMINI SAYS: Track 1: 10-30s, Track 2: 35-55s  
 // BACKEND RETURNS: Both tracks 0:00-0:20 (WRONG!)
 
-// Ã°Å¸Å¡Â¨ SOLUTION: Extract timing from Gemini analysis text
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ SOLUTION: Extract timing from Gemini analysis text
 
 // 1. ADD THIS TIMING EXTRACTION FUNCTION TO YOUR BACKEND
-// Ã°Å¸Å¡Â¨ FIXED TIMING EXTRACTION FUNCTION FOR YOUR SPECIFIC GEMINI FORMAT
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FIXED TIMING EXTRACTION FUNCTION FOR YOUR SPECIFIC GEMINI FORMAT
 
 function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
-  console.log('Ã°Å¸Å½Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
-  console.log('Ã°Å¸â€œâ€ž Analysis text length:', analysisText.length);
-  console.log('Ã°Å¸â€œâ€ž First 500 chars:', analysisText.substring(0, 500));
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis text length:', analysisText.length);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ First 500 chars:', analysisText.substring(0, 500));
   
   const recommendations = [];
   
@@ -1381,7 +1381,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
     
-    // Ã°Å¸Å¡Â¨ NEW PATTERNS FOR YOUR GEMINI FORMAT:
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW PATTERNS FOR YOUR GEMINI FORMAT:
     // Looking for patterns like:
     // "* **Start time:** 10 seconds"
     // "* **End time:** 30.02 seconds" 
@@ -1391,8 +1391,8 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
     const trackMatches = analysisText.match(/\*\*Track \d+:.*?(?=\*\*Track \d+:|$)/gs);
     
     if (!trackMatches) {
-      console.warn('Ã¢ÂÅ’ No **Track N:** sections found in analysis');
-      console.log('Ã°Å¸â€œâ€ž Trying alternative splitting...');
+      console.warn('ÃƒÂ¢Ã‚ÂÃ…â€™ No **Track N:** sections found in analysis');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Trying alternative splitting...');
       
       // Alternative: split by lines containing "Track"
       const lines = analysisText.split('\n');
@@ -1409,12 +1409,12 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       }
       if (currentTrack) trackLines.push(currentTrack);
       
-      console.log(`Ã°Å¸â€œÅ  Found ${trackLines.length} track sections via line splitting`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Found ${trackLines.length} track sections via line splitting`);
       trackLines.forEach((section, i) => {
-        console.log(`Ã°Å¸â€œâ€ž Track section ${i + 1}:`, section.substring(0, 200));
+        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Track section ${i + 1}:`, section.substring(0, 200));
       });
     } else {
-      console.log(`Ã°Å¸â€œÅ  Found ${trackMatches.length} track sections via regex`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Found ${trackMatches.length} track sections via regex`);
     }
     
     const sectionsToProcess = trackMatches || trackLines || [];
@@ -1425,18 +1425,18 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       const mp3File = mp3Files[index];
       
       if (!mp3File) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â No MP3 file for track ${trackNumber}`);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â No MP3 file for track ${trackNumber}`);
         return;
       }
       
-      console.log(`\nÃ°Å¸Å½Âµ Processing Track ${trackNumber} (${mp3File.title}):`);
-      console.log(`Ã°Å¸â€œâ€ž Section (first 300 chars): ${trackSection.substring(0, 300)}...`);
+      console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing Track ${trackNumber} (${mp3File.title}):`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Section (first 300 chars): ${trackSection.substring(0, 300)}...`);
       
       let startTime = 0;
       let endTime = clipDuration;
       let volume = 70;
       
-      // Ã°Å¸Å¡Â¨ MULTIPLE REGEX PATTERNS FOR START TIME:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ MULTIPLE REGEX PATTERNS FOR START TIME:
       const startPatterns = [
         /\*\s*\*\*\s*Start time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds?/i,
         /\*\*\s*Start time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds?/i,
@@ -1449,12 +1449,12 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
         const match = trackSection.match(pattern);
         if (match) {
           startTime = parseFloat(match[1]);
-          console.log(`Ã¢Å“â€¦ Found start time with pattern: ${pattern} -> ${startTime}s`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Found start time with pattern: ${pattern} -> ${startTime}s`);
           break;
         }
       }
       
-      // Ã°Å¸Å¡Â¨ MULTIPLE REGEX PATTERNS FOR END TIME:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ MULTIPLE REGEX PATTERNS FOR END TIME:
       const endPatterns = [
         /\*\s*\*\*\s*End time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds?/i,
         /\*\*\s*End time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds?/i,
@@ -1467,12 +1467,12 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
         const match = trackSection.match(pattern);
         if (match) {
           endTime = parseFloat(match[1]);
-          console.log(`Ã¢Å“â€¦ Found end time with pattern: ${pattern} -> ${endTime}s`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Found end time with pattern: ${pattern} -> ${endTime}s`);
           break;
         }
       }
       
-      // Ã°Å¸Å¡Â¨ MULTIPLE REGEX PATTERNS FOR VOLUME:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ MULTIPLE REGEX PATTERNS FOR VOLUME:
       const volumePatterns = [
         /\*\s*\*\*\s*Volume recommendation:\s*\*\*\s*(\d+)%/i,
         /\*\*\s*Volume recommendation:\s*\*\*\s*(\d+)%/i,
@@ -1485,7 +1485,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
         const match = trackSection.match(pattern);
         if (match) {
           volume = parseInt(match[1]);
-          console.log(`Ã¢Å“â€¦ Found volume with pattern: ${pattern} -> ${volume}%`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Found volume with pattern: ${pattern} -> ${volume}%`);
           break;
         }
       }
@@ -1493,7 +1493,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       // Calculate duration
       const duration = Math.round((endTime - startTime) * 100) / 100;
       
-      console.log(`Ã°Å¸â€œÅ  Extracted values for Track ${trackNumber}:`, {
+      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Extracted values for Track ${trackNumber}:`, {
         startTime,
         endTime, 
         duration,
@@ -1509,12 +1509,12 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
           originalDuration: mp3File.mp3Duration,
           videoDuration: clipDuration,
           
-          // Ã°Å¸Å¡Â¨ EXTRACTED TIMING FROM GEMINI:
+          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ EXTRACTED TIMING FROM GEMINI:
           startTime: startTime,
           endTime: endTime,
           duration: duration,
           
-          // Ã°Å¸Å¡Â¨ FORMATTED FOR FRONTEND:
+          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FORMATTED FOR FRONTEND:
           startFormatted: formatTime(startTime),
           endFormatted: formatTime(endTime),
           durationFormatted: `${Math.round(duration)}s`,
@@ -1526,7 +1526,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
           fadeOut: 2
         });
         
-        console.log(`Ã¢Å“â€¦ Track ${trackNumber} timing successfully extracted:`, {
+        console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Track ${trackNumber} timing successfully extracted:`, {
           start: `${startTime}s (${formatTime(startTime)})`,
           end: `${endTime}s (${formatTime(endTime)})`,
           duration: `${duration}s`,
@@ -1534,7 +1534,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
         });
         
       } else {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Track ${trackNumber} has invalid timing values:`, {
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Track ${trackNumber} has invalid timing values:`, {
           startTime, endTime, duration, valid: false
         });
         
@@ -1556,19 +1556,19 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       }
     });
     
-    console.log(`Ã°Å¸Å½Â¯ Final extraction results: ${recommendations.length} recommendations`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Final extraction results: ${recommendations.length} recommendations`);
     recommendations.forEach((rec, i) => {
-      console.log(`   Track ${rec.trackNumber}: ${rec.startFormatted} Ã¢â€ â€™ ${rec.endFormatted} (${rec.durationFormatted}) Vol: ${rec.volume}%${rec.isDefault ? ' [DEFAULT]' : ''}`);
+      console.log(`   Track ${rec.trackNumber}: ${rec.startFormatted} ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ ${rec.endFormatted} (${rec.durationFormatted}) Vol: ${rec.volume}%${rec.isDefault ? ' [DEFAULT]' : ''}`);
     });
     
     return recommendations;
     
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error extracting Gemini timing:', error.message);
-    console.error('Ã¢ÂÅ’ Stack trace:', error.stack);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error extracting Gemini timing:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Stack trace:', error.stack);
     
     // Fallback: Create default recommendations for all MP3 files
-    console.log('Ã°Å¸â€â€ž Creating fallback recommendations...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Creating fallback recommendations...');
     const fallbackRecs = mp3Files.map((file, index) => ({
       trackNumber: index + 1,
       title: file.title,
@@ -1585,37 +1585,37 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       fallbackReason: 'extraction_error'
     }));
     
-    console.log(`Ã°Å¸â€â€ž Created ${fallbackRecs.length} fallback recommendations`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Created ${fallbackRecs.length} fallback recommendations`);
     return fallbackRecs;
   }
 }
 
-// Ã°Å¸Å¡Â¨ ADDITIONAL DEBUG FUNCTION - ADD THIS TO TEST WITH YOUR ACTUAL GEMINI TEXT
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ADDITIONAL DEBUG FUNCTION - ADD THIS TO TEST WITH YOUR ACTUAL GEMINI TEXT
 
 function debugGeminiAnalysis(analysisText) {
-  console.log('\nÃ°Å¸â€Â ===============================================');
-  console.log('Ã°Å¸â€Â DEBUGGING GEMINI ANALYSIS TEXT');
-  console.log('Ã°Å¸â€Â ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â DEBUGGING GEMINI ANALYSIS TEXT');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
   
-  console.log('Ã°Å¸â€œâ€ž Full text length:', analysisText.length);
-  console.log('Ã°Å¸â€œâ€ž First 1000 characters:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Full text length:', analysisText.length);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ First 1000 characters:');
   console.log(analysisText.substring(0, 1000));
   
-  console.log('\nÃ°Å¸â€œÅ  Looking for track sections...');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Looking for track sections...');
   const trackMatches = analysisText.match(/\*\*Track \d+:/g);
-  console.log('Ã°Å¸â€œÅ  Track headers found:', trackMatches);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Track headers found:', trackMatches);
   
-  console.log('\nÃ°Å¸â€œÅ  Looking for timing patterns...');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Looking for timing patterns...');
   const startTimeMatches = analysisText.match(/start time.*?(\d+(?:\.\d+)?)\s*seconds?/gi);
-  console.log('Ã°Å¸â€œÅ  Start time patterns found:', startTimeMatches);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Start time patterns found:', startTimeMatches);
   
   const endTimeMatches = analysisText.match(/end time.*?(\d+(?:\.\d+)?)\s*seconds?/gi);
-  console.log('Ã°Å¸â€œÅ  End time patterns found:', endTimeMatches);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  End time patterns found:', endTimeMatches);
   
   const volumeMatches = analysisText.match(/volume.*?(\d+)%/gi);
-  console.log('Ã°Å¸â€œÅ  Volume patterns found:', volumeMatches);
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Volume patterns found:', volumeMatches);
   
-  console.log('\nÃ°Å¸â€œâ€ž Line by line analysis:');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Line by line analysis:');
   const lines = analysisText.split('\n');
   lines.forEach((line, i) => {
     if (line.toLowerCase().includes('start') || 
@@ -1626,38 +1626,38 @@ function debugGeminiAnalysis(analysisText) {
     }
   });
   
-  console.log('Ã°Å¸â€Â ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
 }
 
 
 function displayGeminiTimingResults(timingRecommendations) {
-  console.log('\nÃ°Å¸Å½Âµ ===============================================');
-  console.log('Ã°Å¸Å½Âµ GEMINI TIMING EXTRACTION RESULTS');
-  console.log('Ã°Å¸Å½Âµ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ GEMINI TIMING EXTRACTION RESULTS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
   
   if (!timingRecommendations || timingRecommendations.length === 0) {
-    console.log('Ã¢ÂÅ’ No timing recommendations available');
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ No timing recommendations available');
     return;
   }
   
   timingRecommendations.forEach((rec) => {
-    console.log(`\nÃ°Å¸Å½Â¼ TRACK ${rec.trackNumber}: "${rec.title}"`);
-    console.log('Ã°Å¸Å½Â¼ ===============================================');
-    console.log(`Ã¢ÂÂ° START TIME: ${rec.recommendedStart} seconds`);
-    console.log(`Ã¢ÂÂ° END TIME: ${rec.recommendedEnd} seconds`);  
-    console.log(`Ã¢ÂÂ±Ã¯Â¸Â RECOMMENDED DURATION: ${rec.recommendedDuration.toFixed(2)} seconds`);
-    console.log(`Ã°Å¸Å½Âµ ORIGINAL MP3 LENGTH: ${rec.originalDuration} seconds`);
-    console.log(`Ã°Å¸â€â€” AUDIO URL: ${rec.url}`);
-    console.log(`Ã¢Å“â€¦ EXTRACTION STATUS: ${rec.extractedSuccessfully ? 'SUCCESS' : 'FALLBACK USED'}`);
-    console.log('Ã°Å¸Å½Â¼ ===============================================');
+    console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ TRACK ${rec.trackNumber}: "${rec.title}"`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+    console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â° START TIME: ${rec.recommendedStart} seconds`);
+    console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â° END TIME: ${rec.recommendedEnd} seconds`);  
+    console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â RECOMMENDED DURATION: ${rec.recommendedDuration.toFixed(2)} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ORIGINAL MP3 LENGTH: ${rec.originalDuration} seconds`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ AUDIO URL: ${rec.url}`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ EXTRACTION STATUS: ${rec.extractedSuccessfully ? 'SUCCESS' : 'FALLBACK USED'}`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
   });
   
-  console.log('\nÃ°Å¸â€œâ€¹ QUICK COPY REFERENCE:');
-  console.log('Ã°Å¸â€œâ€¹ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ QUICK COPY REFERENCE:');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
   timingRecommendations.forEach((rec) => {
     console.log(`Track ${rec.trackNumber}: "${rec.title}" | ${rec.recommendedStart}s-${rec.recommendedEnd}s | ${rec.url}`);
   });
-  console.log('Ã°Å¸â€œâ€¹ ===============================================\n');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================\n');
 }
 
 app.post('/api/monitor-webhook', async (req, res) => {
@@ -1666,11 +1666,11 @@ app.post('/api/monitor-webhook', async (req, res) => {
       webhookUrl = "a54d685c-b636-4641-a883-edd74a6b7981",
       maxPollMinutes = 3,
       pollIntervalSeconds = 10,
-      minRequests = 3  // ✅ NEW: Configurable minimum requests to wait for
+      minRequests = 3  // âœ… NEW: Configurable minimum requests to wait for
     } = req.body;
 
-    console.log('🎵 Starting standalone webhook monitoring...');
-    console.log('📊 Waiting for minimum', minRequests, 'POST requests');
+    console.log('ðŸŽµ Starting standalone webhook monitoring...');
+    console.log('ðŸ“Š Waiting for minimum', minRequests, 'POST requests');
     
     const webhookToken = extractWebhookToken(webhookUrl);
     if (!webhookToken) {
@@ -1704,7 +1704,7 @@ app.post('/api/monitor-webhook', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error in standalone webhook monitoring:', error);
+    console.error('âŒ Error in standalone webhook monitoring:', error);
     res.status(500).json({
       success: false,
       error: 'Webhook monitoring failed',
@@ -1712,7 +1712,7 @@ app.post('/api/monitor-webhook', async (req, res) => {
     });
   }
 });
-// Ã¢Å“â€¦ BONUS: Add standalone task checker endpoint
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ BONUS: Add standalone task checker endpoint
 app.post('/api/check-musicgpt-task', async (req, res) => {
   try {
     const { taskId } = req.body;
@@ -1724,7 +1724,7 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€Â Checking MusicGPT task:', taskId);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Checking MusicGPT task:', taskId);
 
     const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
@@ -1741,9 +1741,9 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
 
     const taskData = response.data;
     
-    console.log('Ã°Å¸â€œÅ  Task status:', taskData.status);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Task status:', taskData.status);
     if (taskData.audio_url) {
-      console.log('Ã°Å¸Å½Âµ Audio URL:', taskData.audio_url);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio URL:', taskData.audio_url);
     }
 
     res.json({
@@ -1757,12 +1757,12 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
       eta: taskData.eta || null,
       taskData: taskData,
       message: taskData.audio_url ? 
-        'Ã°Å¸Å½â€° Music is ready!' : 
-        `Ã¢ÂÂ³ Status: ${taskData.status || 'processing'}`
+        'ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Music is ready!' : 
+        `ÃƒÂ¢Ã‚ÂÃ‚Â³ Status: ${taskData.status || 'processing'}`
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error checking MusicGPT task:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error checking MusicGPT task:', error.message);
     
     res.status(500).json({
       success: false,
@@ -1774,7 +1774,7 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
 
 // 2. HELPER FUNCTION TO OPTIMIZE GEMINI OUTPUT FOR MUSICGPT
 function optimizeGeminiAnalysisForMusicGPT(geminiAnalysis) {
-  console.log('Ã°Å¸â€Â§ Optimizing Gemini analysis for MusicGPT...');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Optimizing Gemini analysis for MusicGPT...');
   
   // Extract music-relevant sections
   const musicKeywords = [
@@ -1818,14 +1818,14 @@ MUSIC GENERATION PARAMETERS:
 - Ensure the energy and emotion align with the video content
 - Generate high-quality audio suitable for video soundtrack use`;
 
-  console.log('Ã¢Å“â€¦ Analysis optimized for MusicGPT');
-  console.log('Ã°Å¸â€œÂ Original length:', geminiAnalysis.length, 'chars');
-  console.log('Ã°Å¸â€œÂ Optimized length:', optimizedPrompt.length, 'chars');
-  console.log('Ã°Å¸Å½Âµ Musical sentences found:', musicalSentences.length);
+  console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Analysis optimized for MusicGPT');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Original length:', geminiAnalysis.length, 'chars');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Optimized length:', optimizedPrompt.length, 'chars');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Musical sentences found:', musicalSentences.length);
 
   return optimizedPrompt;
 }
-// Ã¢Å“â€¦ ENHANCED: Add this new endpoint for immediate analysis after upload
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Add this new endpoint for immediate analysis after upload
 app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -1843,15 +1843,15 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
       waitForAvailability = true
     } = req.body;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ UPLOAD + IMMEDIATE GCS ANALYSIS WORKFLOW');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
-    console.log('Ã¢ÂÂ° Wait for availability:', waitForAvailability);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ UPLOAD + IMMEDIATE GCS ANALYSIS WORKFLOW');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Wait for availability:', waitForAvailability);
 
     // Step 1: Upload to GCS
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ Uploading to Google Cloud Storage...');
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Uploading to Google Cloud Storage...');
     
     const { generateUploadUrl } = require('./gcs-utils');
     const uploadData = await generateUploadUrl(`videos/${Date.now()}_${req.file.originalname}`);
@@ -1870,18 +1870,18 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
 
     const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
     
-    console.log('Ã¢Å“â€¦ Upload completed in', uploadTime, 'seconds');
-    console.log('Ã°Å¸â€â€” GCS URI:', uploadData.gcs_uri);
-    console.log('Ã°Å¸Å’Â Signed URL:', uploadData.public_url);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload completed in', uploadTime, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ GCS URI:', uploadData.gcs_uri);
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â Signed URL:', uploadData.public_url);
 
     // Step 2: Wait for file availability (if requested)
     if (waitForAvailability) {
-      console.log('\nÃ¢ÂÂ³ Waiting for file to be fully available...');
+      console.log('\nÃƒÂ¢Ã‚ÂÃ‚Â³ Waiting for file to be fully available...');
       await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
     }
 
     // Step 3: Analyze with retry logic
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ Starting Gemini analysis with retry logic...');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Starting Gemini analysis with retry logic...');
     
     const options = {
       customPrompt,
@@ -1896,22 +1896,22 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Ã°Å¸â€â€ž Analysis attempt ${attempt}/${maxRetries}...`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Analysis attempt ${attempt}/${maxRetries}...`);
         
         if (attempt > 1) {
           const delay = 2000 * attempt; // Increasing delay
-          console.log(`Ã¢ÂÂ³ Waiting ${delay}ms before retry...`);
+          console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â³ Waiting ${delay}ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
 
         analysisResult = await analyzeVideoFromGCS(uploadData.public_url, options);
         
         if (analysisResult.success) {
-          console.log(`Ã¢Å“â€¦ Analysis successful on attempt ${attempt}`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Analysis successful on attempt ${attempt}`);
           break;
         } else {
           lastError = analysisResult;
-          console.log(`Ã¢ÂÅ’ Attempt ${attempt} failed:`, analysisResult.error);
+          console.log(`ÃƒÂ¢Ã‚ÂÃ…â€™ Attempt ${attempt} failed:`, analysisResult.error);
         }
         
       } catch (error) {
@@ -1920,16 +1920,16 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
           error: error.message, 
           attempt: attempt 
         };
-        console.log(`Ã¢ÂÅ’ Attempt ${attempt} threw error:`, error.message);
+        console.log(`ÃƒÂ¢Ã‚ÂÃ…â€™ Attempt ${attempt} threw error:`, error.message);
       }
     }
 
     // Return results
     if (analysisResult && analysisResult.success) {
-      console.log('\nÃ¢Å“â€¦ ===============================================');
-      console.log('Ã¢Å“â€¦ UPLOAD + ANALYSIS WORKFLOW COMPLETED');
-      console.log('Ã¢Å“â€¦ ===============================================');
-      console.log('Ã¢ÂÂ±Ã¯Â¸Â Total time: Upload (' + uploadTime + 's) + Analysis (' + analysisResult.processingTime + ')');
+      console.log('\nÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPLOAD + ANALYSIS WORKFLOW COMPLETED');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+      console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Total time: Upload (' + uploadTime + 's) + Analysis (' + analysisResult.processingTime + ')');
       
       res.json({
         success: true,
@@ -1963,9 +1963,9 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
         }
       });
     } else {
-      console.error('\nÃ¢ÂÅ’ ===============================================');
-      console.error('Ã¢ÂÅ’ ANALYSIS FAILED AFTER SUCCESSFUL UPLOAD');
-      console.error('Ã¢ÂÅ’ ===============================================');
+      console.error('\nÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ANALYSIS FAILED AFTER SUCCESSFUL UPLOAD');
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
       
       res.status(500).json({
         success: false,
@@ -1981,7 +1981,7 @@ app.post('/api/upload-and-analyze-gcs', upload.single('video'), async (req, res)
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in upload + analysis workflow:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in upload + analysis workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed in upload and analysis workflow',
@@ -2008,11 +2008,11 @@ const MUSICGPT_API_KEY =  'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhx
  * @returns {Object} Generated music data
  */
 async function generateMusicFromText(textDescription, options = {}) { try {
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸Å½Âµ GENERATING MUSIC FROM GEMINI ANALYSIS');
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸â€œÂ Gemini analysis length:', geminiAnalysis.length, 'characters');
-    console.log('Ã°Å¸â€œÂ Analysis preview:', geminiAnalysis.substring(0, 200) + '...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ GENERATING MUSIC FROM GEMINI ANALYSIS');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Gemini analysis length:', geminiAnalysis.length, 'characters');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Analysis preview:', geminiAnalysis.substring(0, 200) + '...');
 
     const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
@@ -2022,8 +2022,8 @@ async function generateMusicFromText(textDescription, options = {}) { try {
       webhook_url: "https://httpbin.org/post" // Dummy webhook URL
     };
 
-    console.log('Ã°Å¸â€œÂ¤ Sending Gemini analysis to MusicGPT...');
-    console.log('Ã°Å¸â€â€” API URL: https://api.musicgpt.com/api/public/v1/MusicAI');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Sending Gemini analysis to MusicGPT...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ API URL: https://api.musicgpt.com/api/public/v1/MusicAI');
     
     const startTime = Date.now();
 
@@ -2042,34 +2042,34 @@ async function generateMusicFromText(textDescription, options = {}) { try {
 
     const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    console.log('Ã¢Å“â€¦ ===============================================');
-    console.log('Ã¢Å“â€¦ MUSICGPT RESPONSE RECEIVED');
-    console.log('Ã¢Å“â€¦ ===============================================');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Processing time:', processingTime, 'seconds');
-    console.log('Ã°Å¸â€œÅ  Status:', response.status);
-    console.log('Ã°Å¸â€œâ€ž Full response:', JSON.stringify(response.data, null, 2));
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MUSICGPT RESPONSE RECEIVED');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Processing time:', processingTime, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', response.status);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Full response:', JSON.stringify(response.data, null, 2));
 
     const musicData = response.data;
 
     // Check what we got back
     if (musicData.audio_url) {
-      console.log('\nÃ°Å¸Å½Â¶ ===============================================');
-      console.log('Ã°Å¸Å½Â¶ MUSIC GENERATED SUCCESSFULLY!');
-      console.log('Ã°Å¸Å½Â¶ ===============================================');
-      console.log('Ã°Å¸â€â€” AUDIO URL:', musicData.audio_url);
-      console.log('Ã°Å¸Å½Âµ Title:', musicData.title || 'Generated from Gemini Analysis');
-      console.log('Ã°Å¸â€œÂ Lyrics:', musicData.lyrics || 'Instrumental');
-      console.log('Ã°Å¸â€™Â° Cost:', musicData.conversion_cost || 'Unknown');
-      console.log('Ã°Å¸Å½Â¶ ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ MUSIC GENERATED SUCCESSFULLY!');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ AUDIO URL:', musicData.audio_url);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Title:', musicData.title || 'Generated from Gemini Analysis');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Lyrics:', musicData.lyrics || 'Instrumental');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â° Cost:', musicData.conversion_cost || 'Unknown');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ ===============================================');
     } else if (musicData.task_id || musicData.conversion_id) {
       const taskId = musicData.task_id || musicData.conversion_id;
-      console.log('\nÃ°Å¸â€â€ž ===============================================');
-      console.log('Ã°Å¸â€â€ž MUSIC GENERATION STARTED');
-      console.log('Ã°Å¸â€â€ž ===============================================');
-      console.log('Ã°Å¸â€ â€ Task ID:', taskId);
-      console.log('Ã¢ÂÂ³ Generation in progress...');
-      console.log('Ã°Å¸â€™Â¡ You can poll for results using the task ID');
-      console.log('Ã°Å¸â€â€ž ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ MUSIC GENERATION STARTED');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Task ID:', taskId);
+      console.log('ÃƒÂ¢Ã‚ÂÃ‚Â³ Generation in progress...');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¡ You can poll for results using the task ID');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
     }
 
     return {
@@ -2080,14 +2080,14 @@ async function generateMusicFromText(textDescription, options = {}) { try {
     };
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã¢ÂÅ’ MUSICGPT AI GENERATION ERROR');
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã°Å¸â€™Â¥ Error message:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ MUSICGPT AI GENERATION ERROR');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error message:', error.message);
     
     if (error.response) {
-      console.error('Ã°Å¸â€œÅ  HTTP Status:', error.response.status);
-      console.error('Ã°Å¸â€œÅ  Response data:', JSON.stringify(error.response.data, null, 2));
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  HTTP Status:', error.response.status);
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Response data:', JSON.stringify(error.response.data, null, 2));
     }
 
     return {
@@ -2112,15 +2112,15 @@ app.post('/api/gemini-to-musicgpt-complete', async (req, res) => {
 
     const videoUrl = publicUrl || gcsUri;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ COMPLETE GEMINI Ã¢â€ â€™ MUSICGPT WORKFLOW');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video URL:', videoUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ COMPLETE GEMINI ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ MUSICGPT WORKFLOW');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video URL:', videoUrl);
 
     // STEP 1: Get Gemini analysis
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ANALYZING VIDEO WITH GEMINI');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO WITH GEMINI');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const { analyzeVideoFromGCS } = require('./gemini-utils');
     
@@ -2150,40 +2150,40 @@ app.post('/api/gemini-to-musicgpt-complete', async (req, res) => {
     }
 
     // Log the complete Gemini analysis
-    console.log('\nÃ°Å¸â€œÂ ===============================================');
-    console.log('Ã°Å¸â€œÂ COMPLETE GEMINI ANALYSIS OUTPUT');
-    console.log('Ã°Å¸â€œÂ ===============================================');
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â COMPLETE GEMINI ANALYSIS OUTPUT');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ===============================================');
     console.log(geminiResult.analysis);
-    console.log('Ã°Å¸â€œÂ ===============================================\n');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ===============================================\n');
 
     // STEP 2: Send Gemini analysis directly to MusicGPT
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ SENDING GEMINI TEXT TO MUSICGPT');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ SENDING GEMINI TEXT TO MUSICGPT');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const musicResult = await generateMusicFromGeminiText(geminiResult.analysis, {});
 
     // STEP 3: Final results
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° WORKFLOW COMPLETED!');
-    console.log('Ã°Å¸Å½â€° ===============================================');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° WORKFLOW COMPLETED!');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
     
     if (musicResult.success) {
       if (musicResult.music.audio_url) {
-        console.log('Ã¢Å“â€¦ Gemini analysis: Complete');
-        console.log('Ã¢Å“â€¦ Music generation: Complete');
-        console.log('Ã°Å¸â€â€” Final music URL:', musicResult.music.audio_url);
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini analysis: Complete');
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Music generation: Complete');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Final music URL:', musicResult.music.audio_url);
       } else if (musicResult.music.task_id || musicResult.music.conversion_id) {
-        console.log('Ã¢Å“â€¦ Gemini analysis: Complete');
-        console.log('Ã°Å¸â€â€ž Music generation: In progress');
-        console.log('Ã°Å¸â€ â€ Track with task ID:', musicResult.music.task_id || musicResult.music.conversion_id);
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini analysis: Complete');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Music generation: In progress');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Track with task ID:', musicResult.music.task_id || musicResult.music.conversion_id);
       }
     } else {
-      console.log('Ã¢Å“â€¦ Gemini analysis: Complete');
-      console.log('Ã¢ÂÅ’ Music generation: Failed');
-      console.log('Ã°Å¸â€™Â¥ Error:', musicResult.error);
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini analysis: Complete');
+      console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Music generation: Failed');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error:', musicResult.error);
     }
-    console.log('Ã°Å¸Å½â€° ===============================================\n');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================\n');
 
     // Return complete results
     res.json({
@@ -2207,7 +2207,7 @@ app.post('/api/gemini-to-musicgpt-complete', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Complete workflow error:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Complete workflow error:', error);
     res.status(500).json({
       success: false,
       error: 'Complete workflow failed',
@@ -2222,7 +2222,7 @@ app.post('/api/gemini-to-musicgpt-complete', async (req, res) => {
  * @returns {string} Optimized prompt for MusicGPT
  */
 function optimizeTextForMusicGeneration(geminiAnalysis) {
-  console.log('Ã°Å¸â€Â§ Optimizing Gemini analysis for MusicGPT...');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Optimizing Gemini analysis for MusicGPT...');
   
   // Extract key musical elements from Gemini analysis
   const musicKeywords = [
@@ -2255,10 +2255,10 @@ function optimizeTextForMusicGeneration(geminiAnalysis) {
   // Add MusicGPT-specific instructions
   optimizedPrompt += "\n\nGenerate instrumental music that matches this description. Focus on the specified instruments, tempo, and mood. Create a cohesive musical piece that captures the essence of the visual content described.";
 
-  console.log('Ã¢Å“â€¦ Text optimized for MusicGPT');
-  console.log('Ã°Å¸â€œÂ Original length:', geminiAnalysis.length, 'chars');
-  console.log('Ã°Å¸â€œÂ Optimized length:', optimizedPrompt.length, 'chars');
-  console.log('Ã°Å¸Å½Âµ Musical sentences found:', musicalSentences.length);
+  console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Text optimized for MusicGPT');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Original length:', geminiAnalysis.length, 'chars');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Optimized length:', optimizedPrompt.length, 'chars');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Musical sentences found:', musicalSentences.length);
 
   return optimizedPrompt;
 }
@@ -2266,7 +2266,7 @@ function optimizeTextForMusicGeneration(geminiAnalysis) {
 // ===============================================
 // NEW API ENDPOINTS FOR GEMINI + MUSICGPT WORKFLOW
 // ===============================================
-// Ã°Å¸Å¡Â¨ NEW: Enhanced segment music generation endpoint with webhook support
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Enhanced segment music generation endpoint with webhook support
 // ADD this to your index.js backend file
 
 app.post('/api/generate-segment-music-with-webhook', upload.single('video'), async (req, res) => {
@@ -2286,18 +2286,18 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
       instrumental, 
       song_title,
       track_name,
-      webhook_url // Ã°Å¸Å¡Â¨ NEW: Accept webhook URL from frontend
+      webhook_url // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Accept webhook URL from frontend
     } = req.body;
 
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸Å½Âµ GENERATING SEGMENT MUSIC WITH WEBHOOK MONITORING');
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã¢ÂÂ° Segment timing:', `${video_start}s - ${video_end}s`);
-    console.log('Ã°Å¸Å½Â¯ Detailed description:', extra_description?.substring(0, 100) + '...');
-    console.log('Ã°Å¸Å½Âµ Song title:', song_title);
-    console.log('Ã°Å¸Å½Â¶ Track name:', track_name);
-    console.log('Ã°Å¸â€œÂ¡ Webhook URL:', webhook_url || 'Not provided');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ GENERATING SEGMENT MUSIC WITH WEBHOOK MONITORING');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Segment timing:', `${video_start}s - ${video_end}s`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Detailed description:', extra_description?.substring(0, 100) + '...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Song title:', song_title);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ Track name:', track_name);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhook_url || 'Not provided');
 
     // Save original video temporarily
     originalPath = path.join(tempDir, `original_${Date.now()}.mp4`);
@@ -2316,7 +2316,7 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
       throw new Error("Segment too long - maximum 5 minutes (300 seconds) allowed");
     }
 
-    console.log('Ã¢Å“â€šÃ¯Â¸Â Processing video segment...');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Processing video segment...');
     console.log(`   Duration: ${clipDuration} seconds`);
     console.log(`   Range: ${start}s to ${end}s`);
 
@@ -2328,7 +2328,7 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
         .setDuration(clipDuration)
         .output(trimmedPath)
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Video segment trimmed successfully');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video segment trimmed successfully');
           resolve();
         })
         .on('error', reject)
@@ -2339,26 +2339,26 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
     await fsPromises.unlink(originalPath);
     originalPath = null;
 
-    // Ã°Å¸Å¡Â¨ NEW: Extract dual components from detailed_description
-    console.log('Ã°Å¸â€Â ===============================================');
-    console.log('Ã°Å¸â€Â EXTRACTING DUAL-OUTPUT COMPONENTS FOR WEBHOOK');
-    console.log('Ã°Å¸â€Â ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Extract dual components from detailed_description
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â EXTRACTING DUAL-OUTPUT COMPONENTS FOR WEBHOOK');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
     
     const { extractDualOutputComponents } = require('./musicgpt-utils');
     const { prompt, music_style } = extractDualOutputComponents(extra_description);
 
-    console.log('Ã°Å¸â€œÂ Visual Prompt:', prompt);
-    console.log('Ã°Å¸Å½Âµ Music Style:', music_style);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Visual Prompt:', prompt);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music Style:', music_style);
 
-    // Ã°Å¸Å¡Â¨ NEW: Generate music using MusicGPT with webhook monitoring
-    console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-    console.log('Ã°Å¸Å½Â¼ CALLING MUSICGPT WITH WEBHOOK MONITORING');
-    console.log('Ã°Å¸Å½Â¼ ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Generate music using MusicGPT with webhook monitoring
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ CALLING MUSICGPT WITH WEBHOOK MONITORING');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
 
     // Use the webhook URL provided by frontend, or use default
     const finalWebhookUrl = webhook_url || "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
     
-    console.log('Ã°Å¸â€œÂ¡ Using webhook URL:', finalWebhookUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Using webhook URL:', finalWebhookUrl);
 
     const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
@@ -2367,16 +2367,16 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
       music_style: music_style,
       make_instrumental: true,
       vocal_only: false,
-      webhook_url: finalWebhookUrl // Ã°Å¸Å¡Â¨ NEW: Include webhook URL in payload
+      webhook_url: finalWebhookUrl // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Include webhook URL in payload
     };
 
-    console.log('Ã°Å¸â€œÂ¤ MusicGPT Payload with Webhook:');
-    console.log('Ã°Å¸Å½Âµ Prompt:', prompt);
-    console.log('Ã°Å¸Å½Â­ Music Style:', music_style);
-    console.log('Ã°Å¸Å½Â¼ Make Instrumental:', true);
-    console.log('Ã°Å¸â€œÂ¡ Webhook URL:', finalWebhookUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ MusicGPT Payload with Webhook:');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Prompt:', prompt);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ Music Style:', music_style);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ Make Instrumental:', true);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', finalWebhookUrl);
 
-    console.log('Ã°Å¸â€œÂ¤ Calling MusicGPT API with webhook...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Calling MusicGPT API with webhook...');
     
     const musicgptStartTime = Date.now();
 
@@ -2395,18 +2395,18 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
 
     const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
 
-    console.log('Ã¢Å“â€¦ MusicGPT API Response with Webhook:');
-    console.log('Ã°Å¸â€œÅ  Status:', musicgptResponse.status);
-    console.log('Ã°Å¸â€œâ€ž Response:', JSON.stringify(musicgptResponse.data, null, 2));
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MusicGPT API Response with Webhook:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', musicgptResponse.status);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Response:', JSON.stringify(musicgptResponse.data, null, 2));
 
     const musicData = musicgptResponse.data;
 
     if (musicData.audio_url) {
-      // Ã°Å¸Å½â€° SUCCESS: Music generated immediately
-      console.log('\nÃ°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸Å½â€° MUSIC GENERATED IMMEDIATELY!');
-      console.log('Ã°Å¸Å½â€° ===============================================');
-      console.log('Ã°Å¸â€â€” Audio URL:', musicData.audio_url);
+      // ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° SUCCESS: Music generated immediately
+      console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSIC GENERATED IMMEDIATELY!');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Audio URL:', musicData.audio_url);
       
       res.status(200).json({
         success: true,
@@ -2431,16 +2431,16 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
       });
       
     } else if (musicData.task_id || musicData.conversion_id || musicData.conversion_id_1) {
-      // Ã°Å¸â€â€ž PROCESSING: Music generation started asynchronously
+      // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ PROCESSING: Music generation started asynchronously
       const taskId = musicData.task_id || musicData.conversion_id_1 || musicData.conversion_id;
       
-      console.log('Ã°Å¸â€â€ž ===============================================');
-      console.log('Ã°Å¸â€â€ž MUSIC GENERATION STARTED (ASYNC WITH WEBHOOK)');
-      console.log('Ã°Å¸â€â€ž ===============================================');
-      console.log('Ã°Å¸â€ â€ Task ID:', taskId);
-      console.log('Ã¢ÂÂ° ETA:', musicData.eta, 'seconds');
-      console.log('Ã°Å¸â€œÂ¡ Webhook URL:', finalWebhookUrl);
-      console.log('Ã°Å¸â€™Â¡ Frontend should now monitor webhook for completion');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ MUSIC GENERATION STARTED (ASYNC WITH WEBHOOK)');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Task ID:', taskId);
+      console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ETA:', musicData.eta, 'seconds');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', finalWebhookUrl);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¡ Frontend should now monitor webhook for completion');
       
       // Return processing status - frontend will handle webhook monitoring
       res.status(202).json({
@@ -2475,20 +2475,20 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
       throw new Error(`Unexpected MusicGPT response: ${JSON.stringify(musicData)}`);
     }
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° MUSICGPT WEBHOOK GENERATION REQUEST COMPLETED');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½Â¶ Track:', track_name || 'Generated Track');
-    console.log('Ã°Å¸â€Â§ Method: MusicGPT with webhook monitoring');
-    console.log('Ã°Å¸â€œÅ  Status:', musicData.audio_url ? 'immediate' : 'processing');
-    console.log('Ã°Å¸â€œÂ¡ Webhook:', finalWebhookUrl);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSICGPT WEBHOOK GENERATION REQUEST COMPLETED');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ Track:', track_name || 'Generated Track');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Method: MusicGPT with webhook monitoring');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', musicData.audio_url ? 'immediate' : 'processing');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook:', finalWebhookUrl);
 
   } catch (err) {
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã¢ÂÅ’ MUSICGPT WEBHOOK GENERATION ERROR');
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã°Å¸â€™Â¥ Error message:', err.message || err);
-    console.error('Ã°Å¸â€™Â¥ Error stack:', err.stack);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ MUSICGPT WEBHOOK GENERATION ERROR');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error message:', err.message || err);
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error stack:', err.stack);
     
     // Enhanced error response
     const errorResponse = {
@@ -2523,21 +2523,21 @@ app.post('/api/generate-segment-music-with-webhook', upload.single('video'), asy
     for (const file of filesToClean) {
       try {
         await fsPromises.unlink(file);
-        console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up:', file);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up:', file);
       } catch (e) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete temporary file ${file}:`, e.message);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete temporary file ${file}:`, e.message);
       }
     }
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Helper function to extract webhook token from URL
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Helper function to extract webhook token from URL
 function extractWebhookToken(webhookUrl) {
   const match = webhookUrl.match(/webhook\.site\/([a-f0-9-]+)/);
   return match ? match[1] : null;
 }
 
-// Ã°Å¸Å¡Â¨ NEW: Enhanced endpoint to check MusicGPT task status with more details
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Enhanced endpoint to check MusicGPT task status with more details
 app.post('/api/check-musicgpt-task-detailed', async (req, res) => {
   try {
     const { taskId, trackName } = req.body;
@@ -2549,7 +2549,7 @@ app.post('/api/check-musicgpt-task-detailed', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€Â Checking detailed MusicGPT task status:', taskId, 'for track:', trackName);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Checking detailed MusicGPT task status:', taskId, 'for track:', trackName);
 
     const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
@@ -2566,9 +2566,9 @@ app.post('/api/check-musicgpt-task-detailed', async (req, res) => {
 
     const taskData = response.data;
     
-    console.log('Ã°Å¸â€œÅ  Detailed task status for', trackName + ':', taskData.status);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Detailed task status for', trackName + ':', taskData.status);
     if (taskData.audio_url) {
-      console.log('Ã°Å¸Å½Âµ Audio URL ready:', taskData.audio_url);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio URL ready:', taskData.audio_url);
     }
 
     res.json({
@@ -2586,15 +2586,15 @@ app.post('/api/check-musicgpt-task-detailed', async (req, res) => {
       completed_at: taskData.completed_at || null,
       taskData: taskData,
       message: taskData.audio_url ? 
-        `Ã°Å¸Å½â€° "${trackName}" is ready!` : 
-        `Ã¢ÂÂ³ "${trackName}" status: ${taskData.status || 'processing'}`,
+        `ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° "${trackName}" is ready!` : 
+        `ÃƒÂ¢Ã‚ÂÃ‚Â³ "${trackName}" status: ${taskData.status || 'processing'}`,
       isComplete: !!taskData.audio_url,
       webhookRecommendation: !taskData.audio_url ? 
         'Consider using webhook monitoring for real-time updates' : null
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error checking detailed MusicGPT task:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error checking detailed MusicGPT task:', error.message);
     
     res.status(500).json({
       success: false,
@@ -2606,7 +2606,7 @@ app.post('/api/check-musicgpt-task-detailed', async (req, res) => {
   }
 });
 
-// Ã°Å¸Å¡Â¨ REPLACE your existing /api/monitor-webhook-for-segment endpoint in index.js with this ENHANCED version
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ REPLACE your existing /api/monitor-webhook-for-segment endpoint in index.js with this ENHANCED version
 
 app.post('/api/monitor-webhook-for-segment', async (req, res) => {
   try {
@@ -2616,7 +2616,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
       segmentIndex,
       maxPollMinutes = 5,
       pollIntervalSeconds = 10,
-      minRequests = 3  // Ã°Å¸Å¡Â¨ CHANGED: Default to 3 requests to collect all MusicGPT responses
+      minRequests = 3  // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CHANGED: Default to 3 requests to collect all MusicGPT responses
     } = req.body;
 
     if (!webhookToken) {
@@ -2626,29 +2626,29 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€œÂ¡ Starting enhanced webhook monitoring for segment:', {
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Starting enhanced webhook monitoring for segment:', {
       trackName,
       segmentIndex,
       webhookToken,
-      minRequests  // Ã°Å¸Å¡Â¨ LOG: Show how many requests we're waiting for
+      minRequests  // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ LOG: Show how many requests we're waiting for
     });
 
     const maxRetries = Math.floor((maxPollMinutes * 60) / pollIntervalSeconds);
     const pollInterval = pollIntervalSeconds * 1000;
 
-    // Ã°Å¸Å¡Â¨ ENHANCED: Use the enhanced monitorWebhookForMusicGPT function
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED: Use the enhanced monitorWebhookForMusicGPT function
     const result = await monitorWebhookForMusicGPT(webhookToken, maxRetries, pollInterval, minRequests);
 
     if (result.success) {
-      console.log('Ã¢Å“â€¦ Enhanced webhook monitoring success for', trackName);
-      console.log('Ã°Å¸â€œÅ  Total requests collected:', result.totalRequestsFound);
-      console.log('Ã°Å¸Å½Âµ MP3 files found:', result.mp3Files?.length || 0);
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Enhanced webhook monitoring success for', trackName);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total requests collected:', result.totalRequestsFound);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ MP3 files found:', result.mp3Files?.length || 0);
       
-      // Ã°Å¸Å¡Â¨ ENHANCED: Return comprehensive MP3 data
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED: Return comprehensive MP3 data
       const mp3Files = result.mp3Files || result.allMP3Files || [];
       const primaryMp3 = mp3Files.length > 0 ? mp3Files[0] : null;
       
-      // Ã°Å¸Å¡Â¨ FALLBACK: Also check webhookData directly
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FALLBACK: Also check webhookData directly
       let audioUrl = null;
       let title = trackName;
       let duration = null;
@@ -2667,7 +2667,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
       }
       
       if (audioUrl) {
-        console.log(`Ã°Å¸Å½Âµ Final audio URL for "${trackName}": ${audioUrl}`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Final audio URL for "${trackName}": ${audioUrl}`);
         
         res.json({
           success: true,
@@ -2677,7 +2677,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
           audioUrl: audioUrl,
           title: title,
           duration: duration,
-          allMp3Files: mp3Files,  // Ã°Å¸Å¡Â¨ INCLUDE: All MP3 files found
+          allMp3Files: mp3Files,  // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ INCLUDE: All MP3 files found
           monitoringInfo: {
             totalAttempts: result.totalPolls,
             requestsFound: result.totalRequestsFound,
@@ -2689,7 +2689,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
           message: `Enhanced webhook monitoring completed for "${trackName}" - found ${mp3Files.length} MP3 file(s) in ${result.totalRequestsFound} requests`
         });
       } else {
-        console.log('Ã¢ÂÅ’ No audio URL found in any collected requests for', trackName);
+        console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ No audio URL found in any collected requests for', trackName);
         
         res.status(404).json({
           success: false,
@@ -2716,7 +2716,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
       }
       
     } else {
-      console.log('Ã¢ÂÅ’ Enhanced webhook monitoring failed for', trackName);
+      console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Enhanced webhook monitoring failed for', trackName);
       
       res.status(408).json({
         success: false,
@@ -2740,7 +2740,7 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in enhanced segment webhook monitoring:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in enhanced segment webhook monitoring:', error);
     res.status(500).json({
       success: false,
       error: 'Enhanced webhook monitoring failed',
@@ -2751,12 +2751,12 @@ app.post('/api/monitor-webhook-for-segment', async (req, res) => {
   }
 });
 
-// Ã°Å¸Å¡Â¨ BONUS: Test endpoint to verify webhook integration
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ BONUS: Test endpoint to verify webhook integration
 app.post('/api/test-segment-webhook-integration', async (req, res) => {
   try {
     const { testWebhookToken } = req.body;
     
-    console.log('Ã°Å¸Â§Âª Testing segment webhook integration...');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Testing segment webhook integration...');
     
     const webhookToken = testWebhookToken || "8bae6cf2-4553-4740-b969-fdf5f269c277";
     const webhookApiUrl = `https://webhook.site/token/${webhookToken}/requests`;
@@ -2770,7 +2770,7 @@ app.post('/api/test-segment-webhook-integration', async (req, res) => {
       }
     });
     
-    console.log('Ã¢Å“â€¦ Webhook integration test passed');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Webhook integration test passed');
     
     res.json({
       success: true,
@@ -2790,7 +2790,7 @@ app.post('/api/test-segment-webhook-integration', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Webhook integration test failed:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Webhook integration test failed:', error);
     
     res.status(500).json({
       success: false,
@@ -2805,7 +2805,7 @@ app.post('/api/test-segment-webhook-integration', async (req, res) => {
     });
   }
 });
-// Ã°Å¸Å¡Â¨ NEW: Complete workflow - Analyze video with Gemini Ã¢â€ â€™ Generate music with MusicGPT
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Complete workflow - Analyze video with Gemini ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Generate music with MusicGPT
 app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -2828,18 +2828,18 @@ app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, 
       musicMood = 'adaptive'
     } = req.body;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ COMPLETE GEMINI + MUSICGPT WORKFLOW');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã°Å¸Å½Â­ Genre focus:', genre || 'Adaptive');
-    console.log('Ã°Å¸Å½Âµ Music duration:', musicDuration, 'seconds');
-    console.log('Ã°Å¸Å½Â¨ Music style:', musicStyle);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ COMPLETE GEMINI + MUSICGPT WORKFLOW');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ Genre focus:', genre || 'Adaptive');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music duration:', musicDuration, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨ Music style:', musicStyle);
 
     // STEP 1: Analyze video with Gemini
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ANALYZING VIDEO WITH GEMINI AI');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO WITH GEMINI AI');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const { analyzeVideoForMusicWithValidation } = require('./gemini-utils');
     
@@ -2865,20 +2865,20 @@ app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, 
       });
     }
 
-    console.log('Ã¢Å“â€¦ Gemini analysis completed');
-    console.log('Ã°Å¸â€œâ€ž Analysis length:', geminiResult.analysis.length, 'characters');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini analysis completed');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis length:', geminiResult.analysis.length, 'characters');
 
     // STEP 2: Optimize text for MusicGPT
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ OPTIMIZING TEXT FOR MUSICGPT AI');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ OPTIMIZING TEXT FOR MUSICGPT AI');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const optimizedPrompt = optimizeTextForMusicGeneration(geminiResult.analysis);
 
     // STEP 3: Generate music with MusicGPT
-    console.log('\n3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ GENERATING MUSIC WITH MUSICGPT AI');
-    console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ GENERATING MUSIC WITH MUSICGPT AI');
+    console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const musicOptions = {
       duration: parseInt(musicDuration),
@@ -2901,12 +2901,12 @@ app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, 
       });
     }
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° COMPLETE WORKFLOW SUCCESSFUL');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã¢Å“â€¦ Gemini analysis: Ã¢Å“â€¦');
-    console.log('Ã¢Å“â€¦ Text optimization: Ã¢Å“â€¦');
-    console.log('Ã¢Å“â€¦ MusicGPT generation: Ã¢Å“â€¦');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° COMPLETE WORKFLOW SUCCESSFUL');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini analysis: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Text optimization: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MusicGPT generation: ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦');
 
     // Return complete results
     res.json({
@@ -2940,7 +2940,7 @@ app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, 
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in complete Gemini + MusicGPT workflow:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in complete Gemini + MusicGPT workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Complete workflow failed',
@@ -2949,7 +2949,7 @@ app.post('/api/analyze-and-generate-music', upload.single('video'), async (req, 
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Generate music from existing Gemini analysis text
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Generate music from existing Gemini analysis text
 app.post('/api/text-to-music', async (req, res) => {
   try {
     const { 
@@ -2969,17 +2969,17 @@ app.post('/api/text-to-music', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€œÂ ===============================================');
-    console.log('Ã°Å¸â€œÂ CONVERTING TEXT TO MUSIC WITH MUSICGPT AI');
-    console.log('Ã°Å¸â€œÂ ===============================================');
-    console.log('Ã°Å¸â€œâ€ž Text length:', textDescription.length, 'characters');
-    console.log('Ã°Å¸Å½Âµ Duration:', duration, 'seconds');
-    console.log('Ã°Å¸Å½Â¨ Style:', style);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â CONVERTING TEXT TO MUSIC WITH MUSICGPT AI');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Text length:', textDescription.length, 'characters');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Duration:', duration, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¨ Style:', style);
 
     // Optimize text if requested
     let finalPrompt = textDescription;
     if (optimizeText) {
-      console.log('Ã°Å¸â€Â§ Optimizing text for music generation...');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Optimizing text for music generation...');
       finalPrompt = optimizeTextForMusicGeneration(textDescription);
     }
 
@@ -2997,7 +2997,7 @@ app.post('/api/text-to-music', async (req, res) => {
     const musicResult = await generateMusicFromText(finalPrompt, musicOptions);
 
     if (musicResult.success) {
-      console.log('Ã¢Å“â€¦ Text-to-music conversion completed successfully');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Text-to-music conversion completed successfully');
       
       res.json({
         success: true,
@@ -3013,7 +3013,7 @@ app.post('/api/text-to-music', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in text-to-music conversion:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in text-to-music conversion:', error);
     res.status(500).json({
       success: false,
       error: 'Text-to-music conversion failed',
@@ -3022,10 +3022,10 @@ app.post('/api/text-to-music', async (req, res) => {
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Test MusicGPT API connection
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Test MusicGPT API connection
 app.post('/api/test-musicgpt', async (req, res) => {
   try {
-    console.log('Ã°Å¸Â§Âª Testing MusicGPT AI API connection...');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Testing MusicGPT AI API connection...');
     
     if (!MUSICGPT_API_KEY) {
       throw new Error('MUSICGPT_API_KEY not found in environment variables');
@@ -3033,7 +3033,7 @@ app.post('/api/test-musicgpt', async (req, res) => {
 
     const testPrompt = "Create a short upbeat electronic music piece with synthesizers and drums, 120 BPM, in C major.";
     
-    console.log('Ã°Å¸â€œÂ¤ Sending test prompt to MusicGPT AI...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Sending test prompt to MusicGPT AI...');
     
     const testResult = await generateMusicFromText(testPrompt, {
       duration: 10, // Short test duration
@@ -3043,7 +3043,7 @@ app.post('/api/test-musicgpt', async (req, res) => {
     });
 
     if (testResult.success) {
-      console.log('Ã¢Å“â€¦ MusicGPT AI test successful!');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MusicGPT AI test successful!');
       
       res.json({
         success: true,
@@ -3056,7 +3056,7 @@ app.post('/api/test-musicgpt', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ MusicGPT AI test failed:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ MusicGPT AI test failed:', error);
     
     let errorMessage = error.message;
     if (error.message.includes('API key')) {
@@ -3072,7 +3072,7 @@ app.post('/api/test-musicgpt', async (req, res) => {
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Batch process segments - Analyze with Gemini Ã¢â€ â€™ Generate music for each
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Batch process segments - Analyze with Gemini ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ Generate music for each
 app.post('/api/process-segments-with-musicgpt', async (req, res) => {
   try {
     const { segments, videoFile, batchOptions = {} } = req.body;
@@ -3084,10 +3084,10 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€â€ž ===============================================');
-    console.log('Ã°Å¸â€â€ž BATCH PROCESSING SEGMENTS WITH MUSICGPT');
-    console.log('Ã°Å¸â€â€ž ===============================================');
-    console.log('Ã°Å¸â€œÅ  Total segments to process:', segments.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ BATCH PROCESSING SEGMENTS WITH MUSICGPT');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments to process:', segments.length);
 
     const results = [];
     let successCount = 0;
@@ -3096,8 +3096,8 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
     for (let i = 0; i < segments.length; i++) {
       const segment = segments[i];
       
-      console.log(`\nÃ°Å¸â€â€ž Processing segment ${i + 1}/${segments.length}...`);
-      console.log(`Ã¢ÂÂ° Segment: ${segment.start_time}s - ${segment.end_time}s`);
+      console.log(`\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Processing segment ${i + 1}/${segments.length}...`);
+      console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â° Segment: ${segment.start_time}s - ${segment.end_time}s`);
 
       try {
         // Use existing music summary or generate from scratch
@@ -3124,7 +3124,7 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
 
         if (musicResult.success) {
           successCount++;
-          console.log(`Ã¢Å“â€¦ Segment ${i + 1} processed successfully`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Segment ${i + 1} processed successfully`);
           
           results.push({
             segmentIndex: i,
@@ -3135,7 +3135,7 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
           });
         } else {
           errorCount++;
-          console.log(`Ã¢ÂÅ’ Segment ${i + 1} failed:`, musicResult.error);
+          console.log(`ÃƒÂ¢Ã‚ÂÃ…â€™ Segment ${i + 1} failed:`, musicResult.error);
           
           results.push({
             segmentIndex: i,
@@ -3152,7 +3152,7 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
 
       } catch (error) {
         errorCount++;
-        console.error(`Ã¢ÂÅ’ Error processing segment ${i + 1}:`, error.message);
+        console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Error processing segment ${i + 1}:`, error.message);
         
         results.push({
           segmentIndex: i,
@@ -3163,12 +3163,12 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
       }
     }
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° BATCH PROCESSING COMPLETED');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã¢Å“â€¦ Successful segments:', successCount);
-    console.log('Ã¢ÂÅ’ Failed segments:', errorCount);
-    console.log('Ã°Å¸â€œÅ  Success rate:', Math.round((successCount / segments.length) * 100) + '%');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° BATCH PROCESSING COMPLETED');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Successful segments:', successCount);
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Failed segments:', errorCount);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Success rate:', Math.round((successCount / segments.length) * 100) + '%');
 
     res.json({
       success: true,
@@ -3183,7 +3183,7 @@ app.post('/api/process-segments-with-musicgpt', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in batch segment processing:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in batch segment processing:', error);
     res.status(500).json({
       success: false,
       error: 'Batch segment processing failed',
@@ -3214,7 +3214,7 @@ module.exports = {
   generateMusicFromText,
   optimizeTextForMusicGeneration
 };
-// Ã¢Å“â€¦ ADD: Test endpoint to verify GCS file accessibility
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADD: Test endpoint to verify GCS file accessibility
 app.post('/api/test-gcs-file-access', async (req, res) => {
   try {
     const { gcsUrl, publicUrl } = req.body;
@@ -3228,14 +3228,14 @@ app.post('/api/test-gcs-file-access', async (req, res) => {
 
     const testUrl = publicUrl || gcsUrl;
     
-    console.log('Ã°Å¸Â§Âª Testing GCS file access:', testUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Testing GCS file access:', testUrl);
     
     // Test HTTP access
     const axios = require('axios');
     try {
       const response = await axios.head(testUrl, { timeout: 10000 });
       
-      console.log('Ã¢Å“â€¦ File is accessible:');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ File is accessible:');
       console.log('   Status:', response.status);
       console.log('   Content-Length:', response.headers['content-length']);
       console.log('   Content-Type:', response.headers['content-type']);
@@ -3250,7 +3250,7 @@ app.post('/api/test-gcs-file-access', async (req, res) => {
       });
       
     } catch (httpError) {
-      console.error('Ã¢ÂÅ’ File not accessible:', httpError.message);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ File not accessible:', httpError.message);
       
       res.status(httpError.response?.status || 500).json({
         success: false,
@@ -3262,7 +3262,7 @@ app.post('/api/test-gcs-file-access', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error testing file access:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error testing file access:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to test file access',
@@ -3271,7 +3271,7 @@ app.post('/api/test-gcs-file-access', async (req, res) => {
   }
 });
 
-// Ã¢Å“â€¦ ADD: Helper function for error suggestions (if not already present)
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADD: Helper function for error suggestions (if not already present)
 function getErrorSuggestions(analysisResult) {
   const suggestions = [];
   
@@ -3296,7 +3296,7 @@ function getErrorSuggestions(analysisResult) {
   
   return suggestions;
 }
-// Ã°Å¸Å¡Â¨ NEW: Combined upload + analysis workflow
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Combined upload + analysis workflow
 app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -3308,20 +3308,20 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
 
     const { customPrompt, analysisType = 'full', skipUpload = false } = req.body;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ COMBINED UPLOAD + GEMINI ANALYSIS WORKFLOW');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
-    console.log('Ã°Å¸Å½Â¯ Custom prompt:', customPrompt || 'None');
-    console.log('Ã°Å¸â€œâ€¹ Analysis type:', analysisType);
-    console.log('Ã¢Â¬â€ Ã¯Â¸Â Skip GCS upload:', skipUpload);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ COMBINED UPLOAD + GEMINI ANALYSIS WORKFLOW');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Custom prompt:', customPrompt || 'None');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Analysis type:', analysisType);
+    console.log('ÃƒÂ¢Ã‚Â¬Ã¢â‚¬ ÃƒÂ¯Ã‚Â¸Ã‚Â Skip GCS upload:', skipUpload);
 
     let uploadResult = null;
 
     // Step 1: Upload to GCS (unless skipped)
     if (!skipUpload) {
-      console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ Uploading to Google Cloud Storage...');
+      console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Uploading to Google Cloud Storage...');
       
       const { generateUploadUrl } = require('./gcs-utils');
       const uploadData = await generateUploadUrl(`videos/${Date.now()}_${req.file.originalname}`);
@@ -3341,11 +3341,11 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
         file_name: uploadData.file_name
       };
 
-      console.log('Ã¢Å“â€¦ Upload completed - GCS URI:', uploadResult.gcs_uri);
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload completed - GCS URI:', uploadResult.gcs_uri);
     }
 
     // Step 2: Analyze with Gemini
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ Analyzing with Gemini AI...');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Analyzing with Gemini AI...');
     
     let analysisResult;
     if (analysisType === 'segments') {
@@ -3355,9 +3355,9 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
     }
 
     if (analysisResult.success) {
-      console.log('Ã¢Å“â€¦ ===============================================');
-      console.log('Ã¢Å“â€¦ COMBINED WORKFLOW COMPLETED SUCCESSFULLY');
-      console.log('Ã¢Å“â€¦ ===============================================');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ COMBINED WORKFLOW COMPLETED SUCCESSFULLY');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
 
       res.json({
         success: true,
@@ -3383,7 +3383,7 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
         uploadSkipped: skipUpload
       });
     } else {
-      console.error('Ã¢ÂÅ’ Analysis failed:', analysisResult.error);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Analysis failed:', analysisResult.error);
       res.status(500).json({
         success: false,
         error: `Upload ${uploadResult ? 'succeeded' : 'skipped'} but analysis failed: ${analysisResult.error}`,
@@ -3393,7 +3393,7 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in combined upload + analysis workflow:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in combined upload + analysis workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed in combined upload and analysis workflow',
@@ -3402,10 +3402,10 @@ app.post('/api/upload-and-analyze-video', upload.single('video'), async (req, re
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Test Gemini API connection
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Test Gemini API connection
 app.post('/api/test-gemini', async (req, res) => {
   try {
-    console.log('Ã°Å¸Â§Âª Testing Gemini API connection...');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Testing Gemini API connection...');
     
     if (!process.env.GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY not found in environment variables');
@@ -3417,13 +3417,13 @@ app.post('/api/test-gemini', async (req, res) => {
 
     const testPrompt = "Hello! Please respond with a brief test message to confirm the API is working.";
     
-    console.log('Ã°Å¸â€œÂ¤ Sending test prompt to Gemini...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Sending test prompt to Gemini...');
     const result = await model.generateContent(testPrompt);
     const response = await result.response;
     const text = response.text();
 
-    console.log('Ã¢Å“â€¦ Gemini API test successful!');
-    console.log('Ã°Å¸â€œÂ¥ Response:', text.substring(0, 100) + '...');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini API test successful!');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Response:', text.substring(0, 100) + '...');
 
     res.json({
       success: true,
@@ -3433,7 +3433,7 @@ app.post('/api/test-gemini', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Gemini API test failed:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Gemini API test failed:', error);
     
     let errorMessage = error.message;
     if (error.message.includes('API key')) {
@@ -3453,7 +3453,7 @@ app.post('/add-payment-method', async (req, res) => {
   const { email, paymentMethodId } = req.body;
   
   try {
-    console.log('Ã°Å¸â€™Â³ Adding payment method for user:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â³ Adding payment method for user:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -3481,7 +3481,7 @@ app.post('/add-payment-method', async (req, res) => {
       },
     });
 
-    console.log('Ã¢Å“â€¦ Payment method added successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Payment method added successfully');
     
     res.json({ 
       message: 'Payment method added successfully',
@@ -3489,7 +3489,7 @@ app.post('/add-payment-method', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error adding payment method:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error adding payment method:', error);
     res.status(500).json({ 
       message: 'Failed to add payment method',
       details: error.message
@@ -3501,15 +3501,15 @@ const { generateUploadUrl, uploadBuffer } = require('./gcs-utils');
 
 // ADD THESE NEW ROUTES BEFORE YOUR EXISTING ROUTES
 
-// Ã°Å¸Å¡Â¨ NEW: Generate upload ticket for GCS
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Generate upload ticket for GCS
 app.post('/api/upload-ticket', async (req, res) => {
   try {
-    console.log('Ã°Å¸Å½Â« Generating GCS upload ticket with proper authentication...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â« Generating GCS upload ticket with proper authentication...');
     
     const { generateUploadUrl } = require('./gcs-utils');
     const uploadData = await generateUploadUrl();
     
-    console.log('Ã¢Å“â€¦ Upload ticket generated with signed URLs:', {
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload ticket generated with signed URLs:', {
       gcs_uri: uploadData.gcs_uri,
       file_name: uploadData.file_name,
       has_signed_read_url: !!uploadData.public_url
@@ -3522,7 +3522,7 @@ app.post('/api/upload-ticket', async (req, res) => {
       file_name: uploadData.file_name
     });
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error generating upload ticket:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error generating upload ticket:', error);
     res.status(500).json({ 
       error: 'Failed to generate upload ticket',
       details: error.message 
@@ -3530,7 +3530,7 @@ app.post('/api/upload-ticket', async (req, res) => {
   }
 });
 
-// Ã¢Å“â€¦ NEW: Test GCS access endpoint
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Test GCS access endpoint
 app.post('/api/test-gcs-access', async (req, res) => {
   try {
     const { gcsUrl } = req.body;
@@ -3542,20 +3542,20 @@ app.post('/api/test-gcs-access', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸Â§Âª Testing GCS access for URL:', gcsUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª Testing GCS access for URL:', gcsUrl);
     
     const { testGCSAccess } = require('./gemini-utils');
     const testResult = await testGCSAccess(gcsUrl);
     
     if (testResult.success) {
-      console.log('Ã¢Å“â€¦ GCS access test passed');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ GCS access test passed');
       res.json({
         success: true,
         message: 'GCS access working correctly',
         details: testResult
       });
     } else {
-      console.error('Ã¢ÂÅ’ GCS access test failed:', testResult.error);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ GCS access test failed:', testResult.error);
       res.status(400).json({
         success: false,
         error: testResult.error,
@@ -3565,7 +3565,7 @@ app.post('/api/test-gcs-access', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error testing GCS access:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error testing GCS access:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to test GCS access',
@@ -3574,7 +3574,7 @@ app.post('/api/test-gcs-access', async (req, res) => {
   }
 });
 
-// Ã¢Å“â€¦ NEW: Get signed URL for existing GCS file
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ NEW: Get signed URL for existing GCS file
 app.post('/api/get-signed-url', async (req, res) => {
   try {
     const { gcsUrl, fileName, expiryHours = 24 } = req.body;
@@ -3586,14 +3586,14 @@ app.post('/api/get-signed-url', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€Â Generating signed URL...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Generating signed URL...');
     
     const { getSignedDownloadUrl, extractFileNameFromUrl } = require('./gcs-utils');
     
     const fileNameToUse = fileName || extractFileNameFromUrl(gcsUrl);
     const signedUrl = await getSignedDownloadUrl(fileNameToUse, expiryHours);
     
-    console.log('Ã¢Å“â€¦ Signed URL generated for:', fileNameToUse);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Signed URL generated for:', fileNameToUse);
     
     res.json({
       success: true,
@@ -3604,7 +3604,7 @@ app.post('/api/get-signed-url', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error generating signed URL:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error generating signed URL:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to generate signed URL',
@@ -3613,10 +3613,10 @@ app.post('/api/get-signed-url', async (req, res) => {
   }
 });
 
-// Ã°Å¸Å¡Â¨ NEW: Upload video directly to GCS using ticket system
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Upload video directly to GCS using ticket system
 
 
-// Ã°Å¸Å¡Â¨ NEW: Alternative direct buffer upload (if needed)
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Alternative direct buffer upload (if needed)
 app.post('/api/upload-video-direct', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -3626,15 +3626,15 @@ app.post('/api/upload-video-direct', upload.single('video'), async (req, res) =>
       });
     }
 
-    console.log('Ã°Å¸Å½Â¬ Direct upload to GCS...');
-    console.log('Ã°Å¸â€œÂ File:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  Size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ Direct upload to GCS...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â File:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
 
     const fileName = `videos/${Date.now()}_${req.file.originalname}`;
     const uploadResult = await uploadBuffer(req.file.buffer, fileName, req.file.mimetype);
 
-    console.log('Ã¢Å“â€¦ Direct upload successful!');
-    console.log('Ã°Å¸â€â€” GCS URI:', uploadResult.gcs_uri);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Direct upload successful!');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ GCS URI:', uploadResult.gcs_uri);
 
     res.json({
       success: true,
@@ -3643,7 +3643,7 @@ app.post('/api/upload-video-direct', upload.single('video'), async (req, res) =>
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Direct upload error:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Direct upload error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to upload video directly to GCS',
@@ -3669,7 +3669,7 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€œÂ¤ Proxying file upload to GCS...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Proxying file upload to GCS...');
     console.log('File size:', req.file.size);
     console.log('File type:', req.file.mimetype);
 
@@ -3683,7 +3683,7 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
       maxContentLength: Infinity
     });
 
-    console.log('Ã¢Å“â€¦ Upload successful, status:', uploadResponse.status);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload successful, status:', uploadResponse.status);
 
     res.json({
       success: true,
@@ -3692,7 +3692,7 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Upload proxy error:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Upload proxy error:', error.message);
     
     // Provide more detailed error info
     if (error.response) {
@@ -3718,10 +3718,10 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
   const inputLabel = `[${audioIndex}:a]`;
   let currentLabel = inputLabel;
   
-  // Ã¢Å“â€¦ ADJUST: Reduce music volume to preserve original video audio
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ADJUST: Reduce music volume to preserve original video audio
   const adjustedMusicVolume = Math.min(volume * 0.8, 0.7); // Cap music volume
   
-  console.log(`   Ã°Å¸Å½Å¡Ã¯Â¸Â Music volume: ${Math.round(volume * 100)}% Ã¢â€ â€™ ${Math.round(adjustedMusicVolume * 100)}% (preserving original audio)`);
+  console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¡ÃƒÂ¯Ã‚Â¸Ã‚Â Music volume: ${Math.round(volume * 100)}% ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ ${Math.round(adjustedMusicVolume * 100)}% (preserving original audio)`);
   
   // Map ClipTune algorithms to FFmpeg curve types
   const getFadeCurve = (algorithm) => {
@@ -3753,7 +3753,7 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
   const fadeAlgorithm = segment.fade_algorithm || 'linear';
   const fadeCurve = getFadeCurve(fadeAlgorithm);
   
-  console.log(`   Ã°Å¸Å½Â­ Fade algorithm: ${fadeAlgorithm} Ã¢â€ â€™ FFmpeg curve: ${fadeCurve}`);
+  console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ Fade algorithm: ${fadeAlgorithm} ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ FFmpeg curve: ${fadeCurve}`);
   
   // Step 1: Apply fade-in if specified
   if (segment.fadein_duration && parseFloat(segment.fadein_duration) > 0) {
@@ -3771,7 +3771,7 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
     }
     
     currentLabel = fadeInLabel;
-    console.log(`   Ã°Å¸â€Å  Applied ${fadeAlgorithm} fade-in: ${fadeInDuration}s starting at ${fadeInStart}s`);
+    console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  Applied ${fadeAlgorithm} fade-in: ${fadeInDuration}s starting at ${fadeInStart}s`);
   }
   
   // Step 2: Apply fade-out if specified
@@ -3792,52 +3792,52 @@ app.post('/upload-proxy', upload.single('file'), async (req, res) => {
     }
     
     currentLabel = fadeOutLabel;
-    console.log(`   Ã°Å¸â€â€° Applied ${fadeAlgorithm} fade-out: ${fadeOutDuration}s starting at ${fadeOutStart}s`);
+    console.log(`   ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â° Applied ${fadeAlgorithm} fade-out: ${fadeOutDuration}s starting at ${fadeOutStart}s`);
   }
   
   // Step 3: Apply final volume (adjusted to preserve original audio)
   const volumeLabel = `[vol_${arrayIndex}]`;
   filters.push(`${currentLabel}volume=${adjustedMusicVolume}${volumeLabel}`);
   
-  console.log(`   Ã°Å¸Å½Å¡Ã¯Â¸Â Applied final volume: ${Math.round(adjustedMusicVolume * 100)}%`);
+  console.log(`   ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¡ÃƒÂ¯Ã‚Â¸Ã‚Â Applied final volume: ${Math.round(adjustedMusicVolume * 100)}%`);
   
   return { filters, finalLabel: volumeLabel, algorithm: fadeAlgorithm, curve: fadeCurve };
 };
 
 
 const getEffectiveVolume = (musicInfo, segment) => {
-  // Ã¢Å“â€¦ PRIORITY 1: Use custom volume if explicitly set (even if 0)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PRIORITY 1: Use custom volume if explicitly set (even if 0)
   if (musicInfo.customVolume !== undefined && musicInfo.customVolume !== null) {
     console.log(`   Using CUSTOM volume: ${musicInfo.customVolume} (was set by user)`);
     return parseFloat(musicInfo.customVolume);
   }
   
-  // Ã¢Å“â€¦ PRIORITY 2: Use effectiveVolume if available (from state)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PRIORITY 2: Use effectiveVolume if available (from state)
   if (musicInfo.effectiveVolume !== undefined && musicInfo.effectiveVolume !== null) {
     console.log(`   Using EFFECTIVE volume: ${musicInfo.effectiveVolume}`);
     return parseFloat(musicInfo.effectiveVolume);
   }
   
-  // Ã¢Å“â€¦ PRIORITY 3: Use AI suggested volume from segment
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PRIORITY 3: Use AI suggested volume from segment
   if (segment && segment.volume !== undefined && segment.volume !== null) {
     console.log(`   Using AI suggested volume: ${segment.volume}`);
     return parseFloat(segment.volume);
   }
   
-  // Ã¢Å“â€¦ PRIORITY 4: Default volume
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PRIORITY 4: Default volume
   console.log(`   Using DEFAULT volume: 0.3`);
   return 0.3;
 };
 
-// Ã¢Å“â€¦ STEP 1: Make sure this function exists in your index.js 
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ STEP 1: Make sure this function exists in your index.js 
 // Find your existing buildAudioFilterWithFades function and REPLACE it with this fixed version:
 
 
-// Ã¢Å“â€¦ STEP 2: Fix the progressive video endpoint audio mixing
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ STEP 2: Fix the progressive video endpoint audio mixing
 // In your /api/update-progressive-video endpoint, REPLACE the single segment processing with:
 
 
-// Ã¢Å“â€¦ STEP 3: Also fix the complete video endpoint
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ STEP 3: Also fix the complete video endpoint
 // In your /api/create-complete-video endpoint, make sure the mixing logic is:
 
 
@@ -3868,7 +3868,7 @@ const buildComplexFadeFilter = (audioIndex, volume, segment, segmentStart, array
       
       filters.push(`${currentLabel}volume=${points.join(':')}${sigmoidLabel}`);
       currentLabel = sigmoidLabel;
-      console.log(`   Ã°Å¸Å’Å  Applied custom sigmoid fade-in: ${fadeInDuration}s`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…â€™Ã…  Applied custom sigmoid fade-in: ${fadeInDuration}s`);
     }
     
     if (fadeOutDuration > 0) {
@@ -3888,7 +3888,7 @@ const buildComplexFadeFilter = (audioIndex, volume, segment, segmentStart, array
       
       filters.push(`${currentLabel}volume=${points.join(':')}${sigmoidOutLabel}`);
       currentLabel = sigmoidOutLabel;
-      console.log(`   Ã°Å¸Å’Å  Applied custom sigmoid fade-out: ${fadeOutDuration}s`);
+      console.log(`   ÃƒÂ°Ã…Â¸Ã…â€™Ã…  Applied custom sigmoid fade-out: ${fadeOutDuration}s`);
     }
   } else {
     // Use standard implementation for other algorithms
@@ -3915,34 +3915,34 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
 
     const { extra_prompt, total_seconds } = req.body;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ STARTING CLIPTUNE ANALYSIS WITH ENHANCED DEBUG');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
-    console.log('Ã°Å¸Å½Â¯ Extra prompt:', extra_prompt || 'None provided');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Video duration (total_seconds):', total_seconds || 'Not provided');
-    console.log('Ã¢ÂÂ° Started at:', new Date().toLocaleTimeString());
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ STARTING CLIPTUNE ANALYSIS WITH ENHANCED DEBUG');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Extra prompt:', extra_prompt || 'None provided');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration (total_seconds):', total_seconds || 'Not provided');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Started at:', new Date().toLocaleTimeString());
 
     // Step 1: Get upload ticket from ClipTune
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ REQUESTING UPLOAD TICKET FROM CLIPTUNE');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('Ã°Å¸Å’Â API URL:', `${CLIPTUNE_API}/upload-ticket`);
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ REQUESTING UPLOAD TICKET FROM CLIPTUNE');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â API URL:', `${CLIPTUNE_API}/upload-ticket`);
     
     const ticketResponse = await axios.post(`${CLIPTUNE_API}/upload-ticket`);
     const { put_url, gcs_uri } = ticketResponse.data;
     
-    console.log('Ã¢Å“â€¦ Upload ticket received successfully');
-    console.log('Ã°Å¸â€â€” GCS URI:', gcs_uri);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload ticket received successfully');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ GCS URI:', gcs_uri);
 
     // Step 2: Upload video to GCS
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ UPLOADING VIDEO TO GOOGLE CLOUD STORAGE');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('Ã¢ËœÂÃ¯Â¸Â Uploading to GCS...');
-    console.log('Ã°Å¸â€œÅ  Upload size:', req.file.size, 'bytes');
-    console.log('Ã°Å¸Å½Â¥ Content type:', req.file.mimetype || 'video/mp4');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ UPLOADING VIDEO TO GOOGLE CLOUD STORAGE');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('ÃƒÂ¢Ã‹Å“Ã‚ÂÃƒÂ¯Ã‚Â¸Ã‚Â Uploading to GCS...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Upload size:', req.file.size, 'bytes');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¥ Content type:', req.file.mimetype || 'video/mp4');
     
     const uploadStartTime = Date.now();
     
@@ -3956,37 +3956,37 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
     });
     
     const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
-    console.log('Ã¢Å“â€¦ Video uploaded to GCS successfully');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Upload time:', uploadTime, 'seconds');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video uploaded to GCS successfully');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Upload time:', uploadTime, 'seconds');
 
     // Step 3: Call video-segments endpoint for ANALYSIS
-    console.log('\n3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ ANALYZING VIDEO WITH CLIPTUNE AI');
-    console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('Ã°Å¸Â¤â€“ Starting AI analysis...');
-    console.log('Ã°Å¸Å½Â¯ Processing instructions:', extra_prompt || 'Default processing');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Video duration to send:', total_seconds || 'Will be calculated by ClipTune');
+    console.log('\n3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO WITH CLIPTUNE AI');
+    console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬â€œ Starting AI analysis...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Processing instructions:', extra_prompt || 'Default processing');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration to send:', total_seconds || 'Will be calculated by ClipTune');
     
     const formData = new URLSearchParams();
     formData.append('video_url', gcs_uri);
     if (extra_prompt) {
       formData.append('extra_prompt', extra_prompt);
     }
-    // Ã°Å¸Å¡Â¨ ADD: Include total_seconds if provided (as integer)
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ADD: Include total_seconds if provided (as integer)
     if (total_seconds) {
       const durationInt = parseInt(total_seconds);
       formData.append('total_seconds', durationInt);
-      console.log('Ã°Å¸â€œÅ  Including video duration:', durationInt, 'seconds (as integer)');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Including video duration:', durationInt, 'seconds (as integer)');
     }
 
-    console.log('Ã°Å¸â€œâ€¹ Form data prepared:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Form data prepared:');
     console.log('   - video_url:', gcs_uri);
     console.log('   - extra_prompt:', extra_prompt || 'Not provided');
     console.log('   - total_seconds:', total_seconds || 'Not provided');
     
     const processingStartTime = Date.now();
-    console.log('Ã¢ÂÂ° AI analysis started at:', new Date().toLocaleTimeString());
-    console.log('Ã¢ÂÂ³ This may take several minutes...');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° AI analysis started at:', new Date().toLocaleTimeString());
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â³ This may take several minutes...');
 
     const segmentsResponse = await axios.post(`${CLIPTUNE_API}/video-segments`, formData, {
       headers: {
@@ -3997,36 +3997,36 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
 
     const processingTime = ((Date.now() - processingStartTime) / 1000).toFixed(2);
     
-    console.log('\nÃ¢Å“â€¦ ===============================================');
-    console.log('Ã¢Å“â€¦ CLIPTUNE AI ANALYSIS COMPLETED');
-    console.log('Ã¢Å“â€¦ ===============================================');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Processing time:', processingTime, 'seconds');
-    console.log('Ã°Å¸â€œÅ  Response status:', segmentsResponse.status);
+    console.log('\nÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CLIPTUNE AI ANALYSIS COMPLETED');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Processing time:', processingTime, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Response status:', segmentsResponse.status);
     
-    // Ã°Å¸Å¡Â¨ ENHANCED DEBUG: Show COMPLETE RAW RESPONSE
-    console.log('\nÃ°Å¸â€Â ===============================================');
-    console.log('Ã°Å¸â€Â COMPLETE RAW CLIPTUNE AI RESPONSE DEBUG');
-    console.log('Ã°Å¸â€Â ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED DEBUG: Show COMPLETE RAW RESPONSE
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â COMPLETE RAW CLIPTUNE AI RESPONSE DEBUG');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
     
     // Log the full response object structure
-    console.log('Ã°Å¸â€œâ€¹ Response Object Keys:', Object.keys(segmentsResponse.data));
-    console.log('Ã°Å¸â€œâ€¹ Response Headers:', JSON.stringify(segmentsResponse.headers, null, 2));
-    console.log('Ã°Å¸â€œâ€¹ Response Status:', segmentsResponse.status);
-    console.log('Ã°Å¸â€œâ€¹ Response Status Text:', segmentsResponse.statusText);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Response Object Keys:', Object.keys(segmentsResponse.data));
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Response Headers:', JSON.stringify(segmentsResponse.headers, null, 2));
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Response Status:', segmentsResponse.status);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Response Status Text:', segmentsResponse.statusText);
     
     // Log the complete response data in pretty format
-    console.log('\nÃ°Å¸â€œâ€ž COMPLETE RESPONSE DATA:');
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ COMPLETE RESPONSE DATA:');
     console.log('='.repeat(80));
     console.log(JSON.stringify(segmentsResponse.data, null, 2));
     console.log('='.repeat(80));
     
     // Analyze the response structure
     if (segmentsResponse.data) {
-      console.log('\nÃ°Å¸â€Â¬ RESPONSE STRUCTURE ANALYSIS:');
-      console.log('Ã°Å¸â€Â¬ ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¬ RESPONSE STRUCTURE ANALYSIS:');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¬ ===============================================');
       
       const responseKeys = Object.keys(segmentsResponse.data);
-      console.log('Ã°Å¸â€œÅ  Top-level keys in response:', responseKeys);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Top-level keys in response:', responseKeys);
       
       responseKeys.forEach(key => {
         const value = segmentsResponse.data[key];
@@ -4035,15 +4035,15 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
       
       // Check for segments specifically
       if (segmentsResponse.data.segments) {
-        console.log('\nÃ°Å¸Å½Â¯ SEGMENTS ARRAY FOUND:');
-        console.log('Ã°Å¸Å½Â¯ ===============================================');
-        console.log('Ã°Å¸â€œÅ  Number of segments:', segmentsResponse.data.segments.length);
-        console.log('Ã°Å¸â€œÅ  Segments type:', typeof segmentsResponse.data.segments);
-        console.log('Ã°Å¸â€œÅ  Is array:', Array.isArray(segmentsResponse.data.segments));
+        console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ SEGMENTS ARRAY FOUND:');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Number of segments:', segmentsResponse.data.segments.length);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Segments type:', typeof segmentsResponse.data.segments);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Is array:', Array.isArray(segmentsResponse.data.segments));
         
         // Show first segment structure
         if (segmentsResponse.data.segments.length > 0) {
-          console.log('\nÃ°Å¸â€œâ€¹ FIRST SEGMENT STRUCTURE SAMPLE:');
+          console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ FIRST SEGMENT STRUCTURE SAMPLE:');
           console.log('-'.repeat(60));
           const firstSegment = segmentsResponse.data.segments[0];
           console.log('First segment keys:', Object.keys(firstSegment));
@@ -4053,7 +4053,7 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
         }
         
         // Show all segments overview
-        console.log('\nÃ°Å¸â€œÅ  ALL SEGMENTS OVERVIEW:');
+        console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ALL SEGMENTS OVERVIEW:');
         console.log('-'.repeat(60));
         segmentsResponse.data.segments.forEach((segment, index) => {
           console.log(`Segment ${index + 1}:`);
@@ -4070,45 +4070,45 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
         });
         console.log('-'.repeat(60));
       } else {
-        console.log('\nÃ¢ÂÅ’ NO SEGMENTS FOUND IN RESPONSE');
-        console.log('Ã¢ÂÅ’ Available keys:', responseKeys);
+        console.log('\nÃƒÂ¢Ã‚ÂÃ…â€™ NO SEGMENTS FOUND IN RESPONSE');
+        console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Available keys:', responseKeys);
       }
       
       // Check for other important fields
-      console.log('\nÃ°Å¸â€Â OTHER RESPONSE FIELDS:');
-      console.log('Ã°Å¸â€Â ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â OTHER RESPONSE FIELDS:');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
       
       const importantFields = ['success', 'message', 'error', 'data', 'result', 'status'];
       importantFields.forEach(field => {
         if (segmentsResponse.data.hasOwnProperty(field)) {
-          console.log(`Ã¢Å“â€¦ Found ${field}:`, typeof segmentsResponse.data[field]);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Found ${field}:`, typeof segmentsResponse.data[field]);
           if (typeof segmentsResponse.data[field] === 'string' && segmentsResponse.data[field].length < 200) {
             console.log(`   Value: ${segmentsResponse.data[field]}`);
           } else if (typeof segmentsResponse.data[field] === 'object') {
             console.log(`   Keys: ${Object.keys(segmentsResponse.data[field] || {}).join(', ')}`);
           }
         } else {
-          console.log(`Ã¢ÂÅ’ Missing ${field}`);
+          console.log(`ÃƒÂ¢Ã‚ÂÃ…â€™ Missing ${field}`);
         }
       });
     }
 
-    // Ã°Å¸Å¡Â¨ FIXED: Apply field mapping after logging raw response
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FIXED: Apply field mapping after logging raw response
     let mappedSegments = [];
     if (segmentsResponse.data && segmentsResponse.data.segments) {
-      console.log('\nÃ°Å¸â€â€ž ===============================================');
-      console.log('Ã°Å¸â€â€ž APPLYING FIELD MAPPING TO RAW SEGMENTS');
-      console.log('Ã°Å¸â€â€ž ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ APPLYING FIELD MAPPING TO RAW SEGMENTS');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
       
-      console.log('Ã°Å¸â€œÅ  Raw segments before mapping:', segmentsResponse.data.segments.length);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Raw segments before mapping:', segmentsResponse.data.segments.length);
       
       // Map ClipTune response to expected field names
       mappedSegments = mapClipTuneResponse(segmentsResponse.data.segments);
       
-      console.log('Ã°Å¸â€œÅ  Mapped segments after mapping:', mappedSegments.length);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Mapped segments after mapping:', mappedSegments.length);
       
-      console.log('\nÃ°Å¸â€œâ€¹ MAPPED SEGMENTS STRUCTURE:');
-      console.log('Ã°Å¸â€œâ€¹ ===============================================');
+      console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ MAPPED SEGMENTS STRUCTURE:');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ ===============================================');
       
       mappedSegments.forEach((segment, index) => {
         console.log(`Mapped Segment ${index + 1}:`);
@@ -4123,21 +4123,21 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
         console.log('   ---');
       });
     } else {
-      console.log('\nÃ¢ÂÅ’ ===============================================');
-      console.log('Ã¢ÂÅ’ NO SEGMENTS FOUND TO MAP');
-      console.log('Ã¢ÂÅ’ ===============================================');
-      console.log('Ã°Å¸â€Â Response data type:', typeof segmentsResponse.data);
-      console.log('Ã°Å¸â€Â Response data keys:', segmentsResponse.data ? Object.keys(segmentsResponse.data) : 'N/A');
+      console.log('\nÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+      console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ NO SEGMENTS FOUND TO MAP');
+      console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Response data type:', typeof segmentsResponse.data);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Response data keys:', segmentsResponse.data ? Object.keys(segmentsResponse.data) : 'N/A');
     }
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° CLIPTUNE ANALYSIS DEBUG COMPLETED');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã¢Å“â€¦ Sending response to client...');
-    console.log('Ã°Å¸â€œÅ  Final mapped segments count:', mappedSegments.length);
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Video duration was sent as:', total_seconds || 'Not provided');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° CLIPTUNE ANALYSIS DEBUG COMPLETED');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Sending response to client...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Final mapped segments count:', mappedSegments.length);
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration was sent as:', total_seconds || 'Not provided');
 
-    // Ã°Å¸Å¡Â¨ FIXED: Return mapped segments instead of original
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FIXED: Return mapped segments instead of original
     res.json({
       success: true,
       result: {
@@ -4155,24 +4155,24 @@ app.post('/api/cliptune-upload', upload.single('video'), async (req, res) => {
     });
 
   } catch (error) {
-    console.log('\nÃ¢ÂÅ’ ===============================================');
-    console.log('Ã¢ÂÅ’ CLIPTUNE ANALYSIS ERROR');
-    console.log('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã°Å¸â€™Â¥ Error message:', error.message);
-    console.error('Ã°Å¸â€™Â¥ Error stack:', error.stack);
+    console.log('\nÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ CLIPTUNE ANALYSIS ERROR');
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error message:', error.message);
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error stack:', error.stack);
     
     if (error.response) {
-      console.error('Ã°Å¸â€œÅ  HTTP Status:', error.response.status);
-      console.error('Ã°Å¸â€œÅ  HTTP Status Text:', error.response.statusText);
-      console.error('Ã°Å¸â€œÅ  Response Headers:', JSON.stringify(error.response.headers, null, 2));
-      console.error('Ã°Å¸â€™Â¾ Full Response Data:');
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  HTTP Status:', error.response.status);
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  HTTP Status Text:', error.response.statusText);
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Response Headers:', JSON.stringify(error.response.headers, null, 2));
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Full Response Data:');
       console.error('='.repeat(80));
       console.error(JSON.stringify(error.response.data, null, 2));
       console.error('='.repeat(80));
     }
 
     if (error.config) {
-      console.error('Ã°Å¸â€Â§ Request Config:');
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Request Config:');
       console.error('   URL:', error.config.url);
       console.error('   Method:', error.config.method);
       console.error('   Headers:', JSON.stringify(error.config.headers, null, 2));
@@ -4254,7 +4254,7 @@ app.post('/api/get-payment-methods', async (req, res) => {
   const { email } = req.body;
   
   try {
-    console.log('Ã°Å¸â€™Â³ Fetching payment methods for:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â³ Fetching payment methods for:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -4278,7 +4278,7 @@ app.post('/api/get-payment-methods', async (req, res) => {
         });
         stripeCards = paymentMethods.data;
       } catch (stripeError) {
-        console.warn('Ã¢Å¡ Ã¯Â¸Â Could not fetch from Stripe:', stripeError.message);
+        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not fetch from Stripe:', stripeError.message);
       }
     }
 
@@ -4290,7 +4290,7 @@ app.post('/api/get-payment-methods', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error fetching payment methods:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error fetching payment methods:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch payment methods',
@@ -4311,7 +4311,7 @@ app.post('/api/add-payment-method', async (req, res) => {
   } = req.body;
   
   try {
-    console.log('Ã°Å¸â€™Â³ Adding payment method for:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â³ Adding payment method for:', email);
     console.log('Payment method ID:', paymentMethodId);
     
     const user = await User.findOne({ email });
@@ -4389,7 +4389,7 @@ app.post('/api/add-payment-method', async (req, res) => {
 
     await user.save();
 
-    console.log('Ã¢Å“â€¦ Payment method added successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Payment method added successfully');
     
     res.json({ 
       success: true,
@@ -4399,7 +4399,7 @@ app.post('/api/add-payment-method', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error adding payment method:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error adding payment method:', error);
     
     // Handle specific Stripe errors
     if (error.type && error.type.includes('Stripe')) {
@@ -4423,7 +4423,7 @@ app.post('/api/remove-payment-method', async (req, res) => {
   const { email, paymentMethodId } = req.body;
   
   try {
-    console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Removing payment method for:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Removing payment method for:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -4435,7 +4435,7 @@ app.post('/api/remove-payment-method', async (req, res) => {
       try {
         await stripeInstance.paymentMethods.detach(paymentMethodId);
       } catch (stripeError) {
-        console.warn('Ã¢Å¡ Ã¯Â¸Â Stripe detach failed:', stripeError.message);
+        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Stripe detach failed:', stripeError.message);
         // Continue with MongoDB cleanup even if Stripe fails
       }
     }
@@ -4471,7 +4471,7 @@ app.post('/api/remove-payment-method', async (req, res) => {
       await user.save();
     }
 
-    console.log('Ã¢Å“â€¦ Payment method removed successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Payment method removed successfully');
     
     res.json({ 
       success: true,
@@ -4479,7 +4479,7 @@ app.post('/api/remove-payment-method', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error removing payment method:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error removing payment method:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to remove payment method',
@@ -4493,7 +4493,7 @@ app.post('/api/update-billing-address', async (req, res) => {
   const { email, billingAddress } = req.body;
   
   try {
-    console.log('Ã°Å¸â€œÂ® Updating billing address for:', email);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â® Updating billing address for:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -4524,7 +4524,7 @@ app.post('/api/update-billing-address', async (req, res) => {
 
     await user.save();
 
-    console.log('Ã¢Å“â€¦ Billing address updated successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Billing address updated successfully');
     
     res.json({ 
       success: true,
@@ -4533,7 +4533,7 @@ app.post('/api/update-billing-address', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error updating billing address:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error updating billing address:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to update billing address',
@@ -4547,7 +4547,7 @@ app.post('/api/set-default-payment-method', async (req, res) => {
   const { email, paymentMethodId } = req.body;
   
   try {
-    console.log('Ã¢Â­Â Setting default payment method for:', email);
+    console.log('ÃƒÂ¢Ã‚Â­Ã‚Â Setting default payment method for:', email);
     
     const user = await User.findOne({ email });
     if (!user) {
@@ -4573,7 +4573,7 @@ app.post('/api/set-default-payment-method', async (req, res) => {
       await user.save();
     }
 
-    console.log('Ã¢Å“â€¦ Default payment method updated');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Default payment method updated');
     
     res.json({ 
       success: true,
@@ -4581,7 +4581,7 @@ app.post('/api/set-default-payment-method', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error setting default payment method:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error setting default payment method:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to set default payment method',
@@ -4665,20 +4665,20 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     const parsedMusicData = JSON.parse(musicData);
     const newSegmentIdx = parseInt(newSegmentIndex);
     
-    // Ã°Å¸Å¡Â¨ NEW: Parse trimmed video info if provided
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Parse trimmed video info if provided
     const parsedTrimInfo = trimInfo ? JSON.parse(trimInfo) : null;
     const isTrimmedVideo = !!parsedTrimInfo;
     
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ PROGRESSIVE VIDEO UPDATE - TRIMMED VIDEO SUPPORT');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log(`Ã°Å¸â€œÅ  Total segments: ${parsedSegments.length}`);
-    console.log(`Ã°Å¸â€ â€¢ New segment with music: ${newSegmentIdx + 1}`);
-    console.log(`Ã°Å¸Å½Âµ Total segments with music: ${Object.keys(parsedMusicData).length}`);
-    console.log(`Ã¢Å“â€šÃ¯Â¸Â Is trimmed video: ${isTrimmedVideo ? 'YES' : 'NO'}`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ PROGRESSIVE VIDEO UPDATE - TRIMMED VIDEO SUPPORT');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ New segment with music: ${newSegmentIdx + 1}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total segments with music: ${Object.keys(parsedMusicData).length}`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Is trimmed video: ${isTrimmedVideo ? 'YES' : 'NO'}`);
     
     if (isTrimmedVideo) {
-      console.log(`Ã¢Å“â€šÃ¯Â¸Â Trimmed video info:`, {
+      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Trimmed video info:`, {
         originalStart: parsedTrimInfo.original_start + 's',
         originalEnd: parsedTrimInfo.original_end + 's',
         trimmedDuration: parsedTrimInfo.trimmed_duration + 's'
@@ -4687,7 +4687,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     
     // Show which segments currently have music
     const segmentsWithMusic = Object.keys(parsedMusicData).map(k => parseInt(k) + 1);
-    console.log(`Ã°Å¸Å½Âµ Segments with music: [${segmentsWithMusic.join(', ')}]`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segments with music: [${segmentsWithMusic.join(', ')}]`);
     
     // Save uploaded video
     videoFilePath = path.join(tempDir, `progressive_video_source_${Date.now()}.mp4`);
@@ -4704,7 +4704,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       if (musicInfo && musicInfo.audioUrl && originalSegment) {
         const volume = getEffectiveVolume(musicInfo, originalSegment);
         
-        // Ã°Å¸Å¡Â¨ NEW: Handle timing for both trimmed and full video
+        // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Handle timing for both trimmed and full video
         let segmentStartTime, segmentEndTime, timingSource;
 
         if (musicInfo.actualMusicTiming) {
@@ -4715,11 +4715,11 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           
           // Log trimmed video specific info
           if (musicInfo.actualMusicTiming.isTrimmedVideo) {
-            console.log(`Ã°Å¸Å½Âµ Segment ${segmentIndex + 1} (TRIMMED VIDEO):`);
+            console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segment ${segmentIndex + 1} (TRIMMED VIDEO):`);
             console.log(`   Absolute placement: ${segmentStartTime}s - ${segmentEndTime}s`);
             console.log(`   Relative to trimmed: ${musicInfo.actualMusicTiming.trimmedVideoInfo.relativeStart}s - ${musicInfo.actualMusicTiming.trimmedVideoInfo.relativeEnd}s`);
           } else {
-            console.log(`Ã°Å¸Å½Âµ Segment ${segmentIndex + 1} (FULL VIDEO):`);
+            console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segment ${segmentIndex + 1} (FULL VIDEO):`);
             console.log(`   Placement: ${segmentStartTime}s - ${segmentEndTime}s`);
           }
           
@@ -4735,11 +4735,11 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
 
         console.log(`   Volume: ${Math.round(volume * 100)}%`);
         console.log(`   Timing source: ${timingSource}`);
-        console.log(`   ${segmentIndex === newSegmentIdx ? 'Ã°Å¸â€ â€¢ NEW!' : 'Ã¢Å“â€¦ Existing'}`);
+        console.log(`   ${segmentIndex === newSegmentIdx ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ NEW!' : 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Existing'}`);
         
         if (volume > 0) {
           try {
-            console.log(`Ã°Å¸â€œÂ¥ Downloading audio for segment ${segmentIndex + 1}...`);
+            console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading audio for segment ${segmentIndex + 1}...`);
             
             const audioResponse = await axios({
               method: 'get',
@@ -4776,13 +4776,13 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
               isNew: segmentIndex === newSegmentIdx
             });
             
-            console.log(`Ã¢Å“â€¦ Audio ready for segment ${segmentIndex + 1}`);
+            console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Audio ready for segment ${segmentIndex + 1}`);
             
           } catch (error) {
-            console.error(`Ã¢ÂÅ’ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+            console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
           }
         } else {
-          console.log(`Ã°Å¸â€â€¡ Segment ${segmentIndex + 1} is muted - skipping`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ Segment ${segmentIndex + 1} is muted - skipping`);
         }
       }
     }
@@ -4790,19 +4790,19 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     // Sort segments by start time for proper layering
     activeAudioSegments.sort((a, b) => parseFloat(a.segment.start_time) - parseFloat(b.segment.start_time));
     
-    console.log('\nÃ°Å¸Å½Âµ FINAL PROGRESSIVE VIDEO COMPOSITION:');
-    console.log('Ã°Å¸Å½Âµ ===============================================');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FINAL PROGRESSIVE VIDEO COMPOSITION:');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
     activeAudioSegments.forEach(({ index, segment, musicInfo, isNew }) => {
       const trimmedIndicator = segment.music_placement_timing?.isTrimmedVideo ? ' (Trimmed)' : ' (Full)';
-      console.log(`${isNew ? 'Ã°Å¸â€ â€¢' : 'Ã¢Å“â€¦'} Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)${trimmedIndicator}`);
+      console.log(`${isNew ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢' : 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦'} Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)${trimmedIndicator}`);
     });
-    console.log('Ã°Å¸Å½Âµ ===============================================\n');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================\n');
     
     const outputPath = path.join(tempDir, `progressive_video_${Date.now()}.mp4`);
     
     // Handle case where no active segments
     if (activeAudioSegments.length === 0) {
-      console.log('Ã°Å¸â€â€¡ No active music segments - restoring original video with FULL VOLUME');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ No active music segments - restoring original video with FULL VOLUME');
       
       await new Promise((resolve, reject) => {
         ffmpeg(videoFilePath)
@@ -4816,7 +4816,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           ])
           .output(outputPath)
           .on('end', () => {
-            console.log('Ã¢Å“â€¦ Original video restored with FULL VOLUME (no music segments)');
+            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Original video restored with FULL VOLUME (no music segments)');
             resolve();
           })
           .on('error', reject)
@@ -4825,9 +4825,9 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       
       const stats = await fsPromises.stat(outputPath);
       const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
-
-      return res.json({
-        success: true,
+      
+      return res.json({ 
+        success: true, 
         combinedUrl,
         activeSegments: 0,
         totalSegments: parsedSegments.length,
@@ -4837,7 +4837,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       });
       
     } else {
-      console.log(`Ã°Å¸Å½Âµ Creating progressive video with ${activeAudioSegments.length} music segments...`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Creating progressive video with ${activeAudioSegments.length} music segments...`);
       
       await new Promise((resolve, reject) => {
         let command = ffmpeg(videoFilePath);
@@ -4853,7 +4853,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           const segmentStart = parseFloat(segment.start_time);
           const volume = musicInfo.effectiveVolume;
           
-          console.log(`Ã°Å¸Å½Âµ Progressive single segment: ${index + 1}`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Progressive single segment: ${index + 1}`);
           console.log(`   Music volume: ${Math.round(volume * 100)}%`);
           console.log(`   Original video audio: PRESERVED at full volume`);
           
@@ -4882,7 +4882,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           const filterParts = [];
           const mixInputs = ['[0:a]'];
           
-          console.log(`Ã°Å¸Å½Âµ Progressive multiple segments: ${activeAudioSegments.length}`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Progressive multiple segments: ${activeAudioSegments.length}`);
           console.log(`   Original video audio: PRESERVED`);
           
           activeAudioSegments.forEach(({ index, musicInfo, segment }, arrayIndex) => {
@@ -4922,19 +4922,19 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
         command
           .output(outputPath)
           .on('start', (commandLine) => {
-            console.log('Ã°Å¸Å½Â¬ Progressive video FFmpeg command:', commandLine.substring(0, 200) + '...');
+            console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ Progressive video FFmpeg command:', commandLine.substring(0, 200) + '...');
           })
           .on('end', () => {
-            console.log('Ã¢Å“â€¦ Progressive video update completed');
+            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Progressive video update completed');
             resolve();
           })
           .on('error', (err) => {
-            console.error('Ã¢ÂÅ’ Progressive video error:', err.message);
+            console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Progressive video error:', err.message);
             reject(err);
           })
           .on('progress', (progress) => {
             if (progress.percent) {
-              console.log(`Ã°Å¸â€â€ž Progressive update: ${Math.round(progress.percent)}% done`);
+              console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Progressive update: ${Math.round(progress.percent)}% done`);
             }
           })
           .run();
@@ -4947,17 +4947,17 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       throw new Error('Progressive video output is empty');
     }
 
-    console.log('Ã¢Å“â€¦ Progressive video ready:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Progressive video ready:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° PROGRESSIVE VIDEO UPDATE SUCCESSFUL');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸â€â€” Updated Video URL:', combinedUrl);
-    console.log(`Ã°Å¸â€ â€¢ Added segment ${newSegmentIdx + 1} to the progressive video`);
-    console.log(`Ã°Å¸Å½Âµ Total active segments: ${activeAudioSegments.length}`);
-    console.log(`Ã¢Å“â€šÃ¯Â¸Â Video type: ${isTrimmedVideo ? 'Trimmed' : 'Full'} video`);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° PROGRESSIVE VIDEO UPDATE SUCCESSFUL');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Updated Video URL:', combinedUrl);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ Added segment ${newSegmentIdx + 1} to the progressive video`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total active segments: ${activeAudioSegments.length}`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Video type: ${isTrimmedVideo ? 'Trimmed' : 'Full'} video`);
     
     res.json({ 
       success: true, 
@@ -4971,7 +4971,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in progressive video update:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in progressive video update:', error);
     res.status(500).json({ 
       error: 'Failed to update progressive video', 
       details: error.message 
@@ -4984,7 +4984,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
         try {
           await fsPromises.unlink(file);
         } catch (e) {
-          console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete ${file}:`, e.message);
+          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete ${file}:`, e.message);
         }
       }
     }
@@ -4994,7 +4994,7 @@ app.post('/api/save-complete-video', async (req, res) => {
   const { userId, title, videoUrl, duration, segmentCount, description, processedSegments } = req.body;
 
   try {
-    console.log('Ã°Å¸â€œÅ¡ Saving complete video to library:', {
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¡ Saving complete video to library:', {
       userId,
       title,
       videoUrl: videoUrl ? videoUrl.substring(0, 50) + '...' : 'None',
@@ -5033,7 +5033,7 @@ app.post('/api/save-complete-video', async (req, res) => {
 
     await newCompleteVideo.save();
     
-    console.log('Ã¢Å“â€¦ Complete video saved to library successfully:', newCompleteVideo._id);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video saved to library successfully:', newCompleteVideo._id);
     
     res.status(201).json({ 
       message: 'Complete video saved to library successfully!', 
@@ -5042,7 +5042,7 @@ app.post('/api/save-complete-video', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Ã¢ÂÅ’ Error saving complete video to library:', err);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error saving complete video to library:', err);
     res.status(500).json({ 
       error: 'Failed to save complete video to library', 
       details: err.message 
@@ -5056,18 +5056,18 @@ app.post('/api/get-complete-videos', async (req, res) => {
   const { userId } = req.body;
   
   try {
-    console.log('Ã°Å¸â€œÅ¡ Fetching complete videos from library for user:', userId);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â¡ Fetching complete videos from library for user:', userId);
     
     const completeVideos = await CompleteVideo.find({ userId })
       .sort({ createdAt: -1 })
       .limit(50); // Limit to 50 most recent videos
     
-    console.log(`Ã¢Å“â€¦ Found ${completeVideos.length} complete videos in library`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Found ${completeVideos.length} complete videos in library`);
     
     res.status(200).json(completeVideos);
     
   } catch (err) {
-    console.error("Ã¢ÂÅ’ Error fetching complete videos from library:", err);
+    console.error("ÃƒÂ¢Ã‚ÂÃ…â€™ Error fetching complete videos from library:", err);
     res.status(500).json({ 
       message: 'Failed to fetch complete videos from library',
       error: err.message 
@@ -5081,7 +5081,7 @@ app.post('/api/delete-complete-video', async (req, res) => {
   const { userId, videoId } = req.body;
   
   try {
-    console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Deleting complete video from library:', { userId, videoId });
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Deleting complete video from library:', { userId, videoId });
     
     const deletedVideo = await CompleteVideo.findOneAndDelete({ 
       _id: videoId, 
@@ -5094,7 +5094,7 @@ app.post('/api/delete-complete-video', async (req, res) => {
       });
     }
     
-    console.log('Ã¢Å“â€¦ Complete video deleted from library successfully');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video deleted from library successfully');
     
     res.status(200).json({ 
       message: 'Complete video deleted from library successfully',
@@ -5102,7 +5102,7 @@ app.post('/api/delete-complete-video', async (req, res) => {
     });
     
   } catch (err) {
-    console.error("Ã¢ÂÅ’ Error deleting complete video from library:", err);
+    console.error("ÃƒÂ¢Ã‚ÂÃ…â€™ Error deleting complete video from library:", err);
     res.status(500).json({ 
       message: 'Failed to delete complete video from library',
       error: err.message 
@@ -5123,7 +5123,7 @@ app.post('/api/get-recent-complete-videos', async (req, res) => {
     res.json(recentCompleteVideos);
     
   } catch (err) {
-    console.error('Ã¢ÂÅ’ Error fetching recent complete videos:', err);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error fetching recent complete videos:', err);
     res.status(500).json({ 
       error: 'Failed to fetch recent complete videos',
       details: err.message 
@@ -5134,22 +5134,22 @@ app.post('/api/get-recent-complete-videos', async (req, res) => {
 // Extract the upload logic into a reusable async function
 async function handleVideoUpload(fileBuffer, originalname, mimetype, size) {
   try {
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ UPLOADING VIDEO TO GCS WITH SIGNED URLS');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ UPLOADING VIDEO TO GCS WITH SIGNED URLS');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (size / 1024 / 1024).toFixed(2), 'MB');
 
     // Step 1: Generate upload ticket with signed URLs
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ Generating upload ticket with signed URLs...');
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Generating upload ticket with signed URLs...');
     const { generateUploadUrl } = require('./gcs-utils');
     const uploadData = await generateUploadUrl(`videos/${Date.now()}_${originalname}`);
         
-    console.log('Ã¢Å“â€¦ Upload ticket generated');
-    console.log('Ã°Å¸â€â€” GCS URI:', uploadData.gcs_uri);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Upload ticket generated');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ GCS URI:', uploadData.gcs_uri);
 
     // Step 2: Upload to GCS using signed URL
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ Uploading to Google Cloud Storage...');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ Uploading to Google Cloud Storage...');
     const uploadStartTime = Date.now();
         
     const axios = require('axios');
@@ -5164,13 +5164,13 @@ async function handleVideoUpload(fileBuffer, originalname, mimetype, size) {
 
     const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
         
-    console.log('\nÃ¢Å“â€¦ ===============================================');
-    console.log('Ã¢Å“â€¦ VIDEO UPLOADED TO GCS WITH SIGNED URLS!');
-    console.log('Ã¢Å“â€¦ ===============================================');
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Upload time:', uploadTime, 'seconds');
-    console.log('Ã°Å¸â€â€” GCS URI:', uploadData.gcs_uri);
-    console.log('Ã°Å¸Å’Â Signed read URL available for analysis');
-    console.log('Ã°Å¸â€œÂ File name:', uploadData.file_name);
+    console.log('\nÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ VIDEO UPLOADED TO GCS WITH SIGNED URLS!');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Upload time:', uploadTime, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ GCS URI:', uploadData.gcs_uri);
+    console.log('ÃƒÂ°Ã…Â¸Ã…â€™Ã‚Â Signed read URL available for analysis');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â File name:', uploadData.file_name);
 
     return {
       success: true,
@@ -5184,14 +5184,14 @@ async function handleVideoUpload(fileBuffer, originalname, mimetype, size) {
     };
     
   } catch (error) {
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã¢ÂÅ’ VIDEO UPLOAD TO GCS FAILED');
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã°Å¸â€™Â¥ Error message:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ VIDEO UPLOAD TO GCS FAILED');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error message:', error.message);
         
     if (error.response) {
-      console.error('Ã°Å¸â€œÅ  HTTP Status:', error.response.status);
-      console.error('Ã°Å¸â€œÅ  Response data:', error.response.data);
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  HTTP Status:', error.response.status);
+      console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Response data:', error.response.data);
     }
 
     throw new Error(`Failed to upload video to GCS: ${error.message}`);
@@ -5210,19 +5210,19 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       maxPollMinutes = 5               
     } = options;
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ ENHANCED GEMINI Ã¢â€ â€™ MUSICGPT WITH WEBHOOK MONITORING');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video URL:', videoUrl);
-    console.log('Ã°Å¸Å½Â¯ Generate Music:', generateMusic);
-    console.log('Ã°Å¸â€œÂ¡ Webhook Monitoring:', enableWebhookMonitoring);
-    console.log('Ã¢ÂÂ° Max Poll Time:', maxPollMinutes, 'minutes');
-    console.log('Ã°Å¸â€œÂ¦ Video buffer provided:', !!videoBuffer);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ENHANCED GEMINI ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ MUSICGPT WITH WEBHOOK MONITORING');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video URL:', videoUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Generate Music:', generateMusic);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Monitoring:', enableWebhookMonitoring);
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Max Poll Time:', maxPollMinutes, 'minutes');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Video buffer provided:', !!videoBuffer);
 
     // STEP 1: Get video buffer and duration
-    console.log('\n1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ PREPARING VIDEO FOR ANALYSIS');
-    console.log('1Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ PREPARING VIDEO FOR ANALYSIS');
+    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const { analyzeVideoForDualMusicOutputs, analyzeVideoWithAudioFiles } = require('./gemini-utils');
   
@@ -5231,16 +5231,16 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
     let videoDurationSeconds = 0;
     
     if (videoBuffer) {
-      // Ã¢Å“â€¦ USE PROVIDED BUFFER (recommended for immediate processing)
-      console.log('Ã°Å¸â€œÂ¦ Using provided video buffer (immediate processing)');
+      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ USE PROVIDED BUFFER (recommended for immediate processing)
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Using provided video buffer (immediate processing)');
       finalVideoBuffer = videoBuffer;
-      console.log('Ã°Å¸â€œÅ  Buffer size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Buffer size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
     } else {
-      // Ã¢Å“â€¦ ENHANCED: Download with retry logic and proper error handling
-      console.log('Ã°Å¸â€œÂ¥ Downloading video from GCS with retry logic...');
+      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Download with retry logic and proper error handling
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading video from GCS with retry logic...');
       
       const fileName = extractFileNameFromUrl(videoUrl);
-      console.log('Ã°Å¸â€œÂ File name:', fileName);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â File name:', fileName);
       
       let downloadAttempts = 0;
       const maxDownloadAttempts = 3;
@@ -5250,11 +5250,11 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
         downloadAttempts++;
         
         try {
-          console.log(`Ã°Å¸â€œÂ¥ Download attempt ${downloadAttempts}/${maxDownloadAttempts}...`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Download attempt ${downloadAttempts}/${maxDownloadAttempts}...`);
           
           if (downloadAttempts > 1) {
             const delay = 5000 * downloadAttempts; // Increasing delay: 5s, 10s, 15s
-            console.log(`Ã¢ÂÂ³ Waiting ${delay}ms for file to be ready...`);
+            console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â³ Waiting ${delay}ms for file to be ready...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
@@ -5262,15 +5262,15 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
           if (videoUrl.includes('storage.googleapis.com') && videoUrl.includes('X-Goog-Algorithm')) {
             // Already a signed URL
             downloadUrl = videoUrl;
-            console.log('Ã°Å¸â€â€” Using provided signed URL');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Using provided signed URL');
           } else {
             // Generate new signed URL
-            console.log('Ã°Å¸â€Â Generating new signed URL...');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Generating new signed URL...');
             downloadUrl = await getSignedDownloadUrl(fileName, 1);
-            console.log('Ã¢Å“â€¦ Signed URL generated');
+            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Signed URL generated');
           }
           
-          console.log(`Ã°Å¸â€œÂ¡ Attempting download from: ${downloadUrl.substring(0, 100)}...`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Attempting download from: ${downloadUrl.substring(0, 100)}...`);
           
           const response = await fetch(downloadUrl, {
             timeout: 60000 // 60 second timeout
@@ -5283,11 +5283,11 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
           finalVideoBuffer = Buffer.from(await response.arrayBuffer());
           downloadSuccess = true;
           
-          console.log('Ã¢Å“â€¦ Video downloaded successfully');
-          console.log('Ã°Å¸â€œÅ  Downloaded size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video downloaded successfully');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Downloaded size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
           
         } catch (downloadError) {
-          console.error(`Ã¢ÂÅ’ Download attempt ${downloadAttempts} failed:`, downloadError.message);
+          console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Download attempt ${downloadAttempts} failed:`, downloadError.message);
           
           if (downloadAttempts === maxDownloadAttempts) {
             throw new Error(`Failed to download video after ${maxDownloadAttempts} attempts. Last error: ${downloadError.message}. The file may not be ready yet or the URL may be invalid.`);
@@ -5296,7 +5296,7 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       }
     }
 
-    // Ã¢Å“â€¦ ENHANCED: Get video duration with better error handling
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Get video duration with better error handling
     try {
       const tempVideoPath = path.join(__dirname, 'temp_videos', `temp_analysis_${Date.now()}.mp4`);
       await fsPromises.writeFile(tempVideoPath, finalVideoBuffer);
@@ -5304,24 +5304,24 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       videoDurationSeconds = await new Promise((resolve, reject) => {
         ffmpeg.ffprobe(tempVideoPath, (err, metadata) => {
           if (err) {
-            console.warn('Ã¢Å¡ Ã¯Â¸Â Could not get video duration with ffprobe:', err.message);
+            console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not get video duration with ffprobe:', err.message);
             reject(err);
           } else {
             const duration = metadata.format.duration;
-            console.log('Ã¢ÂÂ±Ã¯Â¸Â Video duration detected:', duration, 'seconds');
+            console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration detected:', duration, 'seconds');
             resolve(Math.round(duration * 100) / 100);
           }
         });
       }).catch(async (error) => {
-        console.warn('Ã¢Å¡ Ã¯Â¸Â FFprobe failed, trying alternative method:', error.message);
+        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â FFprobe failed, trying alternative method:', error.message);
         
         try {
           const { getVideoDurationInSeconds } = require('get-video-duration');
           const duration = await getVideoDurationInSeconds(tempVideoPath);
-          console.log('Ã¢ÂÂ±Ã¯Â¸Â Video duration detected (alternative method):', duration, 'seconds');
+          console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration detected (alternative method):', duration, 'seconds');
           return Math.round(duration * 100) / 100;
         } catch (altError) {
-          console.warn('Ã¢Å¡ Ã¯Â¸Â Alternative duration detection failed:', altError.message);
+          console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Alternative duration detection failed:', altError.message);
           return 120; // Default to 2 minutes if all methods fail
         }
       });
@@ -5329,16 +5329,16 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       await fsPromises.unlink(tempVideoPath).catch(() => {});
       
     } catch (durationError) {
-      console.error('Ã¢ÂÅ’ Error detecting video duration:', durationError.message);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error detecting video duration:', durationError.message);
       videoDurationSeconds = 120; // Default fallback to 2 minutes
     }
     
-    console.log('Ã°Å¸â€œÂ Final video duration:', videoDurationSeconds, 'seconds');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Final video duration:', videoDurationSeconds, 'seconds');
 
     // STEP 2: Analyze video for dual outputs using the buffer
-    console.log('\n2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ANALYZING VIDEO BUFFER FOR DUAL 280-CHAR OUTPUTS');
-    console.log('2Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO BUFFER FOR DUAL 280-CHAR OUTPUTS');
+    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
     const dualAnalysisResult = await analyzeVideoForDualMusicOutputs(finalVideoBuffer, 'video/mp4', {
       customPrompt: customPrompt + `
@@ -5353,15 +5353,15 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
       throw new Error(`Dual output analysis failed: ${dualAnalysisResult.error}`);
     }
 
-    console.log('Ã¢Å“â€¦ Dual output analysis completed successfully');
-    console.log('Ã°Å¸â€œâ€ž Raw analysis length:', dualAnalysisResult.rawAnalysis.length, 'characters');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Dual output analysis completed successfully');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Raw analysis length:', dualAnalysisResult.rawAnalysis.length, 'characters');
     
-    console.log('\nÃ°Å¸â€œÂ EXTRACTED DUAL OUTPUTS:');
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â EXTRACTED DUAL OUTPUTS:');
     console.log('='.repeat(80));
-    console.log('Ã°Å¸Å½Âµ PROMPT (', dualAnalysisResult.prompt.length, 'chars):');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ PROMPT (', dualAnalysisResult.prompt.length, 'chars):');
     console.log(dualAnalysisResult.prompt);
     console.log('-'.repeat(40));
-    console.log('Ã°Å¸Å½Â­ MUSIC_STYLE (', dualAnalysisResult.music_style.length, 'chars):');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ MUSIC_STYLE (', dualAnalysisResult.music_style.length, 'chars):');
     console.log(dualAnalysisResult.music_style);
     console.log('='.repeat(80));
 
@@ -5369,16 +5369,16 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
 
     if (generateMusic) {
       // STEP 3: Send dual outputs to MusicGPT with webhook monitoring
-      console.log('\n3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
-      console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ SENDING TO MUSICGPT WITH WEBHOOK MONITORING');
-      console.log('3Ã¯Â¸ÂÃ¢Æ’Â£ ===============================================');
+      console.log('\n3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+      console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ SENDING TO MUSICGPT WITH WEBHOOK MONITORING');
+      console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
       try {
         const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
         const webhookToken = extractWebhookToken(webhookUrl);
         
-        console.log('Ã°Å¸â€œÂ¡ Webhook URL:', webhookUrl);
-        console.log('Ã°Å¸â€â€˜ Webhook Token:', webhookToken);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhookUrl);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Ëœ Webhook Token:', webhookToken);
 
         const musicgptPayload = {
           prompt: dualAnalysisResult.prompt,
@@ -5388,15 +5388,15 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
           webhook_url: webhookUrl
         };
 
-        console.log('Ã°Å¸â€œÂ¤ MusicGPT Payload:');
-        console.log('Ã°Å¸Å½Âµ Prompt:', dualAnalysisResult.prompt);
-        console.log('Ã°Å¸Å½Â­ Music Style:', dualAnalysisResult.music_style);
-        console.log('Ã°Å¸Å½Â¼ Make Instrumental:', true);
-        console.log('Ã°Å¸â€œÂ¡ Webhook URL:', webhookUrl);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ MusicGPT Payload:');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Prompt:', dualAnalysisResult.prompt);
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ Music Style:', dualAnalysisResult.music_style);
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ Make Instrumental:', true);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhookUrl);
 
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
-        console.log('Ã°Å¸â€œÂ¤ Calling MusicGPT API...');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Calling MusicGPT API...');
         
         const musicgptStartTime = Date.now();
 
@@ -5415,15 +5415,15 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
 
         const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
 
-        console.log('Ã¢Å“â€¦ MusicGPT API Response:');
-        console.log('Ã°Å¸â€œÅ  Status:', musicgptResponse.status);
-        console.log('Ã°Å¸â€œâ€ž Response:', JSON.stringify(musicgptResponse.data, null, 2));
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MusicGPT API Response:');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', musicgptResponse.status);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Response:', JSON.stringify(musicgptResponse.data, null, 2));
 
         const musicData = musicgptResponse.data;
 
         if (musicData.audio_url) {
-          console.log('\nÃ°Å¸Å½â€° MUSIC GENERATED IMMEDIATELY!');
-          console.log('Ã°Å¸â€â€” Audio URL:', musicData.audio_url);
+          console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSIC GENERATED IMMEDIATELY!');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Audio URL:', musicData.audio_url);
           
           musicResult = {
             success: true,
@@ -5436,30 +5436,30 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
         } else if (musicData.task_id || musicData.conversion_id || musicData.conversion_id_1) {
           const taskId = musicData.task_id || musicData.conversion_id_1 || musicData.conversion_id;
           
-          console.log('Ã°Å¸â€â€ž MusicGPT generation started - beginning webhook monitoring...');
-          console.log('Ã°Å¸â€ â€ Task ID:', taskId);
-          console.log('Ã¢ÂÂ° ETA:', musicData.eta || 120, 'seconds');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ MusicGPT generation started - beginning webhook monitoring...');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Task ID:', taskId);
+          console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ETA:', musicData.eta || 120, 'seconds');
           
           if (enableWebhookMonitoring && webhookToken) {
-            console.log('\nÃ°Å¸â€œÂ¡ ===============================================');
-            console.log('Ã°Å¸â€œÂ¡ STARTING REAL-TIME WEBHOOK MONITORING');
-            console.log('Ã°Å¸â€œÂ¡ ===============================================');
+            console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ ===============================================');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ STARTING REAL-TIME WEBHOOK MONITORING');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ ===============================================');
             
             const maxRetries = Math.floor((maxPollMinutes * 60) / 10);
             const minRequestsToWaitFor = 3;
             const webhookResult = await monitorWebhookForMusicGPT(webhookToken, maxRetries, 10000, minRequestsToWaitFor);
             
             if (webhookResult.success) {
-              console.log('\nÃ°Å¸Å½â€° ===============================================');
-              console.log('Ã°Å¸Å½â€° WEBHOOK MONITORING SUCCESS!');
-              console.log('Ã°Å¸Å½â€° ===============================================');
+              console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° WEBHOOK MONITORING SUCCESS!');
+              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
               
               const webhookData = webhookResult.webhookData;
               const allRequests = webhookResult.allRequests;
               
-              console.log('\nÃ°Å¸Å½Âµ ===============================================');
-              console.log('Ã°Å¸Å½Âµ EXTRACTING MP3 FILES FROM WEBHOOK DATA');
-              console.log('Ã°Å¸Å½Âµ ===============================================');
+              console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING MP3 FILES FROM WEBHOOK DATA');
+              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
               
               const mp3Files = [];
               allRequests.forEach((request, index) => {
@@ -5471,29 +5471,29 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
                     videoDuration: videoDurationSeconds,
                     requestNumber: index + 1
                   });
-                  console.log(`Ã°Å¸Å½Âµ MP3 #${index + 1}: ${request.content.conversion_path}`);
+                  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ MP3 #${index + 1}: ${request.content.conversion_path}`);
                   console.log(`   Title: ${request.content.title || 'Untitled'}`);
                   console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
                   console.log(`   Video Duration: ${videoDurationSeconds}s`);
                 }
               });
               
-              console.log(`Ã°Å¸â€œÅ  Total MP3 files found: ${mp3Files.length}`);
+              console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total MP3 files found: ${mp3Files.length}`);
               
-              // Ã°Å¸Å½Â¯ NEW: GEMINI TIMING ANALYSIS FOR MULTIPLE MP3 FILES
+              // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ NEW: GEMINI TIMING ANALYSIS FOR MULTIPLE MP3 FILES
               let timingAnalysis = null;
               if (mp3Files.length >= 2) {
-                console.log('\nÃ°Å¸Â§  ===============================================');
-                console.log('Ã°Å¸Â§  ANALYZING VIDEO + MP3S WITH GEMINI FOR OPTIMAL TIMING');
-                console.log('Ã°Å¸Â§  ===============================================');
+                console.log('\nÃƒÂ°Ã…Â¸Ã‚Â§  ===============================================');
+                console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  ANALYZING VIDEO + MP3S WITH GEMINI FOR OPTIMAL TIMING');
+                console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  ===============================================');
                 
                 try {
-                  console.log('Ã°Å¸â€œÂ¥ Downloading MP3 files for Gemini analysis...');
+                  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading MP3 files for Gemini analysis...');
                   
                   const mp3Buffers = [];
                   for (const mp3File of mp3Files) {
                     try {
-                      console.log(`Ã°Å¸â€œÂ¥ Downloading: ${mp3File.title}`);
+                      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading: ${mp3File.title}`);
                       const mp3Response = await axios({
                         method: 'get',
                         url: mp3File.url,
@@ -5508,16 +5508,16 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
                         mimeType: 'audio/mpeg'
                       });
                       
-                      console.log(`Ã¢Å“â€¦ Downloaded ${mp3File.title}: ${(mp3Response.data.byteLength / 1024 / 1024).toFixed(2)} MB`);
+                      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Downloaded ${mp3File.title}: ${(mp3Response.data.byteLength / 1024 / 1024).toFixed(2)} MB`);
                       
                     } catch (mp3Error) {
-                      console.error(`Ã¢ÂÅ’ Failed to download ${mp3File.title}:`, mp3Error.message);
+                      console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download ${mp3File.title}:`, mp3Error.message);
                     }
                   }
                   
-                  console.log(`Ã°Å¸â€œÅ  Successfully downloaded ${mp3Buffers.length}/${mp3Files.length} MP3 files`);
+                  console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Successfully downloaded ${mp3Buffers.length}/${mp3Files.length} MP3 files`);
                   
-                  // Ã°Å¸Å½Â¯ PERFORM GEMINI TIMING ANALYSIS
+                  // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ PERFORM GEMINI TIMING ANALYSIS
                   timingAnalysis = await analyzeVideoWithAudioFiles(finalVideoBuffer, 'video/mp4', mp3Buffers, {
                     customPrompt: `
 ANALYZE THIS VIDEO AND THE PROVIDED MP3 AUDIO FILES TO SUGGEST OPTIMAL TIMING.
@@ -5568,33 +5568,33 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
                   });
                   
                   if (timingAnalysis.success) {
-                    console.log('Ã¢Å“â€¦ Gemini timing analysis completed successfully');
-                    console.log('Ã°Å¸â€œâ€ž Analysis length:', timingAnalysis.analysis.length, 'characters');
+                    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini timing analysis completed successfully');
+                    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis length:', timingAnalysis.analysis.length, 'characters');
                     
-                    console.log('\nÃ°Å¸Å½Â¯ ===============================================');
-                    console.log('Ã°Å¸Å½Â¯ GEMINI TIMING ANALYSIS RESULTS');
-                    console.log('Ã°Å¸Å½Â¯ ===============================================');
+                    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
+                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ GEMINI TIMING ANALYSIS RESULTS');
+                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
                     console.log(timingAnalysis.analysis);
-                    console.log('Ã°Å¸Å½Â¯ ===============================================');
+                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
                     
-                    // Ã°Å¸Å½Â¯ EXTRACT TIMING RECOMMENDATIONS
-                    console.log('\nÃ°Å¸Å½Âµ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
+                    // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACT TIMING RECOMMENDATIONS
+                    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
                     
                
                     
                   } else {
-                    console.error('Ã¢ÂÅ’ Gemini timing analysis failed:', timingAnalysis.error);
+                    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Gemini timing analysis failed:', timingAnalysis.error);
                   }
                   
                 } catch (timingError) {
-                  console.error('Ã¢ÂÅ’ Error in Gemini timing analysis:', timingError.message);
+                  console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in Gemini timing analysis:', timingError.message);
                   timingAnalysis = {
                     success: false,
                     error: timingError.message
                   };
                 }
               } else {
-                console.log('Ã¢Å¡ Ã¯Â¸Â Not enough MP3 files for timing analysis (need at least 2)');
+                console.log('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Not enough MP3 files for timing analysis (need at least 2)');
               }
               
               musicResult = {
@@ -5617,13 +5617,13 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
                   totalRequestsFound: webhookResult.totalRequestsFound
                 },
                 allMP3Files: mp3Files,
-                timingAnalysis: timingAnalysis  // Ã°Å¸Å½Â¯ INCLUDE TIMING ANALYSIS
+                timingAnalysis: timingAnalysis  // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ INCLUDE TIMING ANALYSIS
               };
               
             } else {
-              console.log('\nÃ¢ÂÂ° ===============================================');
-              console.log('Ã¢ÂÂ° WEBHOOK MONITORING TIMEOUT');
-              console.log('Ã¢ÂÂ° ===============================================');
+              console.log('\nÃƒÂ¢Ã‚ÂÃ‚Â° ===============================================');
+              console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° WEBHOOK MONITORING TIMEOUT');
+              console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ===============================================');
               
               musicResult = {
                 success: false,
@@ -5656,7 +5656,7 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
         }
 
       } catch (musicError) {
-        console.error('Ã¢ÂÅ’ Error in MusicGPT generation:', musicError);
+        console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in MusicGPT generation:', musicError);
         
         musicResult = {
           success: false,
@@ -5668,28 +5668,28 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
     }
 
     // Final logging and response preparation
-    console.log('\nÃ°Å¸Å½Å  ===============================================');
-    console.log('Ã°Å¸Å½Å  ENHANCED WORKFLOW WITH WEBHOOK MONITORING COMPLETE');
-    console.log('Ã°Å¸Å½Å  ===============================================');
-    console.log('Ã¢Å“â€¦ Gemini Analysis: COMPLETED');
-    console.log('Ã°Å¸Å½Âµ Music Generation:', musicResult?.status?.toUpperCase() || 'UNKNOWN');
-    console.log('Ã°Å¸â€œÂ¡ Webhook Monitoring:', enableWebhookMonitoring ? 'ENABLED' : 'DISABLED');
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã…  ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã…  ENHANCED WORKFLOW WITH WEBHOOK MONITORING COMPLETE');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã…  ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini Analysis: COMPLETED');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music Generation:', musicResult?.status?.toUpperCase() || 'UNKNOWN');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Monitoring:', enableWebhookMonitoring ? 'ENABLED' : 'DISABLED');
     
     if (musicResult?.audio_url) {
-      console.log('Ã°Å¸â€â€” FINAL AUDIO URL:', musicResult.audio_url);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ FINAL AUDIO URL:', musicResult.audio_url);
     }
     if (musicResult?.audio_url_wav) {
-      console.log('Ã°Å¸â€â€” FINAL WAV URL:', musicResult.audio_url_wav);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ FINAL WAV URL:', musicResult.audio_url_wav);
     }
     if (musicResult?.webhookInfo) {
-      console.log('Ã°Å¸â€œÂ¡ Webhook Attempts:', musicResult.webhookInfo.monitoringAttempts);
-      console.log('Ã°Å¸â€œÅ  Total Requests Found:', musicResult.webhookInfo.totalRequestsFound);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Attempts:', musicResult.webhookInfo.monitoringAttempts);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total Requests Found:', musicResult.webhookInfo.totalRequestsFound);
     }
     if (musicResult?.allMP3Files) {
-      console.log('Ã°Å¸Å½Âµ MP3 Files Collected:', musicResult.allMP3Files.length);
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ MP3 Files Collected:', musicResult.allMP3Files.length);
     }
     if (musicResult?.timingAnalysis?.success) {
-      console.log('Ã°Å¸Å½Â¯ Timing Analysis: COMPLETED');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Timing Analysis: COMPLETED');
     }
 
     return {
@@ -5701,14 +5701,14 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
     };
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in enhanced workflow with webhook monitoring:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in enhanced workflow with webhook monitoring:', error);
     throw new Error(`Video analysis and music generation failed: ${error.message}`);
   }
 }
 
 function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
-  console.log('Ã°Å¸Å½Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
-  console.log('Ã°Å¸â€œâ€ž Analysis text length:', analysisText.length);
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis text length:', analysisText.length);
   
   const recommendations = [];
   
@@ -5720,20 +5720,20 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
     
-    // Ã°Å¸Å¡Â¨ SIMPLE APPROACH: Extract all timing data directly without splitting
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ SIMPLE APPROACH: Extract all timing data directly without splitting
     // Since debug shows patterns exist, let's extract them directly
     
     // Extract all start times
     const startTimeMatches = analysisText.match(/\*\s*\*\*\s*Start Time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds/gi);
-    console.log('Ã°Å¸â€Â Start time matches found:', startTimeMatches);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Start time matches found:', startTimeMatches);
     
     // Extract all end times  
     const endTimeMatches = analysisText.match(/\*\s*\*\*\s*End Time:\s*\*\*\s*(\d+(?:\.\d+)?)\s*seconds/gi);
-    console.log('Ã°Å¸â€Â End time matches found:', endTimeMatches);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â End time matches found:', endTimeMatches);
     
     // Extract all volumes
     const volumeMatches = analysisText.match(/\*\s*\*\*\s*Volume:\s*\*\*\s*(\d+)%/gi);
-    console.log('Ã°Å¸â€Â Volume matches found:', volumeMatches);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Volume matches found:', volumeMatches);
     
     // Extract numerical values
     const startTimes = [];
@@ -5767,14 +5767,14 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       });
     }
     
-    console.log('Ã°Å¸â€œÅ  Extracted values:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Extracted values:');
     console.log('   Start times:', startTimes);
     console.log('   End times:', endTimes);  
     console.log('   Volumes:', volumes);
     
     // Process each track (ensure we don't exceed available MP3 files)
     const numTracks = Math.min(startTimes.length, endTimes.length, mp3Files.length);
-    console.log(`Ã°Å¸â€œÅ  Processing ${numTracks} tracks (max of start/end/mp3 counts)`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Processing ${numTracks} tracks (max of start/end/mp3 counts)`);
     
     for (let i = 0; i < numTracks; i++) {
       const mp3File = mp3Files[i];
@@ -5783,7 +5783,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       const volume = volumes[i] || 70; // Default volume if not found
       const duration = endTime - startTime;
       
-      console.log(`\nÃ°Å¸Å½Âµ Processing Track ${i + 1}:`);
+      console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing Track ${i + 1}:`);
       console.log(`   MP3 File: ${mp3File.title}`);
       console.log(`   Start: ${startTime}s`);
       console.log(`   End: ${endTime}s`);
@@ -5799,12 +5799,12 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
           originalDuration: mp3File.mp3Duration,
           videoDuration: clipDuration,
           
-          // Ã°Å¸Å¡Â¨ EXTRACTED TIMING FROM GEMINI:
+          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ EXTRACTED TIMING FROM GEMINI:
           startTime: startTime,
           endTime: endTime, 
           duration: duration,
           
-          // Ã°Å¸Å¡Â¨ FORMATTED FOR FRONTEND:
+          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FORMATTED FOR FRONTEND:
           startFormatted: formatTime(startTime),
           endFormatted: formatTime(endTime),
           durationFormatted: `${Math.round(duration)}s`,
@@ -5816,7 +5816,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
           fadeOut: 2
         });
         
-        console.log(`Ã¢Å“â€¦ Track ${i + 1} timing successfully extracted:`, {
+        console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Track ${i + 1} timing successfully extracted:`, {
           start: `${startTime}s (${formatTime(startTime)})`,
           end: `${endTime}s (${formatTime(endTime)})`, 
           duration: `${duration}s`,
@@ -5824,7 +5824,7 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
         });
         
       } else {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Track ${i + 1} has invalid timing values:`, {
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Track ${i + 1} has invalid timing values:`, {
           startTime, endTime, duration, valid: false
         });
         
@@ -5846,19 +5846,19 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       }
     }
     
-    console.log(`Ã°Å¸Å½Â¯ Final extraction results: ${recommendations.length} recommendations`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Final extraction results: ${recommendations.length} recommendations`);
     recommendations.forEach((rec, i) => {
-      console.log(`   Track ${rec.trackNumber}: ${rec.startFormatted} Ã¢â€ â€™ ${rec.endFormatted} (${rec.durationFormatted}) Vol: ${rec.volume}%${rec.isDefault ? ' [DEFAULT]' : ' [GEMINI]'}`);
+      console.log(`   Track ${rec.trackNumber}: ${rec.startFormatted} ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ ${rec.endFormatted} (${rec.durationFormatted}) Vol: ${rec.volume}%${rec.isDefault ? ' [DEFAULT]' : ' [GEMINI]'}`);
     });
     
     return recommendations;
     
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error extracting Gemini timing:', error.message);
-    console.error('Ã¢ÂÅ’ Stack trace:', error.stack);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error extracting Gemini timing:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Stack trace:', error.stack);
     
     // Fallback: Create default recommendations
-    console.log('Ã°Å¸â€â€ž Creating fallback recommendations...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Creating fallback recommendations...');
     const fallbackRecs = mp3Files.map((file, index) => ({
       trackNumber: index + 1,
       title: file.title,
@@ -5875,18 +5875,18 @@ function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
       fallbackReason: 'extraction_error'
     }));
     
-    console.log(`Ã°Å¸â€â€ž Created ${fallbackRecs.length} fallback recommendations`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Created ${fallbackRecs.length} fallback recommendations`);
     return fallbackRecs;
   }
 }
 
 function displayGeminiTimingResults(recommendations) {
-  console.log('\nÃ°Å¸Å½Â¯ ===============================================');
-  console.log('Ã°Å¸Å½Â¯ EXTRACTED TIMING RECOMMENDATIONS');
-  console.log('Ã°Å¸Å½Â¯ ===============================================');
+  console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACTED TIMING RECOMMENDATIONS');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
   
   recommendations.forEach((rec, index) => {
-    console.log(`\nÃ°Å¸Å½Âµ Track ${rec.trackNumber}: ${rec.title}`);
+    console.log(`\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Track ${rec.trackNumber}: ${rec.title}`);
     console.log(`   Start Time: ${rec.startTime}s`);
     console.log(`   End Time: ${rec.endTime}s`);
     console.log(`   Duration: ${rec.endTime - rec.startTime}s`);
@@ -5896,7 +5896,7 @@ function displayGeminiTimingResults(recommendations) {
     console.log(`   URL: ${rec.url}`);
   });
   
-  console.log('Ã°Å¸Å½Â¯ ===============================================');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
 }
 
 module.exports = { 
@@ -5920,11 +5920,11 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       });
     }
 
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ PROCESSING VIDEO WITH INTERVAL TIMING FIX');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸â€œÂ Original video:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  Original size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ PROCESSING VIDEO WITH INTERVAL TIMING FIX');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Original video:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Original size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
 
     // 2. EXTRACT TIMING PARAMETERS
     const videoStart = parseInt(req.body.video_start) || 0;
@@ -5933,7 +5933,7 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
     const trackName = req.body.track_name || req.body.song_title || 'Generated Track';
     const userId = req.body.userId || 'anonymous';
 
-    console.log('Ã¢ÂÂ±Ã¯Â¸Â Timing parameters:');
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Timing parameters:');
     console.log(`   Video start: ${videoStart}s`);
     console.log(`   Video end: ${videoEnd}s`);
     console.log(`   Clip duration: ${clipDuration}s`);
@@ -5957,10 +5957,10 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
     // 3. SAVE ORIGINAL VIDEO
     originalPath = path.join(__dirname, 'temp_videos', `original_${Date.now()}.mp4`);
     await fsPromises.writeFile(originalPath, req.file.buffer);
-    console.log('Ã°Å¸â€™Â¾ Original video saved to:', originalPath);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Original video saved to:', originalPath);
 
     // 4. TRIM VIDEO
-    console.log(`Ã¢Å“â€šÃ¯Â¸Â Trimming video: ${videoStart}s - ${videoEnd}s (${clipDuration}s)`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Trimming video: ${videoStart}s - ${videoEnd}s (${clipDuration}s)`);
     trimmedPath = path.join(__dirname, 'temp_videos', `trimmed_${Date.now()}.mp4`);
 
     await new Promise((resolve, reject) => {
@@ -5969,11 +5969,11 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
         .setDuration(clipDuration)
         .output(trimmedPath)
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Video trimming completed');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video trimming completed');
           resolve();
         })
         .on('error', (err) => {
-          console.error('Ã¢ÂÅ’ Video trimming failed:', err.message);
+          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Video trimming failed:', err.message);
           reject(new Error(`Video trimming failed: ${err.message}`));
         })
         .run();
@@ -5981,22 +5981,22 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
 
     // 5. CLEAN UP ORIGINAL FILE
     await fsPromises.unlink(originalPath);
-    console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Original video file cleaned up');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Original video file cleaned up');
 
     // 6. READ TRIMMED VIDEO INTO BUFFER
-    console.log('Ã°Å¸â€œÂ¦ Reading trimmed video into buffer for analysis...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Reading trimmed video into buffer for analysis...');
     const trimmedBuffer = await fsPromises.readFile(trimmedPath);
-    console.log('Ã°Å¸â€œÅ  Trimmed buffer size:', (trimmedBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Trimmed buffer size:', (trimmedBuffer.length / 1024 / 1024).toFixed(2), 'MB');
 
     // 7. UPLOAD TO GCS FOR BACKUP
-    console.log('Ã¢ËœÂÃ¯Â¸Â Uploading trimmed video to GCS...');
+    console.log('ÃƒÂ¢Ã‹Å“Ã‚ÂÃƒÂ¯Ã‚Â¸Ã‚Â Uploading trimmed video to GCS...');
     const uploadResult = await handleVideoUpload(
       trimmedBuffer, 
       `trimmed_${trackName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.mp4`, 
       req.file.mimetype, 
       trimmedBuffer.length
     );
-    console.log('Ã¢Å“â€¦ GCS upload completed:', uploadResult.gcs_uri);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ GCS upload completed:', uploadResult.gcs_uri);
 
     // 8. PREPARE ANALYSIS OPTIONS
     const analysisOptions = {
@@ -6009,17 +6009,17 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       userId: userId
     };
 
-    console.log('Ã°Å¸Â§  Analysis options:', analysisOptions);
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  Analysis options:', analysisOptions);
 
     // 9. ANALYZE VIDEO AND GENERATE MUSIC
-    console.log('Ã°Å¸Å½Âµ Starting video analysis and music generation...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Starting video analysis and music generation...');
     const analysisResult = await handleVideoAnalysisAndMusicGeneration(
       uploadResult.gcs_uri,
       analysisOptions,
       trimmedBuffer  // Pass buffer directly to avoid download delays
     );
 
-    console.log('Ã¢Å“â€¦ Analysis completed:', analysisResult.musicResult?.status || 'Unknown');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Analysis completed:', analysisResult.musicResult?.status || 'Unknown');
 
     // 10. HELPER FUNCTION FOR TIME FORMATTING
     const formatTime = (seconds) => {
@@ -6028,10 +6028,10 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 if (analysisResult.musicResult.timingAnalysis?.success) {
-  console.log('Ã°Å¸â€Â DEBUGGING GEMINI ANALYSIS FORMAT...');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â DEBUGGING GEMINI ANALYSIS FORMAT...');
   debugGeminiAnalysis(analysisResult.musicResult.timingAnalysis.analysis);
   
-  console.log('Ã°Å¸Å½Â¯ Now extracting timing...');
+  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Now extracting timing...');
   timingRecommendations = extractTimingFromGeminiAnalysis(
     analysisResult.musicResult.timingAnalysis.analysis,
     analysisResult.musicResult.allMP3Files,
@@ -6054,39 +6054,39 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
 
     // 12. PROCESS MUSIC RESULT AND CREATE TRACKS ARRAY
     if (analysisResult.musicResult?.success && analysisResult.musicResult?.audio_url) {
-      console.log('Ã°Å¸Å½Âµ Processing successful music result...');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing successful music result...');
       
       // Handle multiple MP3 files if available
    if (analysisResult.musicResult.allMP3Files && analysisResult.musicResult.allMP3Files.length > 0) {
-  console.log(`Ã°Å¸Å½Âµ Found ${analysisResult.musicResult.allMP3Files.length} MP3 files`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Found ${analysisResult.musicResult.allMP3Files.length} MP3 files`);
   
-  // Ã°Å¸Å¡Â¨ NEW: Extract timing recommendations from Gemini analysis
+  // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Extract timing recommendations from Gemini analysis
   let timingRecommendations = [];
   
   if (analysisResult.musicResult.timingAnalysis && analysisResult.musicResult.timingAnalysis.success) {
-    console.log('Ã°Å¸Å½Â¯ Extracting timing from Gemini analysis...');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Extracting timing from Gemini analysis...');
     timingRecommendations = extractTimingFromGeminiAnalysis(
       analysisResult.musicResult.timingAnalysis.analysis,
       analysisResult.musicResult.allMP3Files,
       clipDuration
     );
     
-    console.log(`Ã¢Å“â€¦ Extracted ${timingRecommendations.length} timing recommendations`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Extracted ${timingRecommendations.length} timing recommendations`);
   }
   
   analysisResult.musicResult.allMP3Files.forEach((mp3File, index) => {
-    // Ã°Å¸Å¡Â¨ USE GEMINI TIMING IF AVAILABLE, OTHERWISE DEFAULTS
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ USE GEMINI TIMING IF AVAILABLE, OTHERWISE DEFAULTS
     const timingRec = timingRecommendations.find(rec => rec.trackNumber === index + 1);
     
     let trackStart, trackEnd, trackDuration;
     
     if (timingRec) {
-      // Ã°Å¸Å¡Â¨ USE GEMINI RECOMMENDATIONS:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ USE GEMINI RECOMMENDATIONS:
       trackStart = timingRec.startFormatted;     // e.g., "0:10" 
       trackEnd = timingRec.endFormatted;         // e.g., "0:30"
       trackDuration = timingRec.durationFormatted; // e.g., "20s"
       
-      console.log(`Ã°Å¸Å½Â¯ Using Gemini timing for Track ${index + 1}:`, {
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Using Gemini timing for Track ${index + 1}:`, {
         start: trackStart,
         end: trackEnd, 
         duration: trackDuration,
@@ -6094,12 +6094,12 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
       });
       
     } else {
-      // Ã°Å¸Å¡Â¨ FALLBACK TO DEFAULTS:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FALLBACK TO DEFAULTS:
       trackStart = formatTime(0);
       trackEnd = formatTime(clipDuration);
       trackDuration = `${clipDuration}s`;
       
-      console.log(`Ã¢Å¡ Ã¯Â¸Â Using default timing for Track ${index + 1}:`, {
+      console.log(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Using default timing for Track ${index + 1}:`, {
         start: trackStart,
         end: trackEnd,
         duration: trackDuration
@@ -6117,7 +6117,7 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
       trackName: mp3File.title || `${trackName} (Version ${index + 1})`,
       originalTrackName: trackName,
       
-      // Ã°Å¸Å¡Â¨ CRITICAL: USE EXTRACTED TIMING FROM GEMINI:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL: USE EXTRACTED TIMING FROM GEMINI:
       start: trackStart,        // e.g., "0:10" (from Gemini)
       end: trackEnd,            // e.g., "0:30" (from Gemini) 
       duration: trackDuration,  // e.g., "20s" (from Gemini)
@@ -6128,7 +6128,7 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
       clipDuration: clipDuration,
       musicDurationSeconds: mp3File.mp3Duration || clipDuration,
       
-      // Ã°Å¸Å¡Â¨ ADD GEMINI RECOMMENDATIONS:
+      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ADD GEMINI RECOMMENDATIONS:
       ...(timingRec && {
         geminiStartTime: timingRec.startTime,
         geminiEndTime: timingRec.endTime,
@@ -6147,7 +6147,7 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
 }
 else {
         // Single track result
-        console.log('Ã°Å¸Å½Âµ Processing single track result...');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing single track result...');
         responseData.tracks.push({
           // Audio URLs
           audioUrl: analysisResult.musicResult.audio_url,
@@ -6159,7 +6159,7 @@ else {
           trackName: analysisResult.musicResult.title || trackName,
           originalTrackName: trackName,
           
-          // Ã°Å¸Å¡Â¨ CRITICAL: INTERVAL TIMING FOR SPOTIFY PLAYER
+          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL: INTERVAL TIMING FOR SPOTIFY PLAYER
           start: formatTime(0),           // "0:00" - Start of music
           end: formatTime(clipDuration),  // "0:30" - End based on clip duration
           duration: `${clipDuration}s`,   // "30s" - Duration
@@ -6193,7 +6193,7 @@ else {
       
     } else if (analysisResult.musicResult?.task_id) {
       // Music generation started but not completed
-      console.log('Ã°Å¸â€â€ž Music generation in progress...');
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Music generation in progress...');
       responseData.success = false;
       responseData.status = 'processing';
       responseData.task_id = analysisResult.musicResult.task_id;
@@ -6202,22 +6202,22 @@ else {
       
     } else {
       // Music generation failed
-      console.error('Ã¢ÂÅ’ Music generation failed');
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Music generation failed');
       responseData.success = false;
       responseData.error = analysisResult.musicResult?.error || 'Music generation failed';
       responseData.details = analysisResult.musicResult?.details;
     }
 
     // 13. LOG FINAL RESPONSE FOR DEBUG
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° RESPONSE PREPARED WITH INTERVAL TIMING');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã¢Å“â€¦ Success:', responseData.success);
-    console.log('Ã¢Å“â€¦ Tracks count:', responseData.tracks.length);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° RESPONSE PREPARED WITH INTERVAL TIMING');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Success:', responseData.success);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Tracks count:', responseData.tracks.length);
     
     if (responseData.tracks.length > 0) {
       responseData.tracks.forEach((track, index) => {
-        console.log(`Ã°Å¸Å½Âµ Track ${index + 1}:`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Track ${index + 1}:`);
         console.log(`   Title: ${track.title}`);
         console.log(`   Start: ${track.start}`);
         console.log(`   End: ${track.end}`);
@@ -6225,27 +6225,27 @@ else {
         console.log(`   Audio URL: ${track.audioUrl?.substring(0, 50)}...`);
       });
     }
-    console.log('Ã°Å¸Å½â€° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
 
     // 14. SEND RESPONSE
     res.status(200).json(responseData);
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Process video error:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Process video error:', error);
     
     // Clean up any temporary files
     const cleanup = async () => {
       try {
         if (originalPath && fs.existsSync(originalPath)) {
           await fsPromises.unlink(originalPath);
-          console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up original file');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up original file');
         }
         if (trimmedPath && fs.existsSync(trimmedPath)) {
           await fsPromises.unlink(trimmedPath);
-          console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up trimmed file');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up trimmed file');
         }
       } catch (cleanupError) {
-        console.warn('Ã¢Å¡ Ã¯Â¸Â Cleanup error:', cleanupError.message);
+        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Cleanup error:', cleanupError.message);
       }
     };
     
@@ -6264,9 +6264,9 @@ else {
     if (trimmedPath) {
       try {
         await fsPromises.unlink(trimmedPath);
-        console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Final cleanup completed');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Final cleanup completed');
       } catch (cleanupError) {
-        console.warn('Ã¢Å¡ Ã¯Â¸Â Final cleanup error:', cleanupError.message);
+        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Final cleanup error:', cleanupError.message);
       }
     }
   }
@@ -6291,7 +6291,7 @@ app.post('/api/analyze-gcs-video-for-music-with-generation', async (req, res) =>
     res.json(result);
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in enhanced workflow:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in enhanced workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Enhanced workflow failed',
@@ -6414,20 +6414,20 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
       video_end, 
       youtubeUrls, 
       lyrics, 
-      extra_description, // Ã°Å¸Å¡Â¨ This now contains detailed_description from ClipTune
+      extra_description, // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ This now contains detailed_description from ClipTune
       instrumental, 
       song_title,
       track_name
     } = req.body;
 
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸Å½Âµ GENERATING MUSIC WITH MUSICGPT + DUAL-OUTPUT');
-    console.log('Ã°Å¸Å½Âµ ===============================================');
-    console.log('Ã°Å¸â€œÂ Video file:', req.file.originalname);
-    console.log('Ã¢ÂÂ° Segment timing:', `${video_start}s - ${video_end}s`);
-    console.log('Ã°Å¸Å½Â¯ Detailed description length:', extra_description?.length || 0, 'characters');
-    console.log('Ã°Å¸Å½Âµ Song title:', song_title || 'segment_music');
-    console.log('Ã°Å¸Å½Â¶ Track name:', track_name || 'Unnamed Track');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ GENERATING MUSIC WITH MUSICGPT + DUAL-OUTPUT');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video file:', req.file.originalname);
+    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Segment timing:', `${video_start}s - ${video_end}s`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Detailed description length:', extra_description?.length || 0, 'characters');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Song title:', song_title || 'segment_music');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ Track name:', track_name || 'Unnamed Track');
 
     // Save original video temporarily (still needed for context)
     originalPath = path.join(tempDir, `original_${Date.now()}.mp4`);
@@ -6446,7 +6446,7 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
       throw new Error("Segment too long - maximum 5 minutes (300 seconds) allowed");
     }
 
-    console.log('Ã¢Å“â€šÃ¯Â¸Â Processing video segment...');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Processing video segment...');
     console.log(`   Duration: ${clipDuration} seconds`);
     console.log(`   Range: ${start}s to ${end}s`);
 
@@ -6458,7 +6458,7 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
         .setDuration(clipDuration)
         .output(trimmedPath)
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Video segment trimmed successfully');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video segment trimmed successfully');
           resolve();
         })
         .on('error', reject)
@@ -6469,21 +6469,21 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
     await fsPromises.unlink(originalPath);
     originalPath = null;
 
-    // Ã°Å¸Å¡Â¨ NEW: Extract dual components from detailed_description
-    console.log('Ã°Å¸â€Â ===============================================');
-    console.log('Ã°Å¸â€Â EXTRACTING DUAL-OUTPUT COMPONENTS');
-    console.log('Ã°Å¸â€Â ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Extract dual components from detailed_description
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â EXTRACTING DUAL-OUTPUT COMPONENTS');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
     
     const { extractDualOutputComponents, generateMusicWithDualOutput } = require('./musicgpt-utils');
     const { prompt, music_style } = extractDualOutputComponents(extra_description);
 
-    console.log('Ã°Å¸â€œÂ Visual Prompt:', prompt);
-    console.log('Ã°Å¸Å½Âµ Music Style:', music_style);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Visual Prompt:', prompt);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music Style:', music_style);
 
-    // Ã°Å¸Å¡Â¨ NEW: Generate music using MusicGPT with dual-output format
-    console.log('\nÃ°Å¸Å½Â¼ ===============================================');
-    console.log('Ã°Å¸Å½Â¼ CALLING MUSICGPT WITH DUAL-OUTPUT FORMAT');
-    console.log('Ã°Å¸Å½Â¼ ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Generate music using MusicGPT with dual-output format
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ CALLING MUSICGPT WITH DUAL-OUTPUT FORMAT');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ ===============================================');
 
     const musicResult = await generateMusicWithDualOutput({
       prompt: prompt,
@@ -6493,17 +6493,17 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
       trackName: track_name || song_title || 'Generated Track'
     });
 
-    console.log('Ã°Å¸â€œÅ  MusicGPT result status:', musicResult.status || 'unknown');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  MusicGPT result status:', musicResult.status || 'unknown');
     
     if (musicResult.success) {
       if (musicResult.status === 'completed_immediately' && musicResult.audioUrl) {
-        // Ã°Å¸Å½â€° SUCCESS: Music generated immediately
-        console.log('Ã°Å¸Å½Â¶ ===============================================');
-        console.log('Ã°Å¸Å½Â¶ MUSIC GENERATED IMMEDIATELY!');
-        console.log('Ã°Å¸Å½Â¶ ===============================================');
-        console.log('Ã°Å¸â€â€” Audio URL:', musicResult.audioUrl);
-        console.log('Ã¢ÂÂ±Ã¯Â¸Â Duration:', musicResult.duration);
-        console.log('Ã°Å¸Å½Âµ Title:', musicResult.title);
+        // ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° SUCCESS: Music generated immediately
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ MUSIC GENERATED IMMEDIATELY!');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Audio URL:', musicResult.audioUrl);
+        console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Duration:', musicResult.duration);
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Title:', musicResult.title);
         
         res.status(200).json({
           success: true,
@@ -6530,13 +6530,13 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
         });
         
       } else if (musicResult.status === 'processing_async' && musicResult.taskId) {
-        // Ã°Å¸â€â€ž PROCESSING: Music generation started asynchronously
-        console.log('Ã°Å¸â€â€ž ===============================================');
-        console.log('Ã°Å¸â€â€ž MUSIC GENERATION STARTED (ASYNC)');
-        console.log('Ã°Å¸â€â€ž ===============================================');
-        console.log('Ã°Å¸â€ â€ Task ID:', musicResult.taskId);
-        console.log('Ã¢ÂÂ° ETA:', musicResult.eta, 'seconds');
-        console.log('Ã°Å¸â€œÂ¡ Webhook URL:', musicResult.webhookUrl);
+        // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ PROCESSING: Music generation started asynchronously
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ MUSIC GENERATION STARTED (ASYNC)');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Task ID:', musicResult.taskId);
+        console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ETA:', musicResult.eta, 'seconds');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', musicResult.webhookUrl);
         
         // Option 1: Return task info for frontend polling
         res.status(202).json({
@@ -6564,19 +6564,19 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
       throw new Error(musicResult.error || 'MusicGPT generation failed');
     }
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° MUSICGPT SEGMENT GENERATION COMPLETED');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½Â¶ Track:', track_name || 'Generated Track');
-    console.log('Ã°Å¸â€Â§ Method: MusicGPT with dual-output format (prompt + music_style)');
-    console.log('Ã°Å¸â€œÅ  Status:', musicResult.status);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSICGPT SEGMENT GENERATION COMPLETED');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¶ Track:', track_name || 'Generated Track');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Method: MusicGPT with dual-output format (prompt + music_style)');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', musicResult.status);
 
   } catch (err) {
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã¢ÂÅ’ MUSICGPT SEGMENT GENERATION ERROR');
-    console.error('Ã¢ÂÅ’ ===============================================');
-    console.error('Ã°Å¸â€™Â¥ Error message:', err.message || err);
-    console.error('Ã°Å¸â€™Â¥ Error stack:', err.stack);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ MUSICGPT SEGMENT GENERATION ERROR');
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ ===============================================');
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error message:', err.message || err);
+    console.error('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ Error stack:', err.stack);
     
     // Enhanced error response
     const errorResponse = {
@@ -6608,9 +6608,9 @@ app.post('/api/generate-segment-music', upload.single('video'), async (req, res)
     for (const file of filesToClean) {
       try {
         await fsPromises.unlink(file);
-        console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up:', file);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up:', file);
       } catch (e) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete temporary file ${file}:`, e.message);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete temporary file ${file}:`, e.message);
       }
     }
   }
@@ -6626,15 +6626,15 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€Â Checking MusicGPT task status:', taskId);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Checking MusicGPT task status:', taskId);
 
     const { checkMusicGPTTaskStatus } = require('./musicgpt-utils');
     const result = await checkMusicGPTTaskStatus(taskId);
     
     if (result.success) {
-      console.log('Ã°Å¸â€œÅ  Task status:', result.status);
+      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Task status:', result.status);
       if (result.audio_url) {
-        console.log('Ã°Å¸Å½Âµ Audio ready:', result.audio_url);
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio ready:', result.audio_url);
       }
       
       res.json({
@@ -6647,8 +6647,8 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
         progress: result.progress,
         eta: result.eta,
         message: result.audio_url ? 
-          'Ã°Å¸Å½â€° Music is ready!' : 
-          `Ã¢ÂÂ³ Status: ${result.status || 'processing'}`
+          'ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Music is ready!' : 
+          `ÃƒÂ¢Ã‚ÂÃ‚Â³ Status: ${result.status || 'processing'}`
       });
     } else {
       res.status(500).json({
@@ -6659,7 +6659,7 @@ app.post('/api/check-musicgpt-task', async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error checking MusicGPT task:', error.message);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error checking MusicGPT task:', error.message);
     
     res.status(500).json({
       success: false,
@@ -6686,13 +6686,13 @@ app.post('/api/create-complete-video-from-segments', upload.single('video'), asy
     const parsedSegments = JSON.parse(segments);
     const parsedMusicData = JSON.parse(musicData);
     
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ CREATING COMPLETE VIDEO FROM GENERATED SEGMENTS');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log(`Ã°Å¸â€œÅ  Total segments: ${parsedSegments.length}`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ CREATING COMPLETE VIDEO FROM GENERATED SEGMENTS');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
     
     // Debug: Log the raw music data to see what timing we have
-    console.log('Ã°Å¸â€Â RAW MUSIC DATA DEBUG:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â RAW MUSIC DATA DEBUG:');
     Object.keys(parsedMusicData).forEach(key => {
       const music = parsedMusicData[key];
       console.log(`  Segment ${key}:`, {
@@ -6705,7 +6705,7 @@ app.post('/api/create-complete-video-from-segments', upload.single('video'), asy
     
     // Count segments with music
     const segmentsWithMusic = Object.keys(parsedMusicData).length;
-    console.log(`Ã°Å¸Å½Âµ Segments with music: ${segmentsWithMusic}/${parsedSegments.length}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segments with music: ${segmentsWithMusic}/${parsedSegments.length}`);
     
     if (segmentsWithMusic === 0) {
       return res.status(400).json({ 
@@ -6719,19 +6719,19 @@ app.post('/api/create-complete-video-from-segments', upload.single('video'), asy
     
     // Download and process only the active audio segments
     const activeAudioSegments = [];
-    // ðŸŽ›ï¸ PRE-RENDER VOLUME VARIATIONS FOR INSTANT CHANGES
+    // Ã°Å¸Å½â€ºÃ¯Â¸Â PRE-RENDER VOLUME VARIATIONS FOR INSTANT CHANGES
 let preRenderedAudio = null;
 try {
-  console.log('\nðŸŽ›ï¸ Starting volume pre-rendering for instant changes...');
+  console.log('\nÃ°Å¸Å½â€ºÃ¯Â¸Â Starting volume pre-rendering for instant changes...');
   preRenderedAudio = await preRenderVolumeVariations(
     activeAudioSegments, 
     parsedSegments.filter((_, index) => Object.keys(parsedMusicData).includes(index.toString())),
     videoDuration
   );
-  console.log('âœ… Volume pre-rendering completed successfully');
+  console.log('Ã¢Å“â€¦ Volume pre-rendering completed successfully');
 } catch (preRenderError) {
-  console.error('âŒ Volume pre-rendering failed:', preRenderError.message);
-  console.log('âš ï¸ Continuing without pre-rendered volumes...');
+  console.error('Ã¢ÂÅ’ Volume pre-rendering failed:', preRenderError.message);
+  console.log('Ã¢Å¡ Ã¯Â¸Â Continuing without pre-rendered volumes...');
 }
     for (const segmentIndexStr of Object.keys(parsedMusicData)) {
       const segmentIndex = parseInt(segmentIndexStr);
@@ -6741,7 +6741,7 @@ try {
       if (musicInfo && musicInfo.audioUrl && originalSegment) {
         const volume = getEffectiveVolume(musicInfo, originalSegment);
         
-        // Ã°Å¸Å¡Â¨ CRITICAL FIX: Use the EXACT timing the music was generated for
+        // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL FIX: Use the EXACT timing the music was generated for
         let segmentStartTime, segmentEndTime, timingSource;
 
         if (musicInfo.actualMusicTiming) {
@@ -6749,23 +6749,23 @@ try {
           segmentStartTime = parseFloat(musicInfo.actualMusicTiming.start);
           segmentEndTime = parseFloat(musicInfo.actualMusicTiming.end);
           timingSource = musicInfo.actualMusicTiming.wasAdjusted ? 'ADJUSTED_TIMING' : 'ORIGINAL_TIMING';
-          console.log(`Ã°Å¸Å½Âµ Using EXACT music generation timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s (${timingSource})`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Using EXACT music generation timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s (${timingSource})`);
         } else if (musicInfo.segmentStart !== undefined && musicInfo.segmentEnd !== undefined) {
           // PRIORITY 2: Fallback to stored segment timing from music generation
           segmentStartTime = parseFloat(musicInfo.segmentStart);
           segmentEndTime = parseFloat(musicInfo.segmentEnd);
           timingSource = 'MUSIC_DATA_FALLBACK';
-          console.log(`Ã°Å¸Å½Âµ Using music data timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Using music data timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s`);
         } else {
           // PRIORITY 3: Final fallback to original segment timing (should not happen with adjusted timing)
           segmentStartTime = parseFloat(originalSegment.start_time || 0);
           segmentEndTime = parseFloat(originalSegment.end_time || segmentStartTime + 30);
           timingSource = 'FALLBACK_ORIGINAL';
-          console.log(`Ã°Å¸Å½Âµ WARNING: Using fallback original timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ WARNING: Using fallback original timing for segment ${segmentIndex + 1}: ${segmentStartTime}s - ${segmentEndTime}s`);
         }
 
-        // Ã°Å¸Å¡Â¨ ENHANCED DEBUG LOGGING
-        console.log(`Ã°Å¸â€Â TIMING DEBUG for Segment ${segmentIndex + 1}:`);
+        // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ENHANCED DEBUG LOGGING
+        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â TIMING DEBUG for Segment ${segmentIndex + 1}:`);
         console.log(`   ClipTune original: ${originalSegment.start_time}s - ${originalSegment.end_time}s`);
         if (musicInfo.actualMusicTiming) {
           console.log(`   Music generated for: ${musicInfo.actualMusicTiming.start}s - ${musicInfo.actualMusicTiming.end}s`);
@@ -6783,7 +6783,7 @@ try {
         
         if (volume > 0) {
           try {
-            console.log(`Ã°Å¸â€œÂ¥ Downloading audio for segment ${segmentIndex + 1} (${Math.round(volume * 100)}%):`, musicInfo.audioUrl);
+            console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading audio for segment ${segmentIndex + 1} (${Math.round(volume * 100)}%):`, musicInfo.audioUrl);
             
             const audioResponse = await axios({
               method: 'get',
@@ -6807,7 +6807,7 @@ try {
               musicInfo: { ...musicInfo, effectiveVolume: volume },
               segment: {
                 ...originalSegment,
-                // Ã°Å¸Å¡Â¨ CRITICAL: Use the EXACT timing the music was generated for
+                // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL: Use the EXACT timing the music was generated for
                 start_time: segmentStartTime,
                 end_time: segmentEndTime,
                 music_placement_timing: {
@@ -6821,35 +6821,35 @@ try {
               }
             });
             
-            console.log(`Ã¢Å“â€¦ Audio downloaded for segment ${segmentIndex + 1} - WILL BE PLACED AT ${segmentStartTime}s-${segmentEndTime}s with ${Math.round(volume * 100)}% volume`);
+            console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Audio downloaded for segment ${segmentIndex + 1} - WILL BE PLACED AT ${segmentStartTime}s-${segmentEndTime}s with ${Math.round(volume * 100)}% volume`);
             
           } catch (error) {
-            console.error(`Ã¢ÂÅ’ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+            console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
           }
         } else {
-          console.log(`Ã°Å¸â€â€¡ Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
         }
       }
     }
     
-    // Ã°Å¸Å¡Â¨ CRITICAL DEBUG: Show exactly where each audio will be placed
-    console.log('\nÃ°Å¸â€Â FINAL AUDIO PLACEMENT VERIFICATION:');
-    console.log('Ã°Å¸â€Â ===============================================');
+    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL DEBUG: Show exactly where each audio will be placed
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â FINAL AUDIO PLACEMENT VERIFICATION:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================');
     activeAudioSegments.forEach(({ index, segment, musicInfo }) => {
       console.log(`Segment ${index + 1}:`);
-      console.log(`  Ã°Å¸Å½Âµ Music will be placed at: ${segment.start_time}s - ${segment.end_time}s`);
-      console.log(`  Ã°Å¸â€œÅ  Original ClipTune timing: ${segment.music_placement_timing?.originalClipTuneStart}s - ${segment.music_placement_timing?.originalClipTuneEnd}s`);
-      console.log(`  Ã¢Å“â€šÃ¯Â¸Â Was timing adjusted: ${segment.music_placement_timing?.wasAdjusted ? 'YES' : 'NO'}`);
-      console.log(`  Ã°Å¸â€œË† Volume: ${Math.round(musicInfo.effectiveVolume * 100)}%`);
-      console.log(`  Ã°Å¸â€Â§ Timing source: ${segment.music_placement_timing?.timingSource || 'UNKNOWN'}`);
+      console.log(`  ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music will be placed at: ${segment.start_time}s - ${segment.end_time}s`);
+      console.log(`  ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Original ClipTune timing: ${segment.music_placement_timing?.originalClipTuneStart}s - ${segment.music_placement_timing?.originalClipTuneEnd}s`);
+      console.log(`  ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Was timing adjusted: ${segment.music_placement_timing?.wasAdjusted ? 'YES' : 'NO'}`);
+      console.log(`  ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‹â€  Volume: ${Math.round(musicInfo.effectiveVolume * 100)}%`);
+      console.log(`  ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Timing source: ${segment.music_placement_timing?.timingSource || 'UNKNOWN'}`);
       console.log(`  ---`);
     });
-    console.log('Ã°Å¸â€Â ===============================================\n');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â ===============================================\n');
     
     const outputPath = path.join(tempDir, `complete_video_${Date.now()}.mp4`);
     
    if (activeAudioSegments.length === 0) {
-  console.log('Ã°Å¸â€â€¡ No active segments - restoring original video with FULL VOLUME');
+  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ No active segments - restoring original video with FULL VOLUME');
   
   await new Promise((resolve, reject) => {
     ffmpeg(videoFilePath)
@@ -6859,18 +6859,18 @@ try {
         '-b:a 192k',           // High quality audio
         '-ar 44100',           // Standard sample rate
         '-ac 2',               // Stereo
-        '-af volume=1.0'       // Ã¢Å“â€¦ EXPLICIT: Restore to 100% volume
+        '-af volume=1.0'       // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ EXPLICIT: Restore to 100% volume
       ])
       .output(outputPath)
       .on('end', () => {
-        console.log('Ã¢Å“â€¦ Progressive video: Original volume fully restored');
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Progressive video: Original volume fully restored');
         resolve();
       })
       .on('error', reject)
       .run();
   });
     } else {
-      console.log(`Ã°Å¸Å½Âµ Processing ${activeAudioSegments.length} active audio segments with exact timing placement...`);
+      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing ${activeAudioSegments.length} active audio segments with exact timing placement...`);
       
       // Process active audio segments with exact timing
       await new Promise((resolve, reject) => {
@@ -6880,7 +6880,7 @@ try {
         activeAudioSegments.forEach(({ path }) => {
           command = command.input(path);
         });
-        // Ã¢Å“â€¦ REPLACE your audio mixing logic in /api/create-complete-video endpoint
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ REPLACE your audio mixing logic in /api/create-complete-video endpoint
 // This ensures BOTH original video audio AND music play simultaneously
 
 if (activeAudioSegments.length === 1) {
@@ -6889,10 +6889,10 @@ if (activeAudioSegments.length === 1) {
   const segmentStart = parseFloat(segment.start_time);
   const musicVolume = musicInfo.effectiveVolume;
   
-  // Ã¢Å“â€¦ KEEP original video audio at reasonable volume (don't reduce too much)
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ KEEP original video audio at reasonable volume (don't reduce too much)
   const originalVideoVolume = 0.8; // Keep original video prominent but not overwhelming
   
-  console.log(`Ã°Å¸Å½Âµ Single active segment mixing: ${index + 1}`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Single active segment mixing: ${index + 1}`);
   console.log(`   Music volume: ${Math.round(musicVolume * 100)}%`);
   console.log(`   Original video audio: ${Math.round(originalVideoVolume * 100)}% (PRESERVED)`);
   console.log(`   Placement: ${segmentStart}s - ${segment.end_time}s`);
@@ -6900,34 +6900,34 @@ if (activeAudioSegments.length === 1) {
   const { filters, finalLabel } = buildAudioFilterWithFades(1, musicVolume, segment, segmentStart, 0);
   
   if (segmentStart > 0) {
-    // Ã¢Å“â€¦ PROPER MIXING: Both original audio + delayed music
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PROPER MIXING: Both original audio + delayed music
     const silenceFilter = `anullsrc=channel_layout=stereo:sample_rate=44100:duration=${segmentStart}[silence]`;
     const concatFilter = `[silence]${finalLabel}concat=n=2:v=0:a=1[delayed_music]`;
     
-    // Ã¢Å“â€¦ CRITICAL: MIX original video audio WITH music (not replace)
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: MIX original video audio WITH music (not replace)
     const mixFilter = `[0:a][delayed_music]amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
     
     command = command.complexFilter([
       silenceFilter,
       ...filters,
       concatFilter,
-      mixFilter  // Ã¢Å“â€¦ This mixes BOTH audio streams
+      mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
     ]);
   } else {
-    // Ã¢Å“â€¦ DIRECT MIXING: Original audio + music from start
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DIRECT MIXING: Original audio + music from start
     const mixFilter = `[0:a]${finalLabel}amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
     
     command = command.complexFilter([
       ...filters,
-      mixFilter  // Ã¢Å“â€¦ This mixes BOTH audio streams
+      mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
     ]);
   }
 } else {
   // Multiple active audio segments - PROPER MULTI-STREAM MIXING
   const filterParts = [];
-  const mixInputs = ['[0:a]']; // Ã¢Å“â€¦ ALWAYS include original video audio
+  const mixInputs = ['[0:a]']; // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ALWAYS include original video audio
   
-  console.log(`Ã°Å¸Å½Âµ Multiple segments mixing: ${activeAudioSegments.length}`);
+  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Multiple segments mixing: ${activeAudioSegments.length}`);
   console.log(`   Original video audio: 80% (PRESERVED)`);
   console.log(`   Music segments will be ADDED to original audio`);
   
@@ -6951,7 +6951,7 @@ if (activeAudioSegments.length === 1) {
     }
   });
   
-  // Ã¢Å“â€¦ CRITICAL: Mix original video audio + ALL music segments together
+  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: Mix original video audio + ALL music segments together
   const inputCount = mixInputs.length;
   filterParts.push(`${mixInputs.join('')}amix=inputs=${inputCount}:duration=first:dropout_transition=0[final_audio]`);
   command = command.complexFilter(filterParts);
@@ -6973,21 +6973,21 @@ if (activeAudioSegments.length === 1) {
         command
           .output(outputPath)
           .on('start', (commandLine) => {
-            console.log('Ã°Å¸Å½Â¬ FFmpeg command:', commandLine);
+            console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ FFmpeg command:', commandLine);
           })
           .on('end', () => {
-            console.log('Ã¢Å“â€¦ Complete video processing with EXACT timing placement finished');
+            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video processing with EXACT timing placement finished');
             resolve();
           })
           .on('error', (err) => {
-            console.error('Ã¢ÂÅ’ FFmpeg error:', err.message);
+            console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ FFmpeg error:', err.message);
             
             // Fallback: copy original video
-            console.log('Ã°Å¸â€â€ž Fallback: copying original video...');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Fallback: copying original video...');
             ffmpeg(videoFilePath)
               .output(outputPath)
               .on('end', () => {
-                console.log('Ã¢Å“â€¦ Fallback completed - original video');
+                console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Fallback completed - original video');
                 resolve();
               })
               .on('error', reject)
@@ -6995,7 +6995,7 @@ if (activeAudioSegments.length === 1) {
           })
           .on('progress', (progress) => {
             if (progress.percent) {
-              console.log('Ã°Å¸â€â€ž Progress: ' + Math.round(progress.percent) + '% done');
+              console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Progress: ' + Math.round(progress.percent) + '% done');
             }
           })
           .run();
@@ -7008,15 +7008,15 @@ if (activeAudioSegments.length === 1) {
       throw new Error('Output file is empty');
     }
 
-    console.log('Ã¢Å“â€¦ Complete video created with EXACT timing placement:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video created with EXACT timing placement:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Return the URL for the complete video
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° COMPLETE VIDEO WITH EXACT MUSIC TIMING READY');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸â€â€” Video URL:', combinedUrl);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° COMPLETE VIDEO WITH EXACT MUSIC TIMING READY');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', combinedUrl);
     
     // Enhanced response with timing details
     res.json({ 
@@ -7047,7 +7047,7 @@ if (activeAudioSegments.length === 1) {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error creating complete video from segments:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error creating complete video from segments:', error);
     res.status(500).json({ 
       error: 'Failed to create complete video from segments', 
       details: error.message 
@@ -7059,9 +7059,9 @@ if (activeAudioSegments.length === 1) {
       if (file) {
         try {
           await fsPromises.unlink(file);
-          console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up:', file);
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up:', file);
         } catch (e) {
-          console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete temporary file ${file}:`, e.message);
+          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete temporary file ${file}:`, e.message);
         }
       }
     }
@@ -7119,9 +7119,9 @@ app.post('/api/trim-audio', async (req, res) => {
   }
 });
 
-// Ã¢Å“â€¦ UPDATE your existing /api/create-complete-video endpoint in index.js
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ UPDATE your existing /api/create-complete-video endpoint in index.js
 // Replace the existing endpoint with this enhanced version that handles removed segments
-// Ã¢Å“â€¦ BONUS: Add a dedicated endpoint for volume restoration testing
+// ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ BONUS: Add a dedicated endpoint for volume restoration testing
 app.post('/api/restore-original-volume', upload.single('video'), async (req, res) => {
   let videoFilePath;
   
@@ -7130,9 +7130,9 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
       return res.status(400).json({ error: 'No video file provided' });
     }
 
-    console.log('Ã°Å¸â€Å  ===============================================');
-    console.log('Ã°Å¸â€Å  RESTORING ORIGINAL VIDEO VOLUME');
-    console.log('Ã°Å¸â€Å  ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  RESTORING ORIGINAL VIDEO VOLUME');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  ===============================================');
 
     // Save uploaded video
     videoFilePath = path.join(tempDir, `volume_restore_${Date.now()}.mp4`);
@@ -7153,10 +7153,10 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
         ])
         .output(outputPath)
         .on('start', (commandLine) => {
-          console.log('Ã°Å¸â€Å  Restoring volume:', commandLine);
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  Restoring volume:', commandLine);
         })
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Original volume fully restored');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Original volume fully restored');
           resolve();
         })
         .on('error', reject)
@@ -7166,8 +7166,8 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
     const stats = await fsPromises.stat(outputPath);
     const restoredUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('Ã°Å¸â€Å  Volume restoration completed');
-    console.log('Ã°Å¸â€â€” Restored video URL:', restoredUrl);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  Volume restoration completed');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Restored video URL:', restoredUrl);
 
     res.json({ 
       success: true, 
@@ -7177,7 +7177,7 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error restoring original volume:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error restoring original volume:', error);
     res.status(500).json({ 
       error: 'Failed to restore original volume', 
       details: error.message 
@@ -7187,7 +7187,7 @@ app.post('/api/restore-original-volume', upload.single('video'), async (req, res
       try {
         await fsPromises.unlink(videoFilePath);
       } catch (e) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete ${videoFilePath}:`, e.message);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete ${videoFilePath}:`, e.message);
       }
     }
   }
@@ -7197,11 +7197,11 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
   const volumeLevels = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]; // 11 volume levels
   const preRenderedAudio = {};
   
-  console.log('ðŸŽ›ï¸ ===============================================');
-  console.log('ðŸŽ›ï¸ PRE-RENDERING VOLUME VARIATIONS FOR INSTANT CHANGES');
-  console.log('ðŸŽ›ï¸ ===============================================');
-  console.log(`ðŸŽµ Processing ${audioFilePaths.length} segments`);
-  console.log(`ðŸ”Š Volume levels: ${volumeLevels.join(', ')}%`);
+  console.log('Ã°Å¸Å½â€ºÃ¯Â¸Â ===============================================');
+  console.log('Ã°Å¸Å½â€ºÃ¯Â¸Â PRE-RENDERING VOLUME VARIATIONS FOR INSTANT CHANGES');
+  console.log('Ã°Å¸Å½â€ºÃ¯Â¸Â ===============================================');
+  console.log(`Ã°Å¸Å½Âµ Processing ${audioFilePaths.length} segments`);
+  console.log(`Ã°Å¸â€Å  Volume levels: ${volumeLevels.join(', ')}%`);
   
   for (let segmentIndex = 0; segmentIndex < Math.min(audioFilePaths.length, 10); segmentIndex++) {
     const audioData = audioFilePaths[segmentIndex];
@@ -7209,7 +7209,7 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
     
     if (!audioData || !segment) continue;
     
-    console.log(`\nðŸŽµ Pre-rendering segment ${segmentIndex + 1}...`);
+    console.log(`\nÃ°Å¸Å½Âµ Pre-rendering segment ${segmentIndex + 1}...`);
     preRenderedAudio[segmentIndex] = {};
     
     for (const volumeLevel of volumeLevels) {
@@ -7217,7 +7217,7 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
         const volumeDecimal = volumeLevel / 100;
         const outputPath = path.join(tempDir, `prerendered_s${segmentIndex}_v${volumeLevel}_${Date.now()}.mp3`);
         
-        console.log(`   ðŸ”Š Rendering volume ${volumeLevel}%...`);
+        console.log(`   Ã°Å¸â€Å  Rendering volume ${volumeLevel}%...`);
         
         // Apply volume and fade effects to audio
         await new Promise((resolve, reject) => {
@@ -7258,7 +7258,7 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
         };
         
       } catch (error) {
-        console.error(`âŒ Failed to render segment ${segmentIndex + 1} at ${volumeLevel}%:`, error.message);
+        console.error(`Ã¢ÂÅ’ Failed to render segment ${segmentIndex + 1} at ${volumeLevel}%:`, error.message);
         preRenderedAudio[segmentIndex][volumeLevel] = {
           path: null,
           url: null,
@@ -7270,19 +7270,19 @@ async function preRenderVolumeVariations(audioFilePaths, segments, videoDuration
       }
     }
     
-    console.log(`âœ… Segment ${segmentIndex + 1}: ${volumeLevels.length} volume variations ready`);
+    console.log(`Ã¢Å“â€¦ Segment ${segmentIndex + 1}: ${volumeLevels.length} volume variations ready`);
   }
   
-  console.log('\nðŸŽ›ï¸ ===============================================');
-  console.log('ðŸŽ›ï¸ VOLUME PRE-RENDERING COMPLETED');
-  console.log('ðŸŽ›ï¸ ===============================================');
+  console.log('\nÃ°Å¸Å½â€ºÃ¯Â¸Â ===============================================');
+  console.log('Ã°Å¸Å½â€ºÃ¯Â¸Â VOLUME PRE-RENDERING COMPLETED');
+  console.log('Ã°Å¸Å½â€ºÃ¯Â¸Â ===============================================');
   
   const totalVariations = Object.keys(preRenderedAudio).reduce((total, segmentKey) => {
     return total + Object.keys(preRenderedAudio[segmentKey]).length;
   }, 0);
   
-  console.log(`âœ… Total volume variations pre-rendered: ${totalVariations}`);
-  console.log(`ðŸŽµ Segments processed: ${Object.keys(preRenderedAudio).length}`);
+  console.log(`Ã¢Å“â€¦ Total volume variations pre-rendered: ${totalVariations}`);
+  console.log(`Ã°Å¸Å½Âµ Segments processed: ${Object.keys(preRenderedAudio).length}`);
   
   return preRenderedAudio;
 }
@@ -7298,7 +7298,7 @@ app.post('/api/get-volume-variation', async (req, res) => {
       });
     }
     
-    console.log(`ðŸŽ›ï¸ Getting volume variation: Segment ${segmentIndex}, Volume ${volumeLevel}%`);
+    console.log(`Ã°Å¸Å½â€ºÃ¯Â¸Â Getting volume variation: Segment ${segmentIndex}, Volume ${volumeLevel}%`);
     
     // In a real app, you'd store preRenderedAudio in Redis or similar
     // For now, we'll return a placeholder response
@@ -7314,7 +7314,7 @@ app.post('/api/get-volume-variation', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('âŒ Error getting volume variation:', error);
+    console.error('Ã¢ÂÅ’ Error getting volume variation:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get volume variation',
@@ -7340,18 +7340,18 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     const parsedSegments = JSON.parse(segments);
     const parsedMusicData = JSON.parse(musicData);
     
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log('Ã°Å¸Å½Â¬ CREATING COMPLETE VIDEO WITH REMOVE/RESTORE SUPPORT');
-    console.log('Ã°Å¸Å½Â¬ ===============================================');
-    console.log(`Ã°Å¸â€œÅ  Total segments: ${parsedSegments.length}`);
-    console.log(`Ã°Å¸Å½Âµ Music data provided for: ${Object.keys(parsedMusicData).length} segments`);
-    console.log(`Ã°Å¸â€Â§ Allow empty music: ${allowEmptyMusic === 'true' ? 'YES' : 'NO'}`);
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ CREATING COMPLETE VIDEO WITH REMOVE/RESTORE SUPPORT');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music data provided for: ${Object.keys(parsedMusicData).length} segments`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Allow empty music: ${allowEmptyMusic === 'true' ? 'YES' : 'NO'}`);
     
     // Save uploaded video
     videoFilePath = path.join(tempDir, `complete_video_source_${Date.now()}.mp4`);
     await fsPromises.writeFile(videoFilePath, req.file.buffer);
     
-    // Ã¢Å“â€¦ ENHANCED: Filter out removed segments and process only active ones
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Filter out removed segments and process only active ones
     const activeAudioSegments = [];
     let removedSegmentCount = 0;
     
@@ -7361,19 +7361,19 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       const originalSegment = parsedSegments[segmentIndex];
       
       if (!musicInfo || !originalSegment) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Segment ${segmentIndex + 1}: Missing music info or segment data`);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Segment ${segmentIndex + 1}: Missing music info or segment data`);
         continue;
       }
       
-      // Ã¢Å“â€¦ CHECK FOR REMOVED STATUS
+      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CHECK FOR REMOVED STATUS
       if (musicInfo.removed === true || musicInfo.isRemovedFromVideo === true) {
         removedSegmentCount++;
-        console.log(`Ã°Å¸Å¡Â« Segment ${segmentIndex + 1}: SKIPPED (marked as removed)`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Segment ${segmentIndex + 1}: SKIPPED (marked as removed)`);
         continue;
       }
       
       if (!musicInfo.audioUrl) {
-        console.warn(`Ã¢Å¡ Ã¯Â¸Â Segment ${segmentIndex + 1}: Missing audio URL`);
+        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Segment ${segmentIndex + 1}: Missing audio URL`);
         continue;
       }
       
@@ -7397,16 +7397,16 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         timingSource = 'FALLBACK_ORIGINAL';
       }
 
-      console.log(`Ã¢Å“â€¦ Segment ${segmentIndex + 1}: ACTIVE`);
+      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Segment ${segmentIndex + 1}: ACTIVE`);
       console.log(`   Placement: ${segmentStartTime}s - ${segmentEndTime}s`);
       console.log(`   Volume: ${Math.round(volume * 100)}%`);
       console.log(`   Timing source: ${timingSource}`);
       console.log(`   Audio URL: ${musicInfo.audioUrl.substring(0, 50)}...`);
       
-      // Ã¢Å“â€¦ ONLY PROCESS IF VOLUME > 0
+      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ONLY PROCESS IF VOLUME > 0
       if (volume > 0) {
         try {
-          console.log(`Ã°Å¸â€œÂ¥ Downloading audio for segment ${segmentIndex + 1}...`);
+          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading audio for segment ${segmentIndex + 1}...`);
           
           const audioResponse = await axios({
             method: 'get',
@@ -7441,44 +7441,44 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           });
           
           audioFilePaths.push(audioFilePath); // For cleanup
-          console.log(`Ã¢Å“â€¦ Audio ready for segment ${segmentIndex + 1}`);
+          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Audio ready for segment ${segmentIndex + 1}`);
           
         } catch (error) {
-          console.error(`Ã¢ÂÅ’ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+          console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
         }
       } else {
-        console.log(`Ã°Å¸â€â€¡ Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
       }
     }
     
     const outputPath = path.join(tempDir, `complete_video_${Date.now()}.mp4`);
     
-    console.log('\nÃ°Å¸â€œÅ  PROCESSING SUMMARY:');
-    console.log('Ã°Å¸â€œÅ  ===============================================');
-    console.log(`Ã°Å¸Å½Âµ Active segments with music: ${activeAudioSegments.length}`);
-    console.log(`Ã°Å¸Å¡Â« Removed segments: ${removedSegmentCount}`);
-    console.log(`Ã°Å¸â€œÅ  Total segments: ${parsedSegments.length}`);
-    console.log('Ã°Å¸â€œÅ  ===============================================\n');
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  PROCESSING SUMMARY:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================');
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Active segments with music: ${activeAudioSegments.length}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Removed segments: ${removedSegmentCount}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================\n');
     
-    // Ã¢Å“â€¦ HANDLE CASE WHERE NO ACTIVE SEGMENTS (ALL REMOVED OR MUTED)
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ HANDLE CASE WHERE NO ACTIVE SEGMENTS (ALL REMOVED OR MUTED)
     if (activeAudioSegments.length === 0) {
       if (allowEmptyMusic === 'true') {
-        console.log('Ã°Å¸â€â€¡ No active music segments - restoring original video with FULL VOLUME');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ No active music segments - restoring original video with FULL VOLUME');
         
         await new Promise((resolve, reject) => {
           ffmpeg(videoFilePath)
-            // Ã¢Å“â€¦ CRITICAL: Use original audio at full volume (no mixing)
+            // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: Use original audio at full volume (no mixing)
             .outputOptions([
               '-c:v copy',           // Copy video without re-encoding
               '-c:a aac',            // Re-encode audio to ensure consistency
               '-b:a 192k',           // High quality audio
               '-ar 44100',           // Standard sample rate
               '-ac 2',               // Stereo
-              '-af volume=1.0'       // Ã¢Å“â€¦ EXPLICIT: Set audio to 100% volume
+              '-af volume=1.0'       // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ EXPLICIT: Set audio to 100% volume
             ])
             .output(outputPath)
             .on('end', () => {
-              console.log('Ã¢Å“â€¦ Original video restored with FULL VOLUME (no music segments)');
+              console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Original video restored with FULL VOLUME (no music segments)');
               resolve();
             })
             .on('error', reject)
@@ -7489,12 +7489,12 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const stats = await fsPromises.stat(outputPath);
         const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-        console.log('\nÃ°Å¸Å½â€° ===============================================');
-        console.log('Ã°Å¸Å½â€° ORIGINAL VIDEO VOLUME FULLY RESTORED');
-        console.log('Ã°Å¸Å½â€° ===============================================');
-        console.log('Ã°Å¸â€â€” Video URL:', combinedUrl);
-        console.log('Ã°Å¸â€Å  Original audio: 100% volume (no music mixing)');
-        console.log(`Ã°Å¸â€œÅ  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ORIGINAL VIDEO VOLUME FULLY RESTORED');
+        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', combinedUrl);
+        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  Original audio: 100% volume (no music mixing)');
+        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
         
         return res.json({ 
           success: true, 
@@ -7516,13 +7516,13 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       }
     }
     
-    // Ã¢Å“â€¦ PROCESS VIDEO WITH ACTIVE MUSIC SEGMENTS
-    console.log(`Ã°Å¸Å½Âµ Creating video with ${activeAudioSegments.length} active music segments...`);
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PROCESS VIDEO WITH ACTIVE MUSIC SEGMENTS
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Creating video with ${activeAudioSegments.length} active music segments...`);
     
     // Sort segments by start time for proper layering
     activeAudioSegments.sort((a, b) => parseFloat(a.segment.start_time) - parseFloat(b.segment.start_time));
     
-    console.log('Ã°Å¸Å½Âµ FINAL AUDIO COMPOSITION:');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FINAL AUDIO COMPOSITION:');
     activeAudioSegments.forEach(({ index, segment, musicInfo }) => {
       console.log(`   Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)`);
     });
@@ -7541,7 +7541,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const segmentStart = parseFloat(segment.start_time);
         const musicVolume = musicInfo.effectiveVolume;
         
-        console.log(`Ã°Å¸Å½Âµ Single active segment mixing: ${index + 1}`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Single active segment mixing: ${index + 1}`);
         console.log(`   Music volume: ${Math.round(musicVolume * 100)}%`);
         console.log(`   Original video audio: PRESERVED`);
         console.log(`   Placement: ${segmentStart}s - ${segment.end_time}s`);
@@ -7549,26 +7549,26 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const { filters, finalLabel } = buildAudioFilterWithFades(1, musicVolume, segment, segmentStart, 0);
         
         if (segmentStart > 0) {
-          // Ã¢Å“â€¦ PROPER MIXING: Both original audio + delayed music
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PROPER MIXING: Both original audio + delayed music
           const silenceFilter = `anullsrc=channel_layout=stereo:sample_rate=44100:duration=${segmentStart}[silence]`;
           const concatFilter = `[silence]${finalLabel}concat=n=2:v=0:a=1[delayed_music]`;
           
-          // Ã¢Å“â€¦ CRITICAL: MIX original video audio WITH music (not replace)
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: MIX original video audio WITH music (not replace)
           const mixFilter = `[0:a][delayed_music]amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
           
           command = command.complexFilter([
             silenceFilter,
             ...filters,
             concatFilter,
-            mixFilter  // Ã¢Å“â€¦ This mixes BOTH audio streams
+            mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
           ]);
         } else {
-          // Ã¢Å“â€¦ DIRECT MIXING: Original audio + music from start
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DIRECT MIXING: Original audio + music from start
           const mixFilter = `[0:a]${finalLabel}amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
           
           command = command.complexFilter([
             ...filters,
-            mixFilter  // Ã¢Å“â€¦ This mixes BOTH audio streams
+            mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
           ]);
         }
       } else {
@@ -7576,7 +7576,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const filterParts = [];
         const mixInputs = ['[0:a]']; // Always include original video audio
         
-        console.log(`Ã°Å¸Å½Âµ Multiple active segments processing: ${activeAudioSegments.length}`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Multiple active segments processing: ${activeAudioSegments.length}`);
         console.log(`   Original video audio: PRESERVED at full volume`);
         
         activeAudioSegments.forEach(({ index, musicInfo, segment }, arrayIndex) => {
@@ -7586,7 +7586,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           
           console.log(`   ${arrayIndex + 1}. Segment ${index + 1}: ${segmentStart}s (${Math.round(musicVolume * 100)}%)`);
           
-          // Ã¢Å“â€¦ FIXED: Proper function call with correct parameters
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Proper function call with correct parameters
           const { filters, finalLabel } = buildAudioFilterWithFades(audioInputIndex, musicVolume, segment, segmentStart, arrayIndex);
           filterParts.push(...filters);
           
@@ -7600,11 +7600,11 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           }
         });
         
-        // Ã¢Å“â€¦ SIMPLIFIED: Mix all inputs without complex weights
+        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ SIMPLIFIED: Mix all inputs without complex weights
         const inputCount = mixInputs.length;
         filterParts.push(`${mixInputs.join('')}amix=inputs=${inputCount}:duration=first:dropout_transition=0[final_audio]`);
         
-        console.log(`Ã°Å¸Å½Âµ FFmpeg filter: Mixing ${inputCount} audio streams (1 original + ${activeAudioSegments.length} music)`);
+        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FFmpeg filter: Mixing ${inputCount} audio streams (1 original + ${activeAudioSegments.length} music)`);
         
         command = command.complexFilter(filterParts);
       }
@@ -7623,48 +7623,48 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       command
         .output(outputPath)
         .on('start', (commandLine) => {
-          console.log('Ã°Å¸Å½Â¬ FFmpeg command:', commandLine);
+          console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ FFmpeg command:', commandLine);
           
-          // Ã¢Å“â€¦ DEBUG: Log the complex filter being used
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DEBUG: Log the complex filter being used
           const filterMatch = commandLine.match(/-filter_complex\s+"([^"]+)"/);
           if (filterMatch) {
-            console.log('Ã°Å¸â€Â Complex filter being used:');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Complex filter being used:');
             console.log(filterMatch[1]);
           }
         })
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Complete video with active segments finished');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video with active segments finished');
           resolve();
         })
         .on('error', (err) => {
-          console.error('Ã¢ÂÅ’ FFmpeg error:', err.message);
+          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ FFmpeg error:', err.message);
           
-          // Ã¢Å“â€¦ ENHANCED: Better error logging
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Better error logging
           if (err.message.includes('Invalid stream specifier')) {
-            console.error('Ã°Å¸Å¡Â¨ Stream specifier error - likely too many audio inputs or invalid filter syntax');
+            console.error('ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Stream specifier error - likely too many audio inputs or invalid filter syntax');
           }
           if (err.message.includes('filter_complex')) {
-            console.error('Ã°Å¸Å¡Â¨ Complex filter error - check filter syntax');
+            console.error('ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Complex filter error - check filter syntax');
           }
           
-          console.log('Ã°Å¸â€â€ž Attempting fallback: copy original video...');
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Attempting fallback: copy original video...');
           
-          // Ã¢Å“â€¦ FALLBACK: Copy original video if mixing fails
+          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FALLBACK: Copy original video if mixing fails
           ffmpeg(videoFilePath)
             .output(outputPath)
             .on('end', () => {
-              console.log('Ã¢Å“â€¦ Fallback completed - original video without music');
+              console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Fallback completed - original video without music');
               resolve();
             })
             .on('error', (fallbackErr) => {
-              console.error('Ã¢ÂÅ’ Fallback also failed:', fallbackErr.message);
+              console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Fallback also failed:', fallbackErr.message);
               reject(fallbackErr);
             })
             .run();
         })
         .on('progress', (progress) => {
           if (progress.percent) {
-            console.log(`Ã°Å¸â€â€ž Progress: ${Math.round(progress.percent)}% done`);
+            console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Progress: ${Math.round(progress.percent)}% done`);
           }
         })
         .run();
@@ -7678,13 +7678,13 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
 
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('\nÃ°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸Å½â€° COMPLETE VIDEO WITH REMOVE/RESTORE READY');
-    console.log('Ã°Å¸Å½â€° ===============================================');
-    console.log('Ã°Å¸â€â€” Video URL:', combinedUrl);
-    console.log(`Ã°Å¸Å½Âµ Active segments: ${activeAudioSegments.length}`);
-    console.log(`Ã°Å¸Å¡Â« Removed segments: ${removedSegmentCount}`);
-    console.log(`Ã°Å¸â€œÅ  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° COMPLETE VIDEO WITH REMOVE/RESTORE READY');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', combinedUrl);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Active segments: ${activeAudioSegments.length}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Removed segments: ${removedSegmentCount}`);
+    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
     
     res.json({ 
       success: true, 
@@ -7698,7 +7698,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error creating complete video with remove/restore:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error creating complete video with remove/restore:', error);
     res.status(500).json({ 
       error: 'Failed to create complete video', 
       details: error.message 
@@ -7711,7 +7711,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         try {
           await fsPromises.unlink(file);
         } catch (e) {
-          console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete ${file}:`, e.message);
+          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete ${file}:`, e.message);
         }
       }
     }
@@ -7784,24 +7784,24 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       throw new Error('Invalid numeric parameters for video/audio combination.');
     }
 
-    console.log('Ã°Å¸Å½Âµ Audio mixing parameters:');
+    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio mixing parameters:');
     console.log('   - Video duration:', videoDurationNum, 'seconds');
     console.log('   - Video start time:', videoStartNum, 'seconds');
     console.log('   - Music duration:', musicDurationNum, 'seconds');
     console.log('   - Music volume:', Math.round(musicVolumeNum * 100) + '%');
     console.log('   - Audio start:', audioStartNum, 'seconds');
 
-    // Ã¢Å“â€¦ FIXED: Simplified audio stream detection (no ffprobe needed)
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Simplified audio stream detection (no ffprobe needed)
     const hasAudioStream = true; // Assume video has audio by default
 
     console.log('Assuming video has audio stream (simplified approach)');
 
-    // Ã¢Å“â€¦ FIXED: Better audio mixing logic with proper delay and volume
+    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Better audio mixing logic with proper delay and volume
     await new Promise((resolve, reject) => {
       let command = ffmpeg(videoFilePath)
         .input(audioFilePath);
 
-      console.log('Ã°Å¸Å½Âµ Processing video with audio mixing');
+      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing video with audio mixing');
       
       const backgroundMusicVolume = musicVolumeNum;
       
@@ -7844,19 +7844,19 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       command
         .output(outputPath)
         .on('start', (commandLine) => {
-          console.log('Ã°Å¸Å½Â¬ FFmpeg command:', commandLine);
+          console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ FFmpeg command:', commandLine);
         })
         .on('end', () => {
-          console.log('Ã¢Å“â€¦ Video processing completed successfully');
+          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video processing completed successfully');
           resolve();
         })
         .on('error', (err) => {
-          console.error('Ã¢ÂÅ’ FFmpeg error:', err.message);
+          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ FFmpeg error:', err.message);
           reject(err);
         })
         .on('progress', (progress) => {
           if (progress.percent) {
-            console.log('Ã°Å¸â€â€ž Processing: ' + Math.round(progress.percent) + '% done');
+            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Processing: ' + Math.round(progress.percent) + '% done');
           }
         })
         .run();
@@ -7868,14 +7868,14 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       throw new Error('Output file is empty');
     }
 
-    console.log('Ã¢Å“â€¦ Combined video created:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Combined video created:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Return the URL for the combined video
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
     res.json({ combinedUrl });
 
   } catch (err) {
-    console.error('Ã¢ÂÅ’ Error combining video and audio:', err);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error combining video and audio:', err);
     res.status(500).json({ 
       error: 'Failed to combine video and audio', 
       details: err.message 
@@ -7887,9 +7887,9 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       if (file) {
         try {
           await fsPromises.unlink(file);
-          console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up:', file);
+          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up:', file);
         } catch (e) {
-          console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete temporary file ${file}:`, e.message);
+          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete temporary file ${file}:`, e.message);
         }
       }
     }
@@ -7949,13 +7949,13 @@ app.post('/api/save-recent-track', async (req, res) => {
     youtubeUrls, 
     start, 
     end,
-    trackName, // Ã°Å¸Å¡Â¨ NEW: Accept track name
+    trackName, // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Accept track name
     segmentIndex,
     originalFileName
   } = req.body;
   
   try {
-    console.log('Ã°Å¸â€™Â¾ Saving recent track with name:', trackName || 'Unnamed Track');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Saving recent track with name:', trackName || 'Unnamed Track');
     
     // Find if a track with the same audioUrl and userId already exists
     const existingTrack = await Track.findOne({ userId, audioUrl });
@@ -7966,7 +7966,7 @@ app.post('/api/save-recent-track', async (req, res) => {
       existingTrack.trackName = trackName || existingTrack.trackName || 'Unnamed Track';
       existingTrack.title = trackName || existingTrack.title || 'Unnamed Track'; // Keep title in sync
       await existingTrack.save();
-      console.log(`Ã¢Å“â€¦ Track "${trackName}" updated for user ${userId}`);
+      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Track "${trackName}" updated for user ${userId}`);
     } else {
       // Create new entry with track name
       const newTrack = new Track({
@@ -7979,7 +7979,7 @@ app.post('/api/save-recent-track', async (req, res) => {
         start,
         end,
         title: trackName || 'Unnamed Track', // Use track name as title
-        trackName: trackName || 'Unnamed Track', // Ã°Å¸Å¡Â¨ NEW: Store track name
+        trackName: trackName || 'Unnamed Track', // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Store track name
         segmentInfo: {
           segmentIndex: segmentIndex || 0,
           originalStart: start,
@@ -7990,7 +7990,7 @@ app.post('/api/save-recent-track', async (req, res) => {
         originalFileName: originalFileName || 'unknown_video'
       });
       await newTrack.save();
-      console.log(`Ã¢Å“â€¦ New track "${trackName}" saved for user ${userId}`);
+      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ New track "${trackName}" saved for user ${userId}`);
     }
 
     // Fetch the latest recent tracks to send back
@@ -8020,13 +8020,13 @@ app.post('/api/save-track', async (req, res) => {
     description, 
     lyrics, 
     youtubeUrls,
-    trackName, // Ã°Å¸Å¡Â¨ NEW: Accept track name (could be same as title)
+    trackName, // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Accept track name (could be same as title)
     segmentIndex,
     originalFileName
   } = req.body;
   
   try {
-    console.log('Ã°Å¸â€™Â¾ Saving track to library with name:', trackName || title || 'Unnamed Track');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Saving track to library with name:', trackName || title || 'Unnamed Track');
     
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -8036,7 +8036,7 @@ app.post('/api/save-track', async (req, res) => {
     const newTrack = new Track({
       userId,
       title: finalTrackName,
-      trackName: finalTrackName, // Ã°Å¸Å¡Â¨ NEW: Store track name
+      trackName: finalTrackName, // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Store track name
       audioUrl,
       duration,
       description,
@@ -8051,7 +8051,7 @@ app.post('/api/save-track', async (req, res) => {
     });
     
     await newTrack.save();
-    console.log(`Ã¢Å“â€¦ Track "${finalTrackName}" saved to library`);
+    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Track "${finalTrackName}" saved to library`);
     
     res.status(201).json({ 
       message: 'Track saved successfully!', 
@@ -8136,17 +8136,17 @@ async function compressVideoForGemini(videoBuffer, originalFilename = 'video.mp4
   } = options;
 
   try {
-    console.log('🗜️ ===============================================');
-    console.log('🗜️ COMPRESSING VIDEO FOR GEMINI API');
-    console.log('🗜️ ===============================================');
-    console.log('📊 Original size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-    console.log('🎯 Target size:', targetSizeMB, 'MB');
-    console.log('📺 Max resolution:', maxResolution);
-    console.log('🎛️ CRF:', crf);
-    console.log('📊 Audio bitrate:', audioBitrate);
+    console.log('ðŸ—œï¸ ===============================================');
+    console.log('ðŸ—œï¸ COMPRESSING VIDEO FOR GEMINI API');
+    console.log('ðŸ—œï¸ ===============================================');
+    console.log('ðŸ“Š Original size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ðŸŽ¯ Target size:', targetSizeMB, 'MB');
+    console.log('ðŸ“º Max resolution:', maxResolution);
+    console.log('ðŸŽ›ï¸ CRF:', crf);
+    console.log('ðŸ“Š Audio bitrate:', audioBitrate);
 
     const tempDir = path.join(__dirname, 'temp_videos');
-    // ✅ FIXED: Use fsPromises instead of fs
+    // âœ… FIXED: Use fsPromises instead of fs
     await fsPromises.mkdir(tempDir, { recursive: true });
 
     // Generate unique filenames
@@ -8154,7 +8154,7 @@ async function compressVideoForGemini(videoBuffer, originalFilename = 'video.mp4
     const inputPath = path.join(tempDir, `input_${timestamp}.mp4`);
     const outputPath = path.join(tempDir, `compressed_${timestamp}.mp4`);
 
-    // ✅ FIXED: Use fsPromises.writeFile instead of fs.writeFile
+    // âœ… FIXED: Use fsPromises.writeFile instead of fs.writeFile
     await fsPromises.writeFile(inputPath, videoBuffer);
 
     // Calculate resolution settings
@@ -8190,57 +8190,57 @@ async function compressVideoForGemini(videoBuffer, originalFilename = 'video.mp4
 
       command
         .on('start', (commandLine) => {
-          console.log('🎬 FFmpeg compression started:', commandLine.substring(0, 100) + '...');
+          console.log('ðŸŽ¬ FFmpeg compression started:', commandLine.substring(0, 100) + '...');
         })
         .on('progress', (progress) => {
           if (progress.percent) {
-            console.log(`🗜️ Compression progress: ${Math.round(progress.percent)}%`);
+            console.log(`ðŸ—œï¸ Compression progress: ${Math.round(progress.percent)}%`);
           }
         })
         .on('end', () => {
           const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
-          console.log('✅ Video compression completed in', processingTime, 'seconds');
+          console.log('âœ… Video compression completed in', processingTime, 'seconds');
           resolve();
         })
         .on('error', (err) => {
-          console.error('❌ FFmpeg compression error:', err.message);
+          console.error('âŒ FFmpeg compression error:', err.message);
           reject(err);
         })
         .run();
     });
 
-    // ✅ FIXED: Use fsPromises.readFile instead of fs.readFile
+    // âœ… FIXED: Use fsPromises.readFile instead of fs.readFile
     const compressedBuffer = await fsPromises.readFile(outputPath);
     const compressedSizeMB = compressedBuffer.length / 1024 / 1024;
 
-    console.log('📊 COMPRESSION RESULTS:');
-    console.log('📊 ===============================================');
-    console.log('📊 Original size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-    console.log('📊 Compressed size:', compressedSizeMB.toFixed(2), 'MB');
-    console.log('📊 Compression ratio:', (((videoBuffer.length - compressedBuffer.length) / videoBuffer.length) * 100).toFixed(1) + '%');
-    console.log('📊 Size reduction:', ((videoBuffer.length - compressedBuffer.length) / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ðŸ“Š COMPRESSION RESULTS:');
+    console.log('ðŸ“Š ===============================================');
+    console.log('ðŸ“Š Original size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ðŸ“Š Compressed size:', compressedSizeMB.toFixed(2), 'MB');
+    console.log('ðŸ“Š Compression ratio:', (((videoBuffer.length - compressedBuffer.length) / videoBuffer.length) * 100).toFixed(1) + '%');
+    console.log('ðŸ“Š Size reduction:', ((videoBuffer.length - compressedBuffer.length) / 1024 / 1024).toFixed(2), 'MB');
 
     // Clean up temporary files
     try {
-      // ✅ FIXED: Use fsPromises.unlink instead of fs.unlink
+      // âœ… FIXED: Use fsPromises.unlink instead of fs.unlink
       await fsPromises.unlink(inputPath);
       await fsPromises.unlink(outputPath);
-      console.log('🗑️ Temporary files cleaned up');
+      console.log('ðŸ—‘ï¸ Temporary files cleaned up');
     } catch (cleanupError) {
-      console.warn('⚠️ Could not clean up temporary files:', cleanupError.message);
+      console.warn('âš ï¸ Could not clean up temporary files:', cleanupError.message);
     }
 
     // Check if compression was successful
     if (compressedSizeMB > targetSizeMB) {
-      console.warn('⚠️ Compressed video still exceeds target size. Consider using more aggressive settings.');
+      console.warn('âš ï¸ Compressed video still exceeds target size. Consider using more aggressive settings.');
     } else {
-      console.log('✅ Video successfully compressed to target size!');
+      console.log('âœ… Video successfully compressed to target size!');
     }
 
     return compressedBuffer;
 
   } catch (error) {
-    console.error('❌ Error compressing video:', error);
+    console.error('âŒ Error compressing video:', error);
     throw new Error(`Video compression failed: ${error.message}`);
   }
 }
@@ -8261,9 +8261,9 @@ function getResolutionSettings(maxResolution) {
 }
 
 async function smartCompressVideo(videoBuffer, originalFilename, targetSizeMB = 60) {
-  console.log('🧠 SMART COMPRESSION: Using aggressive compression directly...');
+  console.log('ðŸ§  SMART COMPRESSION: Using aggressive compression directly...');
   
-  // 🚨 SKIP TO MOST AGGRESSIVE LEVEL (Level 5) IMMEDIATELY
+  // ðŸš¨ SKIP TO MOST AGGRESSIVE LEVEL (Level 5) IMMEDIATELY
   const aggressiveLevel = { 
     crf: 35, 
     resolution: '360p', 
@@ -8272,7 +8272,7 @@ async function smartCompressVideo(videoBuffer, originalFilename, targetSizeMB = 
   };
   
   try {
-    console.log(`🎯 Using aggressive compression: ${aggressiveLevel.name}`);
+    console.log(`ðŸŽ¯ Using aggressive compression: ${aggressiveLevel.name}`);
     console.log(`   Settings: CRF=${aggressiveLevel.crf}, Resolution=${aggressiveLevel.resolution}, Audio=${aggressiveLevel.audioBitrate}`);
     
     const compressedBuffer = await compressVideoForGemini(videoBuffer, originalFilename, {
@@ -8285,15 +8285,15 @@ async function smartCompressVideo(videoBuffer, originalFilename, targetSizeMB = 
 
     const sizeMB = compressedBuffer.length / 1024 / 1024;
     
-    console.log(`🎯 AGGRESSIVE COMPRESSION COMPLETE: ${sizeMB.toFixed(2)} MB`);
+    console.log(`ðŸŽ¯ AGGRESSIVE COMPRESSION COMPLETE: ${sizeMB.toFixed(2)} MB`);
     
     if (sizeMB <= targetSizeMB) {
-      console.log(`✅ Target reached! ${sizeMB.toFixed(2)}MB ≤ ${targetSizeMB}MB`);
+      console.log(`âœ… Target reached! ${sizeMB.toFixed(2)}MB â‰¤ ${targetSizeMB}MB`);
     } else {
-      console.log(`📊 Result: ${sizeMB.toFixed(2)}MB (larger than ${targetSizeMB}MB target, but much smaller than original)`);
+      console.log(`ðŸ“Š Result: ${sizeMB.toFixed(2)}MB (larger than ${targetSizeMB}MB target, but much smaller than original)`);
     }
 
-    // ✅ ALWAYS RETURN THE RESULT - EVEN IF TARGET NOT REACHED
+    // âœ… ALWAYS RETURN THE RESULT - EVEN IF TARGET NOT REACHED
     return {
       success: true,
       buffer: compressedBuffer,
@@ -8305,7 +8305,7 @@ async function smartCompressVideo(videoBuffer, originalFilename, targetSizeMB = 
     };
     
   } catch (error) {
-    console.error(`❌ Aggressive compression failed:`, error.message);
+    console.error(`âŒ Aggressive compression failed:`, error.message);
     throw new Error(`Compression failed: ${error.message}`);
   }
 }
@@ -8318,18 +8318,18 @@ async function analyzeVideoSegmentsWithCompression(videoBuffer, mimeType, option
     const originalSizeMB = videoBuffer.length / 1024 / 1024;
     const GEMINI_SIZE_LIMIT = 60; // Conservative limit
 
-    console.log('ðŸŽ¬ ===============================================');
-    console.log('ðŸŽ¬ VIDEO ANALYSIS WITH SMART COMPRESSION');
-    console.log('ðŸŽ¬ ===============================================');
-    console.log('ðŸ“Š Original video size:', originalSizeMB.toFixed(2), 'MB');
-    console.log('ðŸŽ¯ Gemini size limit:', GEMINI_SIZE_LIMIT, 'MB');
+    console.log('Ã°Å¸Å½Â¬ ===============================================');
+    console.log('Ã°Å¸Å½Â¬ VIDEO ANALYSIS WITH SMART COMPRESSION');
+    console.log('Ã°Å¸Å½Â¬ ===============================================');
+    console.log('Ã°Å¸â€œÅ  Original video size:', originalSizeMB.toFixed(2), 'MB');
+    console.log('Ã°Å¸Å½Â¯ Gemini size limit:', GEMINI_SIZE_LIMIT, 'MB');
 
     let finalVideoBuffer = videoBuffer;
     let compressionInfo = null;
 
     // Check if compression is needed
     if (originalSizeMB > GEMINI_SIZE_LIMIT) {
-      console.log('ðŸ—œï¸ Video exceeds Gemini limit - starting smart compression...');
+      console.log('Ã°Å¸â€”Å“Ã¯Â¸Â Video exceeds Gemini limit - starting smart compression...');
       
       try {
         const compressionResult = await smartCompressVideo(
@@ -8341,19 +8341,19 @@ async function analyzeVideoSegmentsWithCompression(videoBuffer, mimeType, option
         finalVideoBuffer = compressionResult.buffer;
         compressionInfo = compressionResult;
         
-        console.log('âœ… Video successfully compressed for Gemini API');
-        console.log('ðŸ“Š Compression details:', compressionResult.settings);
+        console.log('Ã¢Å“â€¦ Video successfully compressed for Gemini API');
+        console.log('Ã°Å¸â€œÅ  Compression details:', compressionResult.settings);
         
       } catch (compressionError) {
-        console.error('âŒ Video compression failed:', compressionError.message);
+        console.error('Ã¢ÂÅ’ Video compression failed:', compressionError.message);
         throw new Error(`Cannot analyze video: ${compressionError.message}`);
       }
     } else {
-      console.log('âœ… Video size is within Gemini limits - no compression needed');
+      console.log('Ã¢Å“â€¦ Video size is within Gemini limits - no compression needed');
     }
 
     // Proceed with analysis using the (possibly compressed) video
-    console.log('ðŸ§  Starting Gemini analysis...');
+    console.log('Ã°Å¸Â§  Starting Gemini analysis...');
     
     const { analyzeVideoForMusicSegments } = require('./gemini-utils');
     
@@ -8370,7 +8370,7 @@ async function analyzeVideoSegmentsWithCompression(videoBuffer, mimeType, option
     return analysisResult;
 
   } catch (error) {
-    console.error('âŒ Error in video analysis with compression:', error);
+    console.error('Ã¢ÂÅ’ Error in video analysis with compression:', error);
     throw error;
   }
 }
@@ -8438,233 +8438,8 @@ app.post('/complete-checkout', async (req, res) => {
     });
   }
 });
-// ===================================================
-// STEP-BY-STEP IMPLEMENTATION GUIDE
-// ===================================================
 
-// STEP 1: Add these imports at the top of your index.js (after your existing imports)
-const os = require('os');
-
-// STEP 2: Add platform detection right after your existing constants
-const PLATFORM_CONFIG = {
-  isRender: process.env.RENDER === 'true' || process.env.RENDER_SERVICE_ID,
-  isProduction: process.env.NODE_ENV === 'production',
-  
-  // Memory and processing limits
-  limits: {
-    render: {
-      maxVideoSizeMB: 10000,        // 20MB max for Render
-      maxDurationSeconds: 6000,    // 1 minute max
-      chunkSizeSeconds: 20,      // 20-second chunks
-      timeoutMs: 120000,         // 2 minutes timeout
-      memoryLimitMB: 400         // 400MB memory limit
-    },
-    local: {
-      maxVideoSizeMB: 100,       // 100MB for local
-      maxDurationSeconds: 300,   // 5 minutes
-      chunkSizeSeconds: 60,      // 60-second chunks
-      timeoutMs: 600000,         // 10 minutes
-      memoryLimitMB: 1024        // 1GB memory
-    }
-  }
-};
-
-// Get current platform limits
-const getCurrentLimits = () => {
-  return PLATFORM_CONFIG.isRender ? PLATFORM_CONFIG.limits.render : PLATFORM_CONFIG.limits.local;
-};
-
-// STEP 3: Add memory monitoring class (add this after your existing utilities)
-class MemoryMonitor {
-  constructor() {
-    const limits = getCurrentLimits();
-    this.maxMemoryMB = limits.memoryLimitMB;
-    this.warningThreshold = 0.7; // 70%
-    this.criticalThreshold = 0.85; // 85%
-  }
-  
-  getCurrentUsageMB() {
-    const usage = process.memoryUsage();
-    return Math.round(usage.rss / 1024 / 1024);
-  }
-  
-  getMemoryStatus() {
-    const usageMB = this.getCurrentUsageMB();
-    const percentage = usageMB / this.maxMemoryMB;
-    
-    if (percentage > this.criticalThreshold) {
-      return {
-        status: 'critical',
-        usageMB,
-        percentage: Math.round(percentage * 100),
-        shouldAbort: true,
-        message: `Critical memory: ${usageMB}MB/${this.maxMemoryMB}MB (${Math.round(percentage * 100)}%)`
-      };
-    } else if (percentage > this.warningThreshold) {
-      return {
-        status: 'warning',
-        usageMB,
-        percentage: Math.round(percentage * 100),
-        shouldAbort: false,
-        message: `High memory: ${usageMB}MB/${this.maxMemoryMB}MB (${Math.round(percentage * 100)}%)`
-      };
-    }
-    
-    return {
-      status: 'ok',
-      usageMB,
-      percentage: Math.round(percentage * 100),
-      shouldAbort: false,
-      message: `Memory OK: ${usageMB}MB/${this.maxMemoryMB}MB (${Math.round(percentage * 100)}%)`
-    };
-  }
-  
-  forceGC() {
-    if (global.gc) {
-      console.log('🗑️ Forcing garbage collection...');
-      global.gc();
-    }
-  }
-}
-
-// STEP 4: Enhanced FFmpeg processing function (add this after your existing functions)
-async function processVideoSafely(inputPath, outputPath, startTime, duration) {
-  const limits = getCurrentLimits();
-  const memoryMonitor = new MemoryMonitor();
-  
-  return new Promise((resolve, reject) => {
-    console.log(`🎬 Starting safe video processing...`);
-    console.log(`   Platform: ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'}`);
-    console.log(`   Duration: ${duration}s`);
-    console.log(`   Max allowed: ${limits.maxDurationSeconds}s`);
-    
-    // Pre-flight memory check
-    const initialMemory = memoryMonitor.getMemoryStatus();
-    console.log(`💾 ${initialMemory.message}`);
-    
-    if (initialMemory.shouldAbort) {
-      reject(new Error('Insufficient memory to start processing'));
-      return;
-    }
-    
-    let ffmpegProcess;
-    let memoryInterval;
-    let lastProgress = 0;
-    
-    // Setup timeout
-    const timeout = setTimeout(() => {
-      console.log('⏰ Processing timeout - killing FFmpeg');
-      if (ffmpegProcess && !ffmpegProcess.killed) {
-        ffmpegProcess.kill('SIGTERM');
-      }
-      reject(new Error('Processing timeout. Try with a shorter video segment.'));
-    }, limits.timeoutMs);
-    
-    // Memory monitoring during processing
-    memoryInterval = setInterval(() => {
-      const memStatus = memoryMonitor.getMemoryStatus();
-      
-      if (memStatus.shouldAbort) {
-        console.error(`🚨 ${memStatus.message} - Aborting process`);
-        if (ffmpegProcess && !ffmpegProcess.killed) {
-          ffmpegProcess.kill('SIGTERM');
-        }
-        reject(new Error(`Memory exhausted: ${memStatus.message}. Try with a much smaller video file.`));
-        return;
-      } else if (memStatus.status === 'warning') {
-        console.warn(`⚠️ ${memStatus.message}`);
-        memoryMonitor.forceGC();
-      }
-    }, 3000); // Check every 3 seconds
-    
-    try {
-      // Platform-specific FFmpeg settings
-      const settings = PLATFORM_CONFIG.isRender ? {
-        preset: 'ultrafast',
-        crf: 30,
-        scale: '640:360',  // Force small resolution
-        audioBitrate: '64k',
-        videoBitrate: '300k',
-        threads: 1
-      } : {
-        preset: 'fast',
-        crf: 26,
-        scale: null,
-        audioBitrate: '128k',
-        videoBitrate: '1000k',
-        threads: 2
-      };
-      
-      console.log(`⚙️ Using ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'} optimized settings`);
-      
-      ffmpegProcess = ffmpeg(inputPath)
-        .setStartTime(startTime)
-        .setDuration(duration)
-        .videoCodec('libx264')
-        .audioCodec('aac')
-        .audioBitrate(settings.audioBitrate)
-        .outputOptions([
-          `-preset ${settings.preset}`,
-          `-crf ${settings.crf}`,
-          `-maxrate ${settings.videoBitrate}`,
-          `-bufsize ${parseInt(settings.videoBitrate) * 2}k`,
-          `-threads ${settings.threads}`,
-          '-pix_fmt yuv420p',
-          '-profile:v baseline',
-          '-level 3.0'
-        ]);
-      
-      // Apply scaling for Render
-      if (settings.scale) {
-        ffmpegProcess = ffmpegProcess.size(settings.scale);
-        console.log(`📐 Forcing resolution: ${settings.scale}`);
-      }
-      
-      ffmpegProcess
-        .output(outputPath)
-        .on('start', (commandLine) => {
-          console.log('🎬 Optimized FFmpeg started');
-        })
-        .on('progress', (progress) => {
-          if (progress.percent && progress.percent > lastProgress + 15) {
-            console.log(`⚡ Progress: ${Math.round(progress.percent)}%`);
-            lastProgress = Math.round(progress.percent);
-          }
-        })
-        .on('end', () => {
-          console.log('✅ Safe processing completed');
-          clearTimeout(timeout);
-          clearInterval(memoryInterval);
-          resolve();
-        })
-        .on('error', (err) => {
-          console.error('❌ FFmpeg error:', err.message);
-          clearTimeout(timeout);
-          clearInterval(memoryInterval);
-          
-          // Enhanced error messages
-          if (err.message.includes('SIGKILL')) {
-            reject(new Error('Process killed by system (out of memory). Use a much shorter video (under 30 seconds) or smaller file (under 10MB).'));
-          } else if (err.message.includes('SIGTERM')) {
-            reject(new Error('Process terminated due to resource limits. Try with a shorter/smaller video.'));
-          } else {
-            reject(new Error(`Video processing failed: ${err.message}`));
-          }
-        })
-        .run();
-        
-    } catch (error) {
-      clearTimeout(timeout);
-      clearInterval(memoryInterval);
-      reject(error);
-    }
-  });
-}
-
-// STEP 5: Replace your existing /api/cliptune-upload-trimmed endpoint with this safer version
 app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res) => {
-  const limits = getCurrentLimits();
-  const memoryMonitor = new MemoryMonitor();
   let originalPath, trimmedPath;
   
   try {
@@ -8672,181 +8447,403 @@ app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res
       return res.status(400).json({ error: 'No video uploaded' });
     }
 
-    const { extra_prompt, video_start = 0, video_end, total_seconds } = req.body;
+    const { extra_prompt, video_start, video_end, total_seconds } = req.body;
+
+    console.log('Ã°Å¸Å½Â¬ ===============================================');
+    console.log('Ã°Å¸Å½Â¬ ENHANCED VIDEO ANALYSIS WITH COMPRESSION-FIRST STRATEGY');
+    console.log('Ã°Å¸Å½Â¬ ===============================================');
+    console.log('Ã°Å¸â€œÂ Original video file:', req.file.originalname);
+    console.log('Ã°Å¸â€œÅ  Original file size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('Ã¢Å“â€šÃ¯Â¸Â Trim start:', video_start + 's');
+    console.log('Ã¢Å“â€šÃ¯Â¸Â Trim end:', video_end + 's');
+    console.log('Ã¢ÂÂ±Ã¯Â¸Â Trimmed duration:', total_seconds + 's');
+    console.log('Ã°Å¸Å½Â¯ Extra prompt:', extra_prompt || 'None provided');
+
+    // Save original video temporarily
+    originalPath = path.join(__dirname, 'temp_videos', `original_${Date.now()}.mp4`);
+    await fsPromises.writeFile(originalPath, req.file.buffer); // Ã¢Å“â€¦ FIXED: Use fsPromises
+
+    // Extract trim parameters
     const start = parseFloat(video_start);
     const end = parseFloat(video_end);
-    const duration = end - start;
-    const fileSizeMB = req.file.size / 1024 / 1024;
-
-    console.log('🚀 ===============================================');
-    console.log('🚀 SAFE VIDEO PROCESSING');
-    console.log('🚀 ===============================================');
-    console.log(`📁 File: ${req.file.originalname}`);
-    console.log(`📊 Size: ${fileSizeMB.toFixed(2)} MB`);
-    console.log(`⏱️ Duration: ${duration}s`);
-    console.log(`🖥️ Platform: ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'}`);
-
-    // VALIDATION CHECKS
-    if (fileSizeMB > limits.maxVideoSizeMB) {
-      return res.status(400).json({
-        success: false,
-        error: `Video file too large: ${fileSizeMB.toFixed(1)}MB`,
-        details: `Maximum allowed on ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'}: ${limits.maxVideoSizeMB}MB`,
-        suggestions: [
-          `Try with a file under ${limits.maxVideoSizeMB}MB`,
-          'Compress your video before upload',
-          'Use a shorter video clip'
-        ]
-      });
-    }
+    const clipDuration = end - start;
     
-    if (duration > limits.maxDurationSeconds) {
-      return res.status(400).json({
-        success: false,
-        error: `Video segment too long: ${duration}s`,
-        details: `Maximum allowed on ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'}: ${limits.maxDurationSeconds}s`,
-        suggestions: [
-          `Keep segments under ${limits.maxDurationSeconds} seconds`,
-          PLATFORM_CONFIG.isRender ? 'Render free tier has strict limits' : 'Try shorter segments',
-          'Split your video into smaller parts'
-        ]
-      });
-    }
-    
-    // Memory check before starting
-    const memoryStatus = memoryMonitor.getMemoryStatus();
-    if (memoryStatus.shouldAbort) {
-      return res.status(503).json({
-        success: false,
-        error: 'Server memory full',
-        details: memoryStatus.message,
-        suggestion: 'Please try again in a few minutes when server load is lower'
-      });
+    if (clipDuration <= 0) {
+      throw new Error("Invalid time range for trimming");
     }
 
-    // Save original video
-    originalPath = path.join(__dirname, 'temp_videos', `original_${Date.now()}.mp4`);
-    await fsPromises.writeFile(originalPath, req.file.buffer);
-    console.log('💾 Original video saved');
+    console.log('\nÃ¢Å“â€šÃ¯Â¸Â ===============================================');
+    console.log('Ã¢Å“â€šÃ¯Â¸Â TRIMMING VIDEO TO SELECTED SECTION');
+    console.log('Ã¢Å“â€šÃ¯Â¸Â ===============================================');
+    console.log('Ã¢ÂÂ° Start time:', start + 's');
+    console.log('Ã¢ÂÂ° End time:', end + 's');
+    console.log('Ã¢ÂÂ±Ã¯Â¸Â Duration:', clipDuration + 's');
 
-    // Process video safely
+    // Trim video to selected section
     trimmedPath = path.join(__dirname, 'temp_videos', `trimmed_${Date.now()}.mp4`);
-    
-    console.log(`⚡ Starting safe processing with ${PLATFORM_CONFIG.isRender ? 'Render' : 'Local'} limits...`);
-    await processVideoSafely(originalPath, trimmedPath, start, duration);
+    await new Promise((resolve, reject) => {
+      ffmpeg(originalPath)
+        .setStartTime(start)
+        .setDuration(clipDuration)
+        .output(trimmedPath)
+        .on('end', () => {
+          console.log('Ã¢Å“â€¦ Video trimmed successfully');
+          resolve();
+        })
+        .on('error', reject)
+        .run();
+    });
 
-    // Verify output
-    const trimmedStats = await fsPromises.stat(trimmedPath);
-    if (trimmedStats.size === 0) {
-      throw new Error('Processed video is empty');
+    // Clean up original file
+    await fsPromises.unlink(originalPath); // Ã¢Å“â€¦ FIXED: Use fsPromises
+    originalPath = null;
+
+    // Get trimmed video buffer
+    const trimmedBuffer = await fsPromises.readFile(trimmedPath); // Ã¢Å“â€¦ FIXED: Use fsPromises
+    const trimmedSizeMB = (trimmedBuffer.length / 1024 / 1024);
+    
+    console.log('Ã°Å¸â€œÂ¦ Trimmed video buffer size:', trimmedSizeMB.toFixed(2), 'MB');
+
+    // Ã°Å¸Å¡Â¨ COMPRESSION-FIRST STRATEGY
+    console.log('\nÃ°Å¸Â§  ===============================================');
+    console.log('Ã°Å¸Â§  COMPRESSION-FIRST ANALYSIS STRATEGY');
+    console.log('Ã°Å¸Â§  ===============================================');
+
+    const DIRECT_UPLOAD_LIMIT = 18; // 18MB limit for direct upload
+    const FILE_API_THRESHOLD = 60; // 60MB threshold for File API
+    let analysisResult;
+    let analysisMethod;
+    let compressionInfo = null;
+    let finalBuffer = trimmedBuffer;
+    let finalSizeMB = trimmedSizeMB;
+
+    if (trimmedSizeMB <= DIRECT_UPLOAD_LIMIT) {
+      // Method 1: Direct upload (no compression needed)
+      console.log('Ã°Å¸â€œÂ¤ METHOD 1: Direct upload (file Ã¢â€°Â¤ 18MB)');
+      analysisMethod = 'direct_upload';
+      
+    } else {
+      // Method 2: Always try compression first for files > 18MB
+      console.log('Ã°Å¸â€”Å“Ã¯Â¸Â METHOD 2: Compression required (file > 18MB)');
+      console.log(`Ã°Å¸â€œÅ  Original size: ${trimmedSizeMB.toFixed(2)}MB -> Target: ${DIRECT_UPLOAD_LIMIT}MB`);
+      
+      try {
+        const compressionResult = await smartCompressVideo(
+          trimmedBuffer, 
+          'trimmed_video.mp4', 
+          DIRECT_UPLOAD_LIMIT
+        );
+        
+        compressionInfo = compressionResult;
+        finalBuffer = compressionResult.buffer;
+        finalSizeMB = compressionResult.buffer.length / 1024 / 1024;
+        
+        console.log(`Ã¢Å“â€¦ Compression completed: ${trimmedSizeMB.toFixed(2)}MB -> ${finalSizeMB.toFixed(2)}MB`);
+        
+        if (finalSizeMB <= FILE_API_THRESHOLD) {
+          // Compression successful - use direct upload
+          console.log('Ã¢Å“â€¦ Compressed file Ã¢â€°Â¤ 60MB - using direct upload');
+          analysisMethod = 'compression_then_direct';
+        } else {
+          // Compression not enough - need File API with COMPRESSED file
+          console.log(`Ã¢Å¡ Ã¯Â¸Â Compressed file still ${finalSizeMB.toFixed(2)}MB > 60MB - using File API with COMPRESSED file`);
+          analysisMethod = 'compression_then_file_api';
+        }
+        
+      } catch (compressionError) {
+        console.error('Ã¢ÂÅ’ Compression failed:', compressionError.message);
+        console.log('Ã°Å¸â€”â€šÃ¯Â¸Â Falling back to File API with ORIGINAL file');
+        analysisMethod = 'compression_failed_file_api';
+        finalBuffer = trimmedBuffer; // Use original buffer
+        finalSizeMB = trimmedSizeMB;
+      }
     }
 
-    const trimmedSizeMB = trimmedStats.size / 1024 / 1024;
-    console.log(`✅ Processed video: ${trimmedSizeMB.toFixed(2)} MB`);
-
-    // Continue with your existing analysis logic here...
-    // For now, return success with the processed video info
-    
-    res.json({
-      success: true,
-      message: 'Video processed successfully with safety checks',
-      processing_info: {
-        platform: PLATFORM_CONFIG.isRender ? 'render' : 'local',
-        original_size_mb: fileSizeMB.toFixed(2),
-        processed_size_mb: trimmedSizeMB.toFixed(2),
-        duration_seconds: duration,
-        memory_used_mb: memoryMonitor.getCurrentUsageMB(),
-        limits_applied: limits
-      },
-      // Add your segments analysis here when ready
-      result: {
-        segments: [], // Your analysis results go here
-        analysis_method: 'safe_processing'
+    // Execute analysis based on determined method
+    if (analysisMethod === 'direct_upload' || analysisMethod === 'compression_then_direct') {
+      // Direct upload method
+      console.log(`Ã°Å¸â€œÂ¤ EXECUTING: Direct upload method (${finalSizeMB.toFixed(2)}MB)`);
+      
+      const { analyzeVideoForMusicSegments } = require('./gemini-utils');
+      
+      const analysisOptions = {
+        customPrompt: extra_prompt || 'Analyze this trimmed video section for optimal music placement segments',
+        maxSegments: 10,
+        analysisType: 'segments',
+        detailLevel: 'detailed'
+      };
+      
+      analysisResult = await analyzeVideoForMusicSegments(
+        finalBuffer, 
+        'video/mp4', 
+        analysisOptions
+      );
+      
+      if (compressionInfo) {
+        analysisResult.compressionInfo = compressionInfo;
+        analysisResult.wasCompressed = true;
       }
-    });
+      
+    } else {
+      // File API method - USE THE COMPRESSED FILE (finalBuffer)
+      console.log(`Ã°Å¸â€”â€šÃ¯Â¸Â EXECUTING: Google File API method with ${compressionInfo ? 'COMPRESSED' : 'ORIGINAL'} file (${finalSizeMB.toFixed(2)}MB)`);
+      
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY required for File API method');
+      }
+      
+      const { GoogleFileAPIManager } = require('./google-file-api');
+      const fileManager = new GoogleFileAPIManager(process.env.GEMINI_API_KEY);
+      
+      // Ã°Å¸Å¡Â¨ UPLOAD THE FINAL BUFFER (compressed if compression succeeded, original if failed)
+      console.log('Ã°Å¸â€”â€šÃ¯Â¸Â Uploading to Google File API...');
+      console.log(`Ã°Å¸â€œÅ  File being uploaded: ${finalSizeMB.toFixed(2)}MB ${compressionInfo ? `(compressed from ${trimmedSizeMB.toFixed(2)}MB)` : '(original)'}`);
+      
+      const uploadResult = await fileManager.uploadLargeVideoFile(
+        finalBuffer, // Ã°Å¸Å¡Â¨ THIS IS THE COMPRESSED BUFFER (if compression succeeded)
+        `${compressionInfo ? 'compressed_' : 'original_'}trimmed_${Date.now()}.mp4`, 
+        'video/mp4'
+      );
+      
+      if (!uploadResult.success) {
+        throw new Error('Failed to upload file to Google File API: ' + uploadResult.error);
+      }
+      
+      console.log('Ã¢Å“â€¦ File uploaded to File API:', uploadResult.fileUri);
+      if (compressionInfo) {
+        console.log('Ã°Å¸â€œÅ  Upload details:');
+        console.log(`   Original trimmed size: ${trimmedSizeMB.toFixed(2)}MB`);
+        console.log(`   Compressed size uploaded: ${finalSizeMB.toFixed(2)}MB`);
+        console.log(`   Compression ratio: ${((trimmedSizeMB - finalSizeMB) / trimmedSizeMB * 100).toFixed(1)}%`);
+      }
+      
+      // Analyze using File API with 10 segment limit
+      const fileApiOptions = {
+        customPrompt: extra_prompt || `Analyze this ${compressionInfo ? 'compressed ' : ''}trimmed video for optimal music placement segments`,
+        maxSegments: 10, // Ã°Å¸Å¡Â¨ LIMIT TO 10 SEGMENTS FOR FILE API
+        analysisType: 'segments',
+        detailLevel: 'detailed'
+      };
+      
+      analysisResult = await fileManager.analyzeLargeVideoForMusicSegments(
+        uploadResult.fileUri, 
+        fileApiOptions
+      );
+      
+      // Add metadata
+      analysisResult.uploadInfo = uploadResult;
+      analysisResult.method = 'google_file_api';
+      
+      // Ã°Å¸Å¡Â¨ IMPORTANT: Mark what type of file was uploaded
+      analysisResult.uploadInfo.wasCompressedBeforeUpload = !!compressionInfo;
+      analysisResult.uploadInfo.originalTrimmedSize = trimmedSizeMB.toFixed(2) + ' MB';
+      analysisResult.uploadInfo.uploadedFileSize = finalSizeMB.toFixed(2) + ' MB';
+      analysisResult.uploadInfo.fileType = compressionInfo ? 'compressed' : 'original';
+      
+      if (compressionInfo) {
+        analysisResult.compressionInfo = compressionInfo;
+        analysisResult.wasCompressed = true;
+      }
+      
+      // Ã°Å¸Å¡Â¨ CLEANUP: Delete the uploaded file after analysis
+      console.log(`Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaning up ${compressionInfo ? 'compressed' : 'original'} File API upload...`);
+      try {
+        await fileManager.deleteFile(uploadResult.fileName);
+        console.log('Ã¢Å“â€¦ File API cleanup completed');
+      } catch (cleanupError) {
+        console.warn('Ã¢Å¡ Ã¯Â¸Â File API cleanup failed:', cleanupError.message);
+      }
+    }
+
+    const processingTime = analysisResult.processingTime || '0s';
+
+    if (analysisResult && analysisResult.success) {
+      console.log('\nÃ¢Å“â€¦ ===============================================');
+      console.log('Ã¢Å“â€¦ COMPRESSION-FIRST ANALYSIS COMPLETED');
+      console.log('Ã¢Å“â€¦ ===============================================');
+      console.log('Ã¢ÂÂ±Ã¯Â¸Â Processing time:', processingTime);
+      console.log('Ã°Å¸â€Â§ Analysis method:', analysisMethod);
+      console.log('Ã°Å¸â€œÅ  Original size:', trimmedSizeMB.toFixed(2), 'MB');
+      
+      if (compressionInfo) {
+        console.log('Ã°Å¸â€”Å“Ã¯Â¸Â Compression applied: YES');
+        console.log('   Original:', compressionInfo.originalSize);
+        console.log('   Compressed:', compressionInfo.compressedSize);
+        console.log('   Quality level:', compressionInfo.compressionLevel);
+      } else {
+        console.log('Ã°Å¸â€”Å“Ã¯Â¸Â Compression applied: NO (not needed)');
+      }
+      
+      console.log('Ã°Å¸â€”â€šÃ¯Â¸Â Used File API:', analysisMethod.includes('file_api') ? 'YES' : 'NO');
+      console.log('Ã°Å¸â€œÅ  Final processing size:', finalSizeMB.toFixed(2), 'MB');
+      
+      if (analysisMethod.includes('file_api') && analysisResult.uploadInfo) {
+        console.log('Ã°Å¸â€”â€šÃ¯Â¸Â File API details:');
+        console.log('   Upload time:', analysisResult.uploadInfo.uploadTime);
+        console.log('   File uploaded:', analysisResult.uploadInfo.fileType || 'unknown');
+        console.log('   Original trimmed:', analysisResult.uploadInfo.originalTrimmedSize || 'Unknown');
+        console.log('   Uploaded size:', analysisResult.uploadInfo.uploadedFileSize || 'Unknown');
+        console.log('   File URI:', analysisResult.uploadInfo.fileUri.substring(0, 50) + '...');
+      }
+
+      console.log('Ã°Å¸â€œÅ  Total segments found:', analysisResult.totalSegments);
+      
+      // Validate and enhance segments (limit to 10)
+      const maxSegmentsForResponse = 10;
+      const rawSegments = analysisResult.musicSegments || [];
+      const limitedSegments = rawSegments.slice(0, maxSegmentsForResponse);
+      
+      const validatedSegments = limitedSegments.map((segment, index) => ({
+        start_time: segment.start_time || segment.start || 0,
+        end_time: segment.end_time || segment.end || (segment.start + 20),
+        reason: segment.reason || segment.description || `Music segment ${index + 1}`,
+        intensity: segment.intensity || 'medium',
+        type: segment.type || 'ambient',
+        volume: segment.volume || (segment.intensity === 'high' ? 80 : segment.intensity === 'low' ? 50 : 65),
+        fade_algorithm: segment.fade_algorithm || (
+          segment.type === 'dramatic' ? 'exponential' :
+          segment.type === 'ambient' ? 'logarithmic' : 
+          'linear'
+        ),
+        fadein_duration: segment.fadein_duration || '2.0',
+        fadeout_duration: segment.fadeout_duration || '2.0',
+        music_summary: segment.music_summary || segment.reason || `${segment.type} music for ${segment.intensity} intensity scene`,
+        detailed_description: segment.detailed_description || '',
+        segment_index: index,
+        relative_to_trimmed_video: true,
+        original_trim_start: start,
+        original_trim_end: end
+      }));
+
+      console.log('\nÃ°Å¸â€œâ€¹ VALIDATED SEGMENTS (MAX 10):');
+      console.log('Ã°Å¸â€œâ€¹ ===============================================');
+      validatedSegments.forEach((segment, index) => {
+        console.log(`Segment ${index + 1}:`);
+        console.log(`   - Start: ${segment.start_time}s -> End: ${segment.end_time}s`);
+        console.log(`   - Type: ${segment.type} | Intensity: ${segment.intensity}`);
+        console.log(`   - Volume: ${segment.volume}% | Fade: ${segment.fade_algorithm}`);
+        console.log(`   - Reason: ${segment.reason}`);
+        console.log('   ---');
+      });
+      console.log('Ã°Å¸â€œâ€¹ ===============================================');
+
+      // Return enhanced successful result
+      res.json({
+        success: true,
+        result: {
+          segments: validatedSegments,
+          totalSegments: validatedSegments.length,
+          rawAnalysis: analysisResult.rawResponse,
+          analysisType: 'compression_first_with_file_api_fallback',
+          parseStrategy: analysisResult.parseStrategy,
+          parseError: analysisResult.parseError,
+          method: analysisMethod
+        },
+        trim_info: {
+          original_start: start,
+          original_end: end,
+          trimmed_duration: clipDuration,
+          segments_relative_to: 'trimmed_video'
+        },
+        compression_info: compressionInfo || null,
+        file_api_info: analysisResult.uploadInfo ? {
+          ...analysisResult.uploadInfo,
+          note: compressionInfo ? 'Compressed file was uploaded to File API' : 'Original file was uploaded to File API'
+        } : null,
+        analysis_info: {
+          method: analysisMethod,
+          originalFileSizeMB: trimmedSizeMB.toFixed(2),
+          finalProcessingSizeMB: finalSizeMB.toFixed(2),
+          wasCompressed: !!compressionInfo,
+          compressionSucceeded: compressionInfo?.success || false,
+          usedFileAPI: analysisMethod.includes('file_api'),
+          compressionLevel: compressionInfo?.compressionLevel || 'none',
+          maxSegmentsLimited: validatedSegments.length >= 10,
+          fileApiUploadType: analysisResult.uploadInfo?.fileType || 'direct'
+        },
+        metadata: {
+          processingTime: processingTime,
+          trimmedDurationSent: total_seconds || clipDuration,
+          originalTrimStart: start,
+          originalTrimEnd: end,
+          analysisMethod: 'compression_first_strategy',
+          uploadedSize: trimmedSizeMB.toFixed(2) + ' MB',
+          finalSize: finalSizeMB.toFixed(2) + ' MB',
+          promptUsed: extra_prompt || 'Default music segmentation prompt',
+          enhancedAnalysis: true,
+          compressionFirst: true
+        },
+        message: `COMPRESSION-FIRST: ${analysisMethod.replace(/_/g, ' ')} (${trimmedSizeMB.toFixed(2)}MB -> ${finalSizeMB.toFixed(2)}MB). Found ${validatedSegments.length} segments.`
+      });
+
+    } else {
+      // Analysis failed
+      console.error('\nÃ¢ÂÅ’ ===============================================');
+      console.error('Ã¢ÂÅ’ COMPRESSION-FIRST ANALYSIS FAILED');
+      console.error('Ã¢ÂÅ’ ===============================================');
+      console.error('Ã°Å¸â€™Â¥ Error:', analysisResult?.error || 'Unknown error');
+
+      res.status(500).json({
+        success: false,
+        error: 'Compression-first analysis failed - ' + (analysisResult?.error || 'Unknown error'),
+        details: analysisResult?.error || 'Analysis failed',
+        method: analysisMethod,
+        compression_info: compressionInfo || null,
+        file_api_info: analysisResult?.uploadInfo || null,
+        analysis_info: {
+          method: analysisMethod,
+          originalFileSizeMB: trimmedSizeMB.toFixed(2),
+          finalProcessingSizeMB: finalSizeMB.toFixed(2),
+          wasCompressed: !!compressionInfo,
+          compressionSucceeded: compressionInfo?.success || false,
+          usedFileAPI: analysisMethod.includes('file_api')
+        },
+        troubleshooting: [
+          `Method attempted: ${analysisMethod}`,
+          `Original size: ${trimmedSizeMB.toFixed(2)}MB`,
+          `Final processing size: ${finalSizeMB.toFixed(2)}MB`,
+          compressionInfo ? 'Compression was attempted' : 'No compression attempted',
+          analysisMethod.includes('file_api') ? 'Google File API was used' : 'Direct upload was used',
+          'Try with a shorter video or simpler prompt'
+        ]
+      });
+    }
 
   } catch (error) {
-    console.error('❌ Safe processing error:', error);
-    
-    // User-friendly error messages
-    let errorMessage = 'Video processing failed';
-    const suggestions = [];
-    
-    if (error.message.includes('memory') || error.message.includes('SIGKILL')) {
-      errorMessage = 'Not enough memory to process this video';
-      suggestions.push('Try with a much smaller video file (under 10MB)');
-      suggestions.push('Use a shorter video segment (under 30 seconds)');
-      if (PLATFORM_CONFIG.isRender) {
-        suggestions.push('Render free tier has limited resources');
-      }
-    } else if (error.message.includes('timeout')) {
-      errorMessage = 'Video processing took too long';
-      suggestions.push('Try with a shorter video segment');
-      suggestions.push('Use a smaller file size');
-    }
-    
+    console.log('\nÃ¢ÂÅ’ ===============================================');
+    console.log('Ã¢ÂÅ’ COMPRESSION-FIRST ANALYSIS WORKFLOW ERROR');
+    console.log('Ã¢ÂÅ’ ===============================================');
+    console.error('Ã°Å¸â€™Â¥ Error message:', error.message);
+    console.error('Ã°Å¸â€™Â¥ Error stack:', error.stack);
+
     res.status(500).json({
       success: false,
-      error: errorMessage,
+      error: 'Compression-first analysis workflow failed: ' + error.message,
       details: error.message,
-      suggestions,
-      platform_info: {
-        platform: PLATFORM_CONFIG.isRender ? 'render' : 'local',
-        limits: limits,
-        memory_status: memoryMonitor.getMemoryStatus()
+      debugInfo: {
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+        workflowStep: error.message.includes('compression') ? 'video_compression' : 
+                     error.message.includes('trim') ? 'video_trimming' : 
+                     error.message.includes('File API') ? 'google_file_api' :
+                     error.message.includes('analysis') ? 'gemini_analysis' : 'unknown',
+        enhancedAnalysisEnabled: true,
+        compressionFirst: true
       }
     });
-    
   } finally {
-    // Cleanup
+    // Clean up temporary files
     const filesToClean = [originalPath, trimmedPath].filter(Boolean);
     for (const file of filesToClean) {
       try {
-        if (fs.existsSync(file)) {
-          await fsPromises.unlink(file);
-          console.log('🗑️ Cleaned up:', path.basename(file));
-        }
-      } catch (error) {
-        console.warn('⚠️ Cleanup failed:', path.basename(file));
+        await fsPromises.unlink(file); // Ã¢Å“â€¦ FIXED: Use fsPromises
+        console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Cleaned up:', file);
+      } catch (e) {
+        console.warn(`Ã¢Å¡ Ã¯Â¸Â Could not delete temporary file ${file}:`, e.message);
       }
     }
-    
-    // Force garbage collection
-    if (global.gc) {
-      global.gc();
-    }
-    
-    const finalMemory = memoryMonitor.getMemoryStatus();
-    console.log(`💾 Final memory: ${finalMemory.message}`);
   }
 });
-
-// STEP 6: Add a health check endpoint
-app.get('/api/health-memory', (req, res) => {
-  const memoryMonitor = new MemoryMonitor();
-  const limits = getCurrentLimits();
-  const memStatus = memoryMonitor.getMemoryStatus();
-  
-  res.json({
-    status: memStatus.shouldAbort ? 'unhealthy' : 'healthy',
-    platform: PLATFORM_CONFIG.isRender ? 'render' : 'local',
-    memory: memStatus,
-    limits: limits,
-    uptime_seconds: Math.floor(process.uptime()),
-    timestamp: new Date().toISOString()
-  });
-});
-
-// STEP 7: Add environment variable detection (add this near your other console.log statements at startup)
-console.log('🔧 ===============================================');
-console.log('🔧 PLATFORM CONFIGURATION');
-console.log('🔧 ===============================================');
-console.log('Platform detected:', PLATFORM_CONFIG.isRender ? 'Render' : 'Local/Other');
-console.log('Environment:', process.env.NODE_ENV || 'development');
-console.log('Memory limit:', getCurrentLimits().memoryLimitMB + 'MB');
-console.log('Max video size:', getCurrentLimits().maxVideoSizeMB + 'MB');
-console.log('Max duration:', getCurrentLimits().maxDurationSeconds + 's');
-console.log('🔧 ===============================================');
 // ADD this debugging endpoint to test the parsing functions
 app.post('/api/test-json-parsing', async (req, res) => {
   try {
@@ -8858,25 +8855,25 @@ app.post('/api/test-json-parsing', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸Â§Âª ===============================================');
-    console.log('Ã°Å¸Â§Âª TESTING JSON PARSING WITH SAMPLE RESPONSE');
-    console.log('Ã°Å¸Â§Âª ===============================================');
-    console.log('Ã°Å¸â€œâ€ž Response length:', testResponse.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª TESTING JSON PARSING WITH SAMPLE RESPONSE');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Response length:', testResponse.length);
 
     // Import the enhanced parsing function
     const { extractSegmentsFromGeminiResponse } = require('./gemini-utils');
 
     const { segments, parseError, strategy } = extractSegmentsFromGeminiResponse(testResponse, maxSegments);
 
-    console.log('\nÃ¢Å“â€¦ ===============================================');
-    console.log('Ã¢Å“â€¦ PARSING TEST COMPLETED');
-    console.log('Ã¢Å“â€¦ ===============================================');
-    console.log('Ã°Å¸â€º Ã¯Â¸Â Strategy used:', strategy);
-    console.log('Ã°Å¸â€œÅ  Segments found:', segments.length);
-    console.log('Ã¢ÂÅ’ Parse error:', parseError || 'None');
+    console.log('\nÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PARSING TEST COMPLETED');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Âº ÃƒÂ¯Ã‚Â¸Ã‚Â Strategy used:', strategy);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Segments found:', segments.length);
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Parse error:', parseError || 'None');
 
     if (segments.length > 0) {
-      console.log('\nÃ°Å¸Å½Âµ PARSED SEGMENTS:');
+      console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ PARSED SEGMENTS:');
       segments.forEach((segment, index) => {
         console.log(`${index + 1}. ${segment.start}s-${segment.end}s: ${segment.type} (${segment.intensity})`);
         console.log(`   Reason: ${segment.reason}`);
@@ -8905,7 +8902,7 @@ app.post('/api/test-json-parsing', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in JSON parsing test:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in JSON parsing test:', error);
     res.status(500).json({
       success: false,
       error: 'JSON parsing test failed',
@@ -8925,10 +8922,10 @@ app.post('/api/fix-malformed-json', async (req, res) => {
       });
     }
 
-    console.log('Ã°Å¸â€Â§ ===============================================');
-    console.log('Ã°Å¸â€Â§ ATTEMPTING TO FIX MALFORMED JSON');
-    console.log('Ã°Å¸â€Â§ ===============================================');
-    console.log('Ã°Å¸â€œâ€ž Input length:', malformedJson.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ ATTEMPTING TO FIX MALFORMED JSON');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Input length:', malformedJson.length);
 
     let fixedJson = malformedJson;
 
@@ -8969,14 +8966,14 @@ app.post('/api/fix-malformed-json', async (req, res) => {
       { name: 'Add missing commas', pattern: /}\s*{/g, replacement: '},{' }
     ];
 
-    console.log('Ã°Å¸â€Â§ Applying JSON fixes...');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Applying JSON fixes...');
     jsonFixes.forEach((fix, index) => {
       const before = fixedJson.length;
       fixedJson = fixedJson.replace(fix.pattern, fix.replacement);
       const after = fixedJson.length;
       
       if (before !== after) {
-        console.log(`   Ã¢Å“â€¦ Applied fix ${index + 1}: ${fix.name} (${before} Ã¢â€ â€™ ${after} chars)`);
+        console.log(`   ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Applied fix ${index + 1}: ${fix.name} (${before} ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ ${after} chars)`);
       }
     });
 
@@ -8991,19 +8988,19 @@ app.post('/api/fix-malformed-json', async (req, res) => {
       if (jsonMatch) {
         parsedSegments = JSON.parse(jsonMatch[0]);
         parseSuccess = true;
-        console.log('Ã¢Å“â€¦ Successfully parsed fixed JSON');
+        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Successfully parsed fixed JSON');
       } else {
         throw new Error('No JSON array pattern found after fixes');
       }
     } catch (error) {
       parseError = error.message;
-      console.log('Ã¢ÂÅ’ JSON still malformed after fixes:', error.message);
+      console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ JSON still malformed after fixes:', error.message);
     }
 
     // Limit segments if needed
     if (parsedSegments.length > maxSegments) {
       parsedSegments = parsedSegments.slice(0, maxSegments);
-      console.log(`Ã¢Å“â€šÃ¯Â¸Â Limited to ${maxSegments} segments`);
+      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Limited to ${maxSegments} segments`);
     }
 
     // Validate and clean up segments
@@ -9020,14 +9017,14 @@ app.post('/api/fix-malformed-json', async (req, res) => {
       type: segment.type || 'ambient'
     }));
 
-    console.log('\nÃ°Å¸â€œÅ  REPAIR RESULTS:');
-    console.log('Ã°Å¸â€œÅ  ===============================================');
-    console.log('Ã°Å¸â€œâ€ž Original length:', malformedJson.length);
-    console.log('Ã°Å¸â€œâ€ž Fixed length:', fixedJson.length);
-    console.log('Ã¢Å“â€¦ Parse successful:', parseSuccess);
-    console.log('Ã°Å¸â€œÅ  Raw segments parsed:', parsedSegments.length);
-    console.log('Ã°Å¸â€œÅ  Valid segments:', validSegments.length);
-    console.log('Ã¢ÂÅ’ Parse error:', parseError || 'None');
+    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  REPAIR RESULTS:');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Original length:', malformedJson.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Fixed length:', fixedJson.length);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Parse successful:', parseSuccess);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Raw segments parsed:', parsedSegments.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Valid segments:', validSegments.length);
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Parse error:', parseError || 'None');
 
     res.json({
       success: parseSuccess && validSegments.length > 0,
@@ -9050,7 +9047,7 @@ app.post('/api/fix-malformed-json', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Error in JSON repair:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in JSON repair:', error);
     res.status(500).json({
       success: false,
       error: 'JSON repair failed',
@@ -9068,11 +9065,11 @@ app.post('/api/debug-segment-analysis', upload.single('video'), async (req, res)
 
     const { customPrompt = 'Debug analysis' } = req.body;
 
-    console.log('Ã°Å¸Ââ€º ===============================================');
-    console.log('Ã°Å¸Ââ€º COMPREHENSIVE SEGMENT ANALYSIS DEBUG');
-    console.log('Ã°Å¸Ââ€º ===============================================');
-    console.log('Ã°Å¸â€œÂ Debug video:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº COMPREHENSIVE SEGMENT ANALYSIS DEBUG');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Debug video:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Use the enhanced analysis function
     const { analyzeVideoForMusicSegments } = require('./gemini-utils');
@@ -9085,7 +9082,7 @@ app.post('/api/debug-segment-analysis', upload.single('video'), async (req, res)
       showTerminalOutput: true
     };
 
-    console.log('Ã°Å¸Ââ€º Debug analysis starting...');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº Debug analysis starting...');
     const debugResult = await analyzeVideoForMusicSegments(
       req.file.buffer,
       req.file.mimetype,
@@ -9122,14 +9119,14 @@ app.post('/api/debug-segment-analysis', upload.single('video'), async (req, res)
       }
     };
 
-    console.log('\nÃ°Å¸Ââ€º DEBUG RESULTS:');
-    console.log('Ã°Å¸Ââ€º ===============================================');
-    console.log('Ã¢Å“â€¦ Success:', debugInfo.success);
-    console.log('Ã°Å¸â€œÅ  Segments:', debugInfo.totalSegments);
-    console.log('Ã°Å¸â€º Ã¯Â¸Â Parse Strategy:', debugInfo.parseStrategy);
-    console.log('Ã¢ÂÅ’ Parse Error:', debugInfo.parseError || 'None');
-    console.log('Ã°Å¸â€œâ€ž Response Length:', debugInfo.rawResponse.length);
-    console.log('Ã°Å¸Ââ€º ===============================================');
+    console.log('\nÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº DEBUG RESULTS:');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº ===============================================');
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Success:', debugInfo.success);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Segments:', debugInfo.totalSegments);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Âº ÃƒÂ¯Ã‚Â¸Ã‚Â Parse Strategy:', debugInfo.parseStrategy);
+    console.log('ÃƒÂ¢Ã‚ÂÃ…â€™ Parse Error:', debugInfo.parseError || 'None');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Response Length:', debugInfo.rawResponse.length);
+    console.log('ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Âº ===============================================');
 
     res.json({
       success: true,
@@ -9147,7 +9144,7 @@ app.post('/api/debug-segment-analysis', upload.single('video'), async (req, res)
     });
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Debug analysis error:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Debug analysis error:', error);
     res.status(500).json({
       success: false,
       error: 'Debug analysis failed',
@@ -9156,7 +9153,7 @@ app.post('/api/debug-segment-analysis', upload.single('video'), async (req, res)
   }
 });
 
-// Ã°Å¸Å¡Â¨ BONUS: Add a standalone endpoint to test the GCS-based analysis function
+// ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ BONUS: Add a standalone endpoint to test the GCS-based analysis function
 app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
@@ -9167,11 +9164,11 @@ app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, r
 
     const { customPrompt = '' } = req.body;
 
-    console.log('Ã°Å¸Â§Âª ===============================================');
-    console.log('Ã°Å¸Â§Âª TESTING GCS-BASED SEGMENT ANALYSIS FUNCTION');
-    console.log('Ã°Å¸Â§Âª ===============================================');
-    console.log('Ã°Å¸â€œÂ Test video:', req.file.originalname);
-    console.log('Ã°Å¸â€œÅ  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª TESTING GCS-BASED SEGMENT ANALYSIS FUNCTION');
+    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª ===============================================');
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Test video:', req.file.originalname);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Upload test video to GCS first
     const uploadResult = await handleVideoUpload(
@@ -9181,13 +9178,13 @@ app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, r
       req.file.size
     );
 
-    console.log('Ã¢Å“â€¦ Test video uploaded to GCS:', uploadResult.gcs_uri);
+    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Test video uploaded to GCS:', uploadResult.gcs_uri);
 
     const testOptions = {
       customPrompt: customPrompt || 'Test analysis of video for music segments'
     };
 
-    console.log('Ã°Å¸â€Â¬ Testing with options:', testOptions);
+    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¬ Testing with options:', testOptions);
 
     // Use the GCS-based analysis function
     const { analyzeGCSVideoForMusicSegments } = require('./gemini-utils');
@@ -9198,7 +9195,7 @@ app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, r
     );
 
     if (testResult.success) {
-      console.log('Ã¢Å“â€¦ GCS-based function test passed!');
+      console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ GCS-based function test passed!');
       
       res.json({
         success: true,
@@ -9221,7 +9218,7 @@ app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, r
         }
       });
     } else {
-      console.error('Ã¢ÂÅ’ GCS-based function test failed:', testResult.error);
+      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ GCS-based function test failed:', testResult.error);
       
       res.status(500).json({
         success: false,
@@ -9232,7 +9229,7 @@ app.post('/api/test-gcs-segment-analysis', upload.single('video'), async (req, r
     }
 
   } catch (error) {
-    console.error('Ã¢ÂÅ’ Test endpoint error:', error);
+    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Test endpoint error:', error);
     res.status(500).json({
       success: false,
       error: 'Test endpoint failed',
