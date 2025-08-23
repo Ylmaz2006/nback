@@ -8652,7 +8652,7 @@ async function smartCompressVideoToDisk(inputPath, outputPath, targetSizeMB) {
 }
 
 // Main endpoint - DISK OPTIMIZED VERSION
-app.post('/api/cliptune-upload-trimmed', streamingUpload.single('video'), async (req, res) => {
+app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res) => {
   logMemoryUsage('Endpoint start');
   
   // Set memory limit warning
