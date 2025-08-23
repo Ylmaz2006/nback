@@ -51,7 +51,127 @@ const upload = multer({
     }
   }
 });
+function logMemoryUsage(label) {
+  const usage = process.memoryUsage();
+  console.log(`📊 Memory ${label}:`);
+  console.log(`   RSS: ${(usage.rss / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`   Heap Used: ${(usage.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`   External: ${(usage.external / 1024 / 1024).toFixed(2)} MB`);
+}
+async function analyzeVideoFromDiskSafely(filePath, mimeType, options = {}) {
+  try {
+    logMemoryUsage('Before file size check');
+    
+    // Check file size first
+    const stats = await fsPromises.stat(filePath);
+    const fileSizeMB = stats.size / (1024 * 1024);
+    
+    console.log(`📊 Analyzing ${fileSizeMB.toFixed(2)}MB file from disk: ${path.basename(filePath)}`);
+    
+    // CRITICAL: Set strict size limits for Render
+    if (fileSizeMB > 50) {
+      throw new Error(`File size ${fileSizeMB.toFixed(2)}MB exceeds maximum limit of 50MB`);
+    }
+    
+    // For files > 20MB, use File API streaming (no memory loading)
+    if (fileSizeMB > 20) {
+      console.log('🔄 Using Google File API for large file (no memory loading)');
+      
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY required for large file processing');
+      }
+      
+      // Use File API with streaming (implement this in step 3)
+      return await analyzeUsingFileAPIStreaming(filePath, mimeType, options);
+    }
+    
+    // For files 10-20MB, use compressed buffer approach
+    if (fileSizeMB > 10) {
+      console.log('🗜️ Using compressed buffer approach for medium file');
+      return await analyzeWithCompressedBuffer(filePath, mimeType, options);
+    }
+    
+    // For small files (< 10MB), use direct buffer (safer)
+    console.log('📤 Using direct buffer for small file');
+    return await analyzeWithDirectBuffer(filePath, mimeType, options);
+    
+  } catch (error) {
+    console.error('❌ analyzeVideoFromDiskSafely error:', error.message);
+    throw error;
+  }
+}
 
+// ==================================================
+// STEP 3: IMPLEMENT SAFE BUFFER HANDLING FUNCTIONS
+// Add these functions to your index.js file
+// ==================================================
+
+async function analyzeWithDirectBuffer(filePath, mimeType, options) {
+  let videoBuffer = null;
+  try {
+    logMemoryUsage('Before buffer read');
+    videoBuffer = await fsPromises.readFile(filePath);
+    logMemoryUsage('After buffer read');
+    
+    const { analyzeVideoForMusicSegments } = require('./gemini-utils');
+    const result = await analyzeVideoForMusicSegments(videoBuffer, mimeType, options);
+    
+    logMemoryUsage('After analysis');
+    return result;
+    
+  } finally {
+    // CRITICAL: Clear buffer immediately
+    if (videoBuffer) {
+      videoBuffer.fill(0);
+      videoBuffer = null;
+    }
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+    logMemoryUsage('After cleanup');
+  }
+}
+
+async function analyzeWithCompressedBuffer(filePath, mimeType, options) {
+  // First compress the file on disk to reduce memory usage
+  const compressedPath = filePath.replace('.mp4', '_compressed.mp4');
+  
+  try {
+    // Compress file on disk first
+    await new Promise((resolve, reject) => {
+      ffmpeg(filePath)
+        .videoCodec('libx264')
+        .outputOptions([
+          '-crf 32',  // Higher compression
+          '-preset ultrafast',
+          '-vf scale=640:360',  // Reduce resolution
+          '-r 15'  // Reduce frame rate
+        ])
+        .output(compressedPath)
+        .on('end', resolve)
+        .on('error', reject)
+        .run();
+    });
+    
+    // Now analyze the compressed version
+    return await analyzeWithDirectBuffer(compressedPath, mimeType, options);
+    
+  } finally {
+    // Clean up compressed file
+    try {
+      await fsPromises.unlink(compressedPath);
+    } catch (e) {
+      console.warn('Could not delete compressed file:', e.message);
+    }
+  }
+}
+
+async function analyzeUsingFileAPIStreaming(filePath, mimeType, options) {
+  // This would use File API streaming - simplified version
+  console.log('🔄 File API streaming not implemented yet - falling back to size limit');
+  throw new Error('File too large for current memory constraints. Please use a smaller file or compress further.');
+}
 // Firebase Admin Set
 const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
 admin.initializeApp({
@@ -8509,6 +8629,22 @@ async function smartCompressVideoToDisk(inputPath, outputPath, targetSizeMB) {
 
 // Main endpoint - DISK OPTIMIZED VERSION
 app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res) => {
+  logMemoryUsage('Endpoint start');
+  
+  // Set memory limit warning
+  const memoryLimit = 400; // MB - safe limit for Render
+  const currentMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+  
+  if (currentMemory > memoryLimit) {
+    console.warn(`⚠️ High memory usage detected: ${currentMemory.toFixed(2)}MB`);
+    return res.status(503).json({
+      success: false,
+      error: 'Server memory usage too high',
+      currentMemory: currentMemory.toFixed(2) + 'MB',
+      suggestion: 'Please try again in a few moments'
+    });
+  }
+  
   let originalPath = req.file?.path; // multer already saved to disk
   let trimmedPath;
   let processedFilePaths = []; // Track all files for cleanup
@@ -8640,122 +8776,134 @@ app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res
         console.error('❌ Compression failed:', compressionError.message);
         console.log('🔄 Falling back to File API with ORIGINAL file');
         analysisMethod = 'compression_failed_file_api';
+        logMemoryUsage('Final error state');
+        logMemoryUsage('Endpoint cleanup start');
+    // ... your existing cleanup code ...
+    logMemoryUsage('Endpoint end');
+  
         finalPath = trimmedPath; // Use original trimmed file path
         finalSizeMB = trimmedSizeMB;
       }
     }
 
     // Execute analysis based on determined method
-    if (analysisMethod === 'direct_upload' || analysisMethod === 'compression_then_direct') {
-      // Direct upload method - read file from disk only when needed
-      console.log(`📤 EXECUTING: Direct upload method (${finalSizeMB.toFixed(2)}MB)`);
-      
-      const { analyzeVideoForMusicSegments } = require('./gemini-utils');
-      
-      // Read file from disk into buffer only for analysis
-      const videoBuffer = await fsPromises.readFile(finalPath);
-      
-      try {
-        const analysisOptions = {
-          customPrompt: extra_prompt || 'Analyze this trimmed video section for optimal music placement segments',
-          maxSegments: 10,
-          analysisType: 'segments',
-          detailLevel: 'detailed'
-        };
-        
-        analysisResult = await analyzeVideoForMusicSegments(
-          videoBuffer, 
-          'video/mp4', 
-          analysisOptions
-        );
-        
-        if (compressionInfo) {
-          analysisResult.compressionInfo = compressionInfo;
-          analysisResult.wasCompressed = true;
-        }
-      } finally {
-        // Clear buffer from memory after analysis
-        videoBuffer.fill(0);
-      }
-      
-    } else {
-      // File API method - work with file path
-      console.log(`🔄 EXECUTING: Google File API method with ${compressionInfo ? 'COMPRESSED' : 'ORIGINAL'} file (${finalSizeMB.toFixed(2)}MB)`);
-      
-      if (!process.env.GEMINI_API_KEY) {
-        throw new Error('GEMINI_API_KEY required for File API method');
-      }
-      
-      const { GoogleFileAPIManager } = require('./google-file-api');
-      const fileManager = new GoogleFileAPIManager(process.env.GEMINI_API_KEY);
-      
-      console.log('🔄 Uploading from disk to Google File API...');
-      console.log(`📊 File being uploaded: ${finalSizeMB.toFixed(2)}MB ${compressionInfo ? `(compressed from ${trimmedSizeMB.toFixed(2)}MB)` : '(original)'}`);
-      
-      // Read file from disk for upload
-      const videoBuffer = await fsPromises.readFile(finalPath);
-      
-      try {
-        const uploadResult = await fileManager.uploadLargeVideoFile(
-          videoBuffer,
-          `${compressionInfo ? 'compressed_' : 'original_'}trimmed_${timestamp}.mp4`, 
-          'video/mp4'
-        );
-        
-        if (!uploadResult.success) {
-          throw new Error('Failed to upload file to Google File API: ' + uploadResult.error);
-        }
-        
-        console.log('✅ File uploaded to File API:', uploadResult.fileUri);
-        if (compressionInfo) {
-          console.log('📊 Upload details:');
-          console.log(`   Original trimmed size: ${trimmedSizeMB.toFixed(2)}MB`);
-          console.log(`   Compressed size uploaded: ${finalSizeMB.toFixed(2)}MB`);
-          console.log(`   Compression ratio: ${((trimmedSizeMB - finalSizeMB) / trimmedSizeMB * 100).toFixed(1)}%`);
-        }
-        
-        // Analyze using File API with 10 segment limit
-        const fileApiOptions = {
-          customPrompt: extra_prompt || `Analyze this ${compressionInfo ? 'compressed ' : ''}trimmed video for optimal music placement segments`,
-          maxSegments: 10,
-          analysisType: 'segments',
-          detailLevel: 'detailed'
-        };
-        
-        analysisResult = await fileManager.analyzeLargeVideoForMusicSegments(
-          uploadResult.fileUri, 
-          fileApiOptions
-        );
-        
-        // Add metadata
-        analysisResult.uploadInfo = uploadResult;
-        analysisResult.method = 'google_file_api';
-        
-        analysisResult.uploadInfo.wasCompressedBeforeUpload = !!compressionInfo;
-        analysisResult.uploadInfo.originalTrimmedSize = trimmedSizeMB.toFixed(2) + ' MB';
-        analysisResult.uploadInfo.uploadedFileSize = finalSizeMB.toFixed(2) + ' MB';
-        analysisResult.uploadInfo.fileType = compressionInfo ? 'compressed' : 'original';
-        
-        if (compressionInfo) {
-          analysisResult.compressionInfo = compressionInfo;
-          analysisResult.wasCompressed = true;
-        }
-        
-        // Cleanup: Delete the uploaded file after analysis
-        console.log(`🗑️ Cleaning up ${compressionInfo ? 'compressed' : 'original'} File API upload...`);
-        try {
-          await fileManager.deleteFile(uploadResult.fileName);
-          console.log('✅ File API cleanup completed');
-        } catch (cleanupError) {
-          console.warn('⚠️ File API cleanup failed:', cleanupError.message);
-        }
-        
-      } finally {
-        // Clear buffer from memory after upload
-        videoBuffer.fill(0);
-      }
+    if  (analysisMethod === 'direct_upload' || analysisMethod === 'compression_then_direct') {
+  console.log(`📤 EXECUTING: Safe disk-based analysis (${finalSizeMB.toFixed(2)}MB)`);
+  
+  logMemoryUsage('Before analysis start');
+  
+  const analysisOptions = {
+    customPrompt: extra_prompt || 'Analyze this trimmed video section for optimal music placement segments',
+    maxSegments: 10,
+    analysisType: 'segments',
+    detailLevel: 'detailed'
+  };
+  
+  try {
+    // ✅ USE SAFE DISK-BASED ANALYSIS
+    analysisResult = await analyzeVideoFromDiskSafely(
+      finalPath,  // ✅ Pass file path, not buffer
+      'video/mp4',
+      analysisOptions
+    );
+    
+    logMemoryUsage('After analysis complete');
+    
+    if (compressionInfo) {
+      analysisResult.compressionInfo = compressionInfo;
+      analysisResult.wasCompressed = true;
     }
-
+    
+  } catch (analysisError) {
+    logMemoryUsage('After analysis error');
+    
+    // Enhanced error handling with memory info
+    if (analysisError.message.includes('exceeds maximum limit')) {
+      return res.status(413).json({
+        success: false,
+        error: 'File too large for processing',
+        details: analysisError.message,
+        fileSize: finalSizeMB.toFixed(2) + 'MB',
+        maxSize: '50MB',
+        suggestion: 'Please compress the video further or use a shorter segment'
+      });
+    }
+    
+    throw analysisError;
+  }
+  
+} else {
+  // File API method - also make it safer
+  console.log(`🔄 EXECUTING: File API method (${finalSizeMB.toFixed(2)}MB)`);
+  
+  // For now, reject very large files to prevent crashes
+  if (finalSizeMB > 50) {
+    return res.status(413).json({
+      success: false,
+      error: `File size ${finalSizeMB.toFixed(2)}MB exceeds processing limit`,
+      suggestion: 'Please compress the video further or use shorter segments'
+    });
+  }
+  
+  // Use existing File API code but with size limits
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY required for File API method');
+  }
+  
+  const { GoogleFileAPIManager } = require('./google-file-api');
+  const fileManager = new GoogleFileAPIManager(process.env.GEMINI_API_KEY);
+  
+  console.log('🔄 Uploading from disk to Google File API...');
+  
+  let videoBuffer = null;
+  try {
+    logMemoryUsage('Before File API buffer read');
+    videoBuffer = await fsPromises.readFile(finalPath);
+    logMemoryUsage('After File API buffer read');
+    
+    const uploadResult = await fileManager.uploadLargeVideoFile(
+      videoBuffer,
+      `compressed_trimmed_${timestamp}.mp4`, 
+      'video/mp4'
+    );
+    
+    if (!uploadResult.success) {
+      throw new Error('Failed to upload file to Google File API: ' + uploadResult.error);
+    }
+    
+    console.log('✅ File uploaded to File API:', uploadResult.fileUri);
+    
+    analysisResult = await fileManager.analyzeLargeVideoForMusicSegments(
+      uploadResult.fileUri,
+      fileApiOptions
+    );
+    
+    // Add metadata
+    analysisResult.uploadInfo = uploadResult;
+    analysisResult.method = 'google_file_api';
+    
+    if (compressionInfo) {
+      analysisResult.compressionInfo = compressionInfo;
+      analysisResult.wasCompressed = true;
+    }
+    
+    // Cleanup: Delete the uploaded file after analysis
+    try {
+      await fileManager.deleteFile(uploadResult.fileName);
+      console.log('✅ File API cleanup completed');
+    } catch (cleanupError) {
+      console.warn('⚠️ File API cleanup failed:', cleanupError.message);
+    }
+    
+  } finally {
+    // CRITICAL: Clear buffer immediately
+    if (videoBuffer) {
+      videoBuffer.fill(0);
+      videoBuffer = null;
+    }
+    logMemoryUsage('After File API cleanup');
+  }
+}
     const processingTime = analysisResult.processingTime || '0s';
 
     if (analysisResult && analysisResult.success) {
