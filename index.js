@@ -8454,7 +8454,7 @@ const PLATFORM_CONFIG = {
   limits: {
     render: {
       maxVideoSizeMB: 10000,        // 20MB max for Render
-      maxDurationSeconds: 60,    // 1 minute max
+      maxDurationSeconds: 6000,    // 1 minute max
       chunkSizeSeconds: 20,      // 20-second chunks
       timeoutMs: 120000,         // 2 minutes timeout
       memoryLimitMB: 400         // 400MB memory limit
