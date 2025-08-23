@@ -16,7 +16,31 @@ const axios = require('axios');
 const { getVideoDurationInSeconds } = require('get-video-duration');
 const admin = require('firebase-admin');
 require('dotenv').config();
-
+// Add this NEW streaming multer configuration
+const streamingUpload = multer({
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadDir = '/var/data/temp_videos';
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      const timestamp = Date.now();
+      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      cb(null, `streaming_upload_${timestamp}_${sanitizedName}`);
+    }
+  }),
+  limits: { 
+    fileSize: 200 * 1024 * 1024, // 200MB limit
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only video files are allowed'));
+    }
+  }
+});
 const app = express();
 const PORT = process.env.PORT || 10000;
 const CLIPTUNE_API = 'https://nback-6gqw.onrender.com/api';
@@ -8628,7 +8652,7 @@ async function smartCompressVideoToDisk(inputPath, outputPath, targetSizeMB) {
 }
 
 // Main endpoint - DISK OPTIMIZED VERSION
-app.post('/api/cliptune-upload-trimmed', upload.single('video'), async (req, res) => {
+app.post('/api/cliptune-upload-trimmed', streamingUpload.single('video'), async (req, res) => {
   logMemoryUsage('Endpoint start');
   
   // Set memory limit warning
