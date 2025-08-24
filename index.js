@@ -8642,21 +8642,45 @@ app.post('/google-login', async (req, res) => {
     if (!user) {
       isNewUser = true;
       const customer = await stripeInstance.customers.create({ email });
+      
+      // 🆕 NEW: Make new Google login users automatically Premium
+      console.log('🎉 Creating new Premium user via Google login:', email);
+      
       user = new User({
         email,
         username: email.split('@')[0],
         stripeCustomerId: customer.id,
         isVerified: true,
-        paymentStatus: 'Free',
+        paymentStatus: 'Premium', // 🆕 CHANGED: Was 'Free', now 'Premium'
+        
+        // 🆕 NEW: Add metadata to track Premium source
+        paymentInfo: {
+          hasPaymentMethod: false,
+          cards: [],
+          billingAddress: {},
+          totalPayments: 0,
+          failedPaymentAttempts: 0,
+          premiumSource: 'google_signup_auto', // Track that this was auto-granted
+          premiumGrantedAt: new Date()
+        }
       });
+      
       await user.save();
+      console.log('✅ New Premium user created via Google login:', email);
     }
 
+    // 🆕 NEW: Enhanced response with Premium status info
     res.status(200).json({
       message: 'Google login successful',
       email: user.email,
       isNewUser,
       userId: user._id,
+      accountType: user.paymentStatus, // Include current account type
+      ...(isNewUser && { 
+        premiumGranted: true,
+        premiumSource: 'google_signup_auto',
+        message: 'Welcome! Your account has been automatically upgraded to Premium.'
+      })
     });
   } catch (err) {
     console.error("Google Login Error:", err);
