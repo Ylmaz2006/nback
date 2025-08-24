@@ -6183,8 +6183,26 @@ module.exports = {
 // Modified process-video route using the shared analysis function instead of ClipTune
 // REPLACE your existing /api/process-video route in index.js with this fixed version
 
-app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).single('video'), async (req, res) => {
-  let trimmedPath, originalPath;
+app.post('/api/process-video', upload.single('video'), async (req, res) => {
+  logMemoryUsage('Endpoint start');
+  
+  // Set memory limit warning
+  const memoryLimit = 400; // MB - safe limit for Render
+  const currentMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+  
+  if (currentMemory > memoryLimit) {
+    console.warn(`⚠️ High memory usage detected: ${currentMemory.toFixed(2)}MB`);
+    return res.status(503).json({
+      success: false,
+      error: 'Server memory usage too high',
+      currentMemory: currentMemory.toFixed(2) + 'MB',
+      suggestion: 'Please try again in a few moments'
+    });
+  }
+  
+  let originalPath = req.file?.path; // multer already saved to disk
+  let trimmedPath;
+  let processedFilePaths = []; // Track all files for cleanup
   
   try {
     // 1. VALIDATE REQUEST
@@ -6195,11 +6213,14 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       });
     }
 
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ PROCESSING VIDEO WITH INTERVAL TIMING FIX');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Original video:', req.file.originalname);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Original size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('🎬 ===============================================');
+    console.log('🎬 DISK-OPTIMIZED VIDEO PROCESSING WITH TIMING FIX');
+    console.log('🎬 ===============================================');
+    console.log('📁 File saved to disk:', originalPath);
+    console.log('📊 Original file size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
+    
+    // Track this file for cleanup
+    processedFilePaths.push(originalPath);
 
     // 2. EXTRACT TIMING PARAMETERS
     const videoStart = parseInt(req.body.video_start) || 0;
@@ -6208,7 +6229,7 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
     const trackName = req.body.track_name || req.body.song_title || 'Generated Track';
     const userId = req.body.userId || 'anonymous';
 
-    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Timing parameters:');
+    console.log('⏱️ Timing parameters:');
     console.log(`   Video start: ${videoStart}s`);
     console.log(`   Video end: ${videoEnd}s`);
     console.log(`   Clip duration: ${clipDuration}s`);
@@ -6229,51 +6250,109 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       });
     }
 
-    // 3. SAVE ORIGINAL VIDEO
-    originalPath = path.join(__dirname, 'temp_videos', `original_${Date.now()}.mp4`);
-    await fsPromises.writeFile(originalPath, req.file.buffer);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Original video saved to:', originalPath);
+    // 3. TRIM VIDEO (DISK-TO-DISK OPERATION)
+    console.log('\n✂️ ===============================================');
+    console.log('✂️ TRIMMING VIDEO (DISK-TO-DISK)');
+    console.log('✂️ ===============================================');
 
-    // 4. TRIM VIDEO
-    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Trimming video: ${videoStart}s - ${videoEnd}s (${clipDuration}s)`);
-    trimmedPath = path.join(__dirname, 'temp_videos', `trimmed_${Date.now()}.mp4`);
-
+    const tempDir = path.dirname(originalPath);
+    const timestamp = Date.now();
+    trimmedPath = path.join(tempDir, `trimmed_${timestamp}.mp4`);
+    processedFilePaths.push(trimmedPath);
+    
+    // MEMORY-SAFE TRIMMING WITH COMPRESSION
     await new Promise((resolve, reject) => {
-      ffmpeg(originalPath)
+      let ffmpegProcess;
+      let memoryCheckInterval;
+      
+      // Start memory monitoring
+      memoryCheckInterval = setInterval(() => {
+        const memoryUsage = process.memoryUsage();
+        const rssMB = memoryUsage.rss / 1024 / 1024;
+        const heapMB = memoryUsage.heapUsed / 1024 / 1024;
+        
+        console.log(`🧠 Memory: RSS=${rssMB.toFixed(2)}MB, Heap=${heapMB.toFixed(2)}MB`);
+        
+        // Kill process if memory gets too high
+        if (rssMB > 450 || heapMB > 350) {
+          console.log('🚨 MEMORY LIMIT REACHED - Killing FFmpeg process');
+          clearInterval(memoryCheckInterval);
+          if (ffmpegProcess) {
+            ffmpegProcess.kill('SIGKILL');
+          }
+          reject(new Error(`Memory limit reached: RSS=${rssMB.toFixed(2)}MB, Heap=${heapMB.toFixed(2)}MB`));
+        }
+      }, 2000); // Check every 2 seconds
+      
+      ffmpegProcess = ffmpeg(originalPath)
         .setStartTime(videoStart)
         .setDuration(clipDuration)
         .output(trimmedPath)
+        .outputOptions([
+          // 🚨 CRITICAL: Memory-saving options
+          '-preset ultrafast',    // Fastest encoding (less CPU/memory)
+          '-crf 32',             // Higher compression (smaller output)
+          '-vf scale=720:480',   // Reduce resolution to 720x480
+          '-r 20',               // Reduce frame rate to 20fps
+          '-ac 2',               // Stereo audio (not mono, for compatibility)
+          '-ar 44100',           // Standard audio sample rate
+          '-b:a 128k',           // Lower audio bitrate
+          '-maxrate 1500k',      // Limit video bitrate
+          '-bufsize 3000k',      // Buffer size for bitrate control
+          '-threads 2',          // Limit CPU threads
+          '-avoid_negative_ts make_zero'  // Fix timestamp issues
+        ])
+        .on('start', (commandLine) => {
+          console.log('🎬 Memory-safe FFmpeg started for trimming');
+          console.log('📝 Command preview:', commandLine.substring(0, 100) + '...');
+        })
+        .on('progress', (progress) => {
+          const percent = Math.round(progress.percent || 0);
+          const currentMem = process.memoryUsage().rss / 1024 / 1024;
+          
+          console.log(`🎬 Trimming progress: ${percent}%, Memory: ${currentMem.toFixed(2)}MB`);
+          
+          // Additional safety check during progress
+          if (currentMem > 400) {
+            console.log('⚠️ High memory usage detected during trimming');
+          }
+        })
         .on('end', () => {
-          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video trimming completed');
+          clearInterval(memoryCheckInterval);
+          console.log('✅ Memory-safe video trimming completed');
+          
+          // Check output file size
+          fsPromises.stat(trimmedPath).then(stats => {
+            const outputSizeMB = stats.size / 1024 / 1024;
+            console.log(`📊 Trimmed file size: ${outputSizeMB.toFixed(2)}MB`);
+          }).catch(() => {
+            console.log('📊 Could not check output file size');
+          });
+          
           resolve();
         })
         .on('error', (err) => {
-          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Video trimming failed:', err.message);
-          reject(new Error(`Video trimming failed: ${err.message}`));
-        })
-        .run();
+          clearInterval(memoryCheckInterval);
+          console.error('❌ Memory-safe trimming error:', err.message);
+          reject(err);
+        });
+        
+      // Start the process
+      ffmpegProcess.run();
     });
 
-    // 5. CLEAN UP ORIGINAL FILE
+    // Remove original file to save disk space
     await fsPromises.unlink(originalPath);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Original video file cleaned up');
+    processedFilePaths = processedFilePaths.filter(p => p !== originalPath);
+    originalPath = null;
 
-    // 6. READ TRIMMED VIDEO INTO BUFFER
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Reading trimmed video into buffer for analysis...');
-    const trimmedBuffer = await fsPromises.readFile(trimmedPath);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Trimmed buffer size:', (trimmedBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+    // Get trimmed file size from disk stats
+    const trimmedStats = await fsPromises.stat(trimmedPath);
+    const trimmedSizeMB = (trimmedStats.size / 1024 / 1024);
+    
+    console.log('📊 Trimmed video size on disk:', trimmedSizeMB.toFixed(2), 'MB');
 
-    // 7. UPLOAD TO GCS FOR BACKUP
-    console.log('ÃƒÂ¢Ã‹Å“Ã‚ÂÃƒÂ¯Ã‚Â¸Ã‚Â Uploading trimmed video to GCS...');
-    const uploadResult = await handleVideoUpload(
-      trimmedBuffer, 
-      `trimmed_${trackName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.mp4`, 
-      req.file.mimetype, 
-      trimmedBuffer.length
-    );
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ GCS upload completed:', uploadResult.gcs_uri);
-
-    // 8. PREPARE ANALYSIS OPTIONS
+    // 4. DISK-BASED ANALYSIS OPTIONS
     const analysisOptions = {
       customPrompt: req.body.extra_description || `Generate music for "${trackName}"`,
       generateMusic: true,
@@ -6284,41 +6363,126 @@ app.post('/api/process-video', multer({ storage: multer.memoryStorage() }).singl
       userId: userId
     };
 
-    console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  Analysis options:', analysisOptions);
+    console.log('🎧 Analysis options:', analysisOptions);
 
-    // 9. ANALYZE VIDEO AND GENERATE MUSIC
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Starting video analysis and music generation...');
-    const analysisResult = await handleVideoAnalysisAndMusicGeneration(
-      uploadResult.gcs_uri,
-      analysisOptions,
-      trimmedBuffer  // Pass buffer directly to avoid download delays
-    );
+    // 5. ANALYZE VIDEO USING DISK-BASED METHOD
+    console.log('\n🔧 ===============================================');
+    console.log('🔧 DISK-BASED ANALYSIS FOR MUSIC GENERATION');
+    console.log('🔧 ===============================================');
 
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Analysis completed:', analysisResult.musicResult?.status || 'Unknown');
+    const DIRECT_UPLOAD_LIMIT = 18; // 18MB limit for direct upload
+    let analysisResult;
+    let analysisMethod;
+    let compressionInfo = null;
+    let finalPath = trimmedPath;
+    let finalSizeMB = trimmedSizeMB;
 
-    // 10. HELPER FUNCTION FOR TIME FORMATTING
+    if (trimmedSizeMB <= DIRECT_UPLOAD_LIMIT) {
+      // Method 1: Direct upload (no compression needed)
+      console.log('📤 METHOD 1: Direct upload (file ≤ 18MB)');
+      analysisMethod = 'direct_upload';
+      
+    } else {
+      // Method 2: Compression required for files > 18MB
+      console.log('🗜️ METHOD 2: Compression required (file > 18MB)');
+      console.log(`📊 Original size: ${trimmedSizeMB.toFixed(2)}MB -> Target: ${DIRECT_UPLOAD_LIMIT}MB`);
+      
+      try {
+        const compressedPath = path.join(tempDir, `compressed_${timestamp}.mp4`);
+        processedFilePaths.push(compressedPath);
+        
+        const compressionResult = await smartCompressVideoToDisk(
+          trimmedPath, // Input file path
+          compressedPath, // Output file path
+          DIRECT_UPLOAD_LIMIT
+        );
+        
+        compressionInfo = compressionResult;
+        finalPath = compressedPath; // Use compressed file path
+        
+        // Get compressed file size
+        const compressedStats = await fsPromises.stat(compressedPath);
+        finalSizeMB = compressedStats.size / 1024 / 1024;
+        
+        console.log(`✅ Compression completed: ${trimmedSizeMB.toFixed(2)}MB -> ${finalSizeMB.toFixed(2)}MB`);
+        
+        // Remove original trimmed file to save disk space
+        await fsPromises.unlink(trimmedPath);
+        processedFilePaths = processedFilePaths.filter(p => p !== trimmedPath);
+        trimmedPath = null;
+        
+        analysisMethod = 'compression_then_direct';
+        
+      } catch (compressionError) {
+        console.error('❌ Compression failed:', compressionError.message);
+        console.log('🔄 Continuing with original file');
+        analysisMethod = 'compression_failed_direct';
+        finalPath = trimmedPath;
+        finalSizeMB = trimmedSizeMB;
+      }
+    }
+
+    // 6. EXECUTE DISK-BASED ANALYSIS
+    console.log(`📤 EXECUTING: Safe disk-based analysis (${finalSizeMB.toFixed(2)}MB)`);
+    
+    logMemoryUsage('Before analysis start');
+    
+    try {
+      // READ FILE TO BUFFER FOR ANALYSIS (controlled memory usage)
+      console.log('📁 Reading processed file for analysis...');
+      const analysisBuffer = await fsPromises.readFile(finalPath);
+      
+      logMemoryUsage('After file read for analysis');
+      
+      // ANALYZE VIDEO AND GENERATE MUSIC
+      console.log('🎵 Starting video analysis and music generation...');
+      analysisResult = await handleVideoAnalysisAndMusicGeneration(
+        null, // No GCS URL needed
+        analysisOptions,
+        analysisBuffer  // Pass buffer directly for analysis
+      );
+      
+      // IMMEDIATELY CLEAR THE BUFFER
+      analysisBuffer.fill(0);
+      
+      logMemoryUsage('After analysis complete');
+      
+      if (compressionInfo) {
+        analysisResult.compressionInfo = compressionInfo;
+        analysisResult.wasCompressed = true;
+      }
+      
+    } catch (analysisError) {
+      logMemoryUsage('After analysis error');
+      
+      if (analysisError.message.includes('exceeds maximum limit')) {
+        return res.status(413).json({
+          success: false,
+          error: 'File too large for processing',
+          details: analysisError.message,
+          fileSize: finalSizeMB.toFixed(2) + 'MB',
+          maxSize: '50MB',
+          suggestion: 'Please compress the video further or use a shorter segment'
+        });
+      }
+      
+      throw analysisError;
+    }
+
+    console.log('✅ Analysis completed:', analysisResult.musicResult?.status || 'Unknown');
+
+    // 7. HELPER FUNCTION FOR TIME FORMATTING
     const formatTime = (seconds) => {
       const minutes = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
-if (analysisResult.musicResult.timingAnalysis?.success) {
-  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â DEBUGGING GEMINI ANALYSIS FORMAT...');
-  debugGeminiAnalysis(analysisResult.musicResult.timingAnalysis.analysis);
-  
-  console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Now extracting timing...');
-  timingRecommendations = extractTimingFromGeminiAnalysis(
-    analysisResult.musicResult.timingAnalysis.analysis,
-    analysisResult.musicResult.allMP3Files,
-    clipDuration
-  );
-}
-    // 11. PREPARE RESPONSE WITH PROPER TIMING
+
+    // 8. PREPARE RESPONSE WITH PROPER TIMING
     let responseData = {
       success: true,
       tracks: [],
-      processing_method: 'direct_buffer_analysis',
-      gcs_backup: uploadResult.gcs_uri,
+      processing_method: 'disk_based_analysis',
       trimmed_duration: clipDuration,
       original_timing: {
         video_start: videoStart,
@@ -6327,102 +6491,101 @@ if (analysisResult.musicResult.timingAnalysis?.success) {
       }
     };
 
-    // 12. PROCESS MUSIC RESULT AND CREATE TRACKS ARRAY
+    // 9. PROCESS MUSIC RESULT AND CREATE TRACKS ARRAY
     if (analysisResult.musicResult?.success && analysisResult.musicResult?.audio_url) {
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing successful music result...');
+      console.log('🎵 Processing successful music result...');
       
       // Handle multiple MP3 files if available
-   if (analysisResult.musicResult.allMP3Files && analysisResult.musicResult.allMP3Files.length > 0) {
-  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Found ${analysisResult.musicResult.allMP3Files.length} MP3 files`);
-  
-  // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Extract timing recommendations from Gemini analysis
-  let timingRecommendations = [];
-  
-  if (analysisResult.musicResult.timingAnalysis && analysisResult.musicResult.timingAnalysis.success) {
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Extracting timing from Gemini analysis...');
-    timingRecommendations = extractTimingFromGeminiAnalysis(
-      analysisResult.musicResult.timingAnalysis.analysis,
-      analysisResult.musicResult.allMP3Files,
-      clipDuration
-    );
-    
-    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Extracted ${timingRecommendations.length} timing recommendations`);
-  }
-  
-  analysisResult.musicResult.allMP3Files.forEach((mp3File, index) => {
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ USE GEMINI TIMING IF AVAILABLE, OTHERWISE DEFAULTS
-    const timingRec = timingRecommendations.find(rec => rec.trackNumber === index + 1);
-    
-    let trackStart, trackEnd, trackDuration;
-    
-    if (timingRec) {
-      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ USE GEMINI RECOMMENDATIONS:
-      trackStart = timingRec.startFormatted;     // e.g., "0:10" 
-      trackEnd = timingRec.endFormatted;         // e.g., "0:30"
-      trackDuration = timingRec.durationFormatted; // e.g., "20s"
-      
-      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Using Gemini timing for Track ${index + 1}:`, {
-        start: trackStart,
-        end: trackEnd, 
-        duration: trackDuration,
-        volume: timingRec.volume + '%'
-      });
-      
-    } else {
-      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ FALLBACK TO DEFAULTS:
-      trackStart = formatTime(0);
-      trackEnd = formatTime(clipDuration);
-      trackDuration = `${clipDuration}s`;
-      
-      console.log(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Using default timing for Track ${index + 1}:`, {
-        start: trackStart,
-        end: trackEnd,
-        duration: trackDuration
-      });
-    }
-    
-    responseData.tracks.push({
-      // Audio URLs
-      audioUrl: mp3File.url,
-      url: mp3File.url,
-      audio_url: mp3File.url,
-      
-      // Track metadata
-      title: mp3File.title || `${trackName} (Version ${index + 1})`,
-      trackName: mp3File.title || `${trackName} (Version ${index + 1})`,
-      originalTrackName: trackName,
-      
-      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL: USE EXTRACTED TIMING FROM GEMINI:
-      start: trackStart,        // e.g., "0:10" (from Gemini)
-      end: trackEnd,            // e.g., "0:30" (from Gemini) 
-      duration: trackDuration,  // e.g., "20s" (from Gemini)
-      
-      // Additional timing metadata
-      originalVideoStart: videoStart,
-      originalVideoEnd: videoEnd,
-      clipDuration: clipDuration,
-      musicDurationSeconds: mp3File.mp3Duration || clipDuration,
-      
-      // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ ADD GEMINI RECOMMENDATIONS:
-      ...(timingRec && {
-        geminiStartTime: timingRec.startTime,
-        geminiEndTime: timingRec.endTime,
-        geminiVolume: timingRec.volume,
-        geminiVolumeDecimal: timingRec.volumeDecimal,
-        hasGeminiTiming: true
-      }),
-      
-      // Music generation metadata
-      generationType: 'full_generation_with_timing',
-      index: index,
-      isInstrumental: req.body.instrumental === 'true',
-      generatedAt: new Date().toISOString()
-    });
-  });
-}
-else {
+      if (analysisResult.musicResult.allMP3Files && analysisResult.musicResult.allMP3Files.length > 0) {
+        console.log(`🎵 Found ${analysisResult.musicResult.allMP3Files.length} MP3 files`);
+        
+        // Extract timing recommendations from Gemini analysis
+        let timingRecommendations = [];
+        
+        if (analysisResult.musicResult.timingAnalysis && analysisResult.musicResult.timingAnalysis.success) {
+          console.log('🎯 Extracting timing from Gemini analysis...');
+          timingRecommendations = extractTimingFromGeminiAnalysis(
+            analysisResult.musicResult.timingAnalysis.analysis,
+            analysisResult.musicResult.allMP3Files,
+            clipDuration
+          );
+          
+          console.log(`✅ Extracted ${timingRecommendations.length} timing recommendations`);
+        }
+        
+        analysisResult.musicResult.allMP3Files.forEach((mp3File, index) => {
+          // USE GEMINI TIMING IF AVAILABLE, OTHERWISE DEFAULTS
+          const timingRec = timingRecommendations.find(rec => rec.trackNumber === index + 1);
+          
+          let trackStart, trackEnd, trackDuration;
+          
+          if (timingRec) {
+            // USE GEMINI RECOMMENDATIONS:
+            trackStart = timingRec.startFormatted;     // e.g., "0:10" 
+            trackEnd = timingRec.endFormatted;         // e.g., "0:30"
+            trackDuration = timingRec.durationFormatted; // e.g., "20s"
+            
+            console.log(`🎯 Using Gemini timing for Track ${index + 1}:`, {
+              start: trackStart,
+              end: trackEnd, 
+              duration: trackDuration,
+              volume: timingRec.volume + '%'
+            });
+            
+          } else {
+            // FALLBACK TO DEFAULTS:
+            trackStart = formatTime(0);
+            trackEnd = formatTime(clipDuration);
+            trackDuration = `${clipDuration}s`;
+            
+            console.log(`⚠️ Using default timing for Track ${index + 1}:`, {
+              start: trackStart,
+              end: trackEnd,
+              duration: trackDuration
+            });
+          }
+          
+          responseData.tracks.push({
+            // Audio URLs
+            audioUrl: mp3File.url,
+            url: mp3File.url,
+            audio_url: mp3File.url,
+            
+            // Track metadata
+            title: mp3File.title || `${trackName} (Version ${index + 1})`,
+            trackName: mp3File.title || `${trackName} (Version ${index + 1})`,
+            originalTrackName: trackName,
+            
+            // CRITICAL: USE EXTRACTED TIMING FROM GEMINI:
+            start: trackStart,        // e.g., "0:10" (from Gemini)
+            end: trackEnd,            // e.g., "0:30" (from Gemini) 
+            duration: trackDuration,  // e.g., "20s" (from Gemini)
+            
+            // Additional timing metadata
+            originalVideoStart: videoStart,
+            originalVideoEnd: videoEnd,
+            clipDuration: clipDuration,
+            musicDurationSeconds: mp3File.mp3Duration || clipDuration,
+            
+            // ADD GEMINI RECOMMENDATIONS:
+            ...(timingRec && {
+              geminiStartTime: timingRec.startTime,
+              geminiEndTime: timingRec.endTime,
+              geminiVolume: timingRec.volume,
+              geminiVolumeDecimal: timingRec.volumeDecimal,
+              hasGeminiTiming: true
+            }),
+            
+            // Music generation metadata
+            generationType: 'full_generation_with_timing',
+            index: index,
+            isInstrumental: req.body.instrumental === 'true',
+            generatedAt: new Date().toISOString()
+          });
+        });
+      } else {
         // Single track result
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing single track result...');
+        console.log('🎵 Processing single track result...');
         responseData.tracks.push({
           // Audio URLs
           audioUrl: analysisResult.musicResult.audio_url,
@@ -6434,7 +6597,7 @@ else {
           trackName: analysisResult.musicResult.title || trackName,
           originalTrackName: trackName,
           
-          // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ CRITICAL: INTERVAL TIMING FOR SPOTIFY PLAYER
+          // CRITICAL: INTERVAL TIMING FOR SPOTIFY PLAYER
           start: formatTime(0),           // "0:00" - Start of music
           end: formatTime(clipDuration),  // "0:30" - End based on clip duration
           duration: `${clipDuration}s`,   // "30s" - Duration
@@ -6468,7 +6631,7 @@ else {
       
     } else if (analysisResult.musicResult?.task_id) {
       // Music generation started but not completed
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Music generation in progress...');
+      console.log('⏳ Music generation in progress...');
       responseData.success = false;
       responseData.status = 'processing';
       responseData.task_id = analysisResult.musicResult.task_id;
@@ -6477,22 +6640,23 @@ else {
       
     } else {
       // Music generation failed
-      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Music generation failed');
+      console.error('❌ Music generation failed');
       responseData.success = false;
       responseData.error = analysisResult.musicResult?.error || 'Music generation failed';
       responseData.details = analysisResult.musicResult?.details;
     }
 
-    // 13. LOG FINAL RESPONSE FOR DEBUG
-    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° RESPONSE PREPARED WITH INTERVAL TIMING');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Success:', responseData.success);
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Tracks count:', responseData.tracks.length);
+    // 10. LOG FINAL RESPONSE FOR DEBUG
+    console.log('\n🎯 ===============================================');
+    console.log('🎯 DISK-BASED PROCESSING RESPONSE PREPARED');
+    console.log('🎯 ===============================================');
+    console.log('✅ Success:', responseData.success);
+    console.log('🎵 Tracks count:', responseData.tracks.length);
+    console.log('💾 Processing method: Disk-based');
     
     if (responseData.tracks.length > 0) {
       responseData.tracks.forEach((track, index) => {
-        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Track ${index + 1}:`);
+        console.log(`🎵 Track ${index + 1}:`);
         console.log(`   Title: ${track.title}`);
         console.log(`   Start: ${track.start}`);
         console.log(`   End: ${track.end}`);
@@ -6500,50 +6664,60 @@ else {
         console.log(`   Audio URL: ${track.audioUrl?.substring(0, 50)}...`);
       });
     }
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+    console.log('🎯 ===============================================');
 
-    // 14. SEND RESPONSE
+    // 11. SEND RESPONSE
     res.status(200).json(responseData);
 
   } catch (error) {
-    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Process video error:', error);
+    console.error('❌ Disk-based process video error:', error);
     
-    // Clean up any temporary files
-    const cleanup = async () => {
-      try {
-        if (originalPath && fs.existsSync(originalPath)) {
-          await fsPromises.unlink(originalPath);
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up original file');
-        }
-        if (trimmedPath && fs.existsSync(trimmedPath)) {
-          await fsPromises.unlink(trimmedPath);
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up trimmed file');
-        }
-      } catch (cleanupError) {
-        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Cleanup error:', cleanupError.message);
-      }
-    };
-    
-    await cleanup();
-    
-    // Send error response
     res.status(500).json({
       success: false,
-      error: 'Music generation failed',
+      error: 'Disk-based music generation failed',
       details: error.message,
-      processing_method: 'direct_buffer_analysis',
+      processing_method: 'disk_based_analysis',
       timestamp: new Date().toISOString()
     });
   } finally {
-    // Final cleanup
-    if (trimmedPath) {
-      try {
-        await fsPromises.unlink(trimmedPath);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Final cleanup completed');
-      } catch (cleanupError) {
-        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Final cleanup error:', cleanupError.message);
+    // Clean up ALL temporary files from disk
+    console.log('🗑️ Cleaning up temporary files from disk...');
+    for (const file of processedFilePaths) {
+      if (file) {
+        try {
+          await fsPromises.unlink(file);
+          console.log('✅ Cleaned up:', path.basename(file));
+        } catch (e) {
+          console.warn(`⚠️ Could not delete temporary file ${file}:`, e.message);
+        }
       }
     }
+    
+    // Clean up old temporary files
+    try {
+      const tempDir = '/var/data/temp_videos';
+      const files = await fsPromises.readdir(tempDir);
+      const now = Date.now();
+      const oneHourAgo = now - (60 * 60 * 1000);
+      
+      for (const file of files) {
+        const filePath = path.join(tempDir, file);
+        try {
+          const stats = await fsPromises.stat(filePath);
+          
+          if (stats.mtime.getTime() < oneHourAgo) {
+            await fsPromises.unlink(filePath);
+            console.log('🧹 Cleaned up old file:', file);
+          }
+        } catch (e) {
+          // File might already be deleted, ignore
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Could not clean up old temporary files:', e.message);
+    }
+    
+    logMemoryUsage('Endpoint end');
   }
 });
 
