@@ -7604,23 +7604,24 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
   try {
     const { segments, musicData, videoDuration, allowEmptyMusic } = req.body;
     
-    // Enhanced file validation
+    // Enhanced file validation for disk storage
     if (!req.file) {
       return res.status(400).json({ error: 'No video file provided' });
     }
     
-    // Check if file buffer exists and has content
-    if (!req.file.buffer || req.file.buffer.length === 0) {
-      console.error('File buffer is missing or empty:', {
-        hasBuffer: !!req.file.buffer,
-        bufferLength: req.file.buffer?.length || 0,
+    // Check if file exists on disk (disk storage mode)
+    if (!req.file.path || !fs.existsSync(req.file.path)) {
+      console.error('File path is missing or file does not exist:', {
+        hasPath: !!req.file.path,
+        filePath: req.file.path,
+        fileExists: req.file.path ? fs.existsSync(req.file.path) : false,
         fileSize: req.file.size,
         fileName: req.file.originalname,
         mimeType: req.file.mimetype
       });
       return res.status(400).json({ 
-        error: 'Invalid video file - file buffer is empty or corrupted',
-        details: 'The uploaded file appears to be corrupted or incomplete'
+        error: 'Invalid video file - file not found on disk',
+        details: 'The uploaded file was not properly saved to disk'
       });
     }
     
@@ -7632,30 +7633,40 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     const parsedMusicData = JSON.parse(musicData);
     
     console.log('🎬 ===============================================');
-    console.log('🎬 CREATING COMPLETE VIDEO WITH REMOVE/RESTORE SUPPORT');
+    console.log('🎬 CREATING COMPLETE VIDEO (DISK-BASED VERSION)');
     console.log('🎬 ===============================================');
     console.log(`🎵 Total segments: ${parsedSegments.length}`);
     console.log(`🎵 Music data provided for: ${Object.keys(parsedMusicData).length} segments`);
     console.log(`🎧 Allow empty music: ${allowEmptyMusic === 'true' ? 'YES' : 'NO'}`);
-    console.log(`📁 File info: ${req.file.originalname} (${(req.file.size / 1024 / 1024).toFixed(2)} MB)`);
+    console.log(`📁 File path: ${req.file.path}`);
+    console.log(`📊 File size: ${(req.file.size / 1024 / 1024).toFixed(2)} MB`);
     
-    // Save uploaded video with additional error handling
+    // Use disk-based file handling - move/copy the uploaded file
     videoFilePath = path.join(tempDir, `complete_video_source_${Date.now()}.mp4`);
     
     try {
-      await fsPromises.writeFile(videoFilePath, req.file.buffer);
+      // Copy the uploaded file from multer's location to our temp directory
+      await fsPromises.copyFile(req.file.path, videoFilePath);
       
-      // Verify the file was written correctly
-      const writtenStats = await fsPromises.stat(videoFilePath);
-      if (writtenStats.size === 0) {
-        throw new Error('Written file is empty');
+      // Clean up the original multer file
+      try {
+        await fsPromises.unlink(req.file.path);
+        console.log(`✅ Video copied from ${req.file.path} and original cleaned up`);
+      } catch (cleanupError) {
+        console.warn('Could not delete original multer file:', cleanupError.message);
       }
       
-      console.log(`✅ Video file saved: ${(writtenStats.size / 1024 / 1024).toFixed(2)} MB`);
+      // Verify the copied file
+      const copiedStats = await fsPromises.stat(videoFilePath);
+      if (copiedStats.size === 0) {
+        throw new Error('Copied file is empty');
+      }
       
-    } catch (writeError) {
-      console.error('❌ Failed to save video file:', writeError);
-      throw new Error(`Failed to save uploaded video: ${writeError.message}`);
+      console.log(`✅ Video file ready: ${(copiedStats.size / 1024 / 1024).toFixed(2)} MB`);
+      
+    } catch (copyError) {
+      console.error('❌ Failed to copy video file:', copyError);
+      throw new Error(`Failed to copy uploaded video: ${copyError.message}`);
     }
     
     // ⚡ ENHANCED: Filter out removed segments and process only active ones
@@ -7997,12 +8008,13 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
     console.log('\n🎯 ===============================================');
-    console.log('🎯 COMPLETE VIDEO WITH REMOVE/RESTORE READY');
+    console.log('🎯 COMPLETE VIDEO WITH DISK-BASED PROCESSING READY');
     console.log('🎯 ===============================================');
     console.log('🎬 Video URL:', combinedUrl);
     console.log(`🎵 Active segments: ${activeAudioSegments.length}`);
     console.log(`🗑️ Removed segments: ${removedSegmentCount}`);
     console.log(`📁 File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log('💾 Processing method: Disk-based (no memory buffers)');
     
     res.json({ 
       success: true, 
@@ -8010,16 +8022,18 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       activeSegments: activeAudioSegments.length,
       removedSegments: removedSegmentCount,
       totalSegments: parsedSegments.length,
+      processingMethod: 'disk-based',
       message: removedSegmentCount > 0 
         ? `Video created with ${activeAudioSegments.length} segments (${removedSegmentCount} removed)`
         : `Video created with ${activeAudioSegments.length} segments`
     });
 
   } catch (error) {
-    console.error('❌ Error creating complete video with remove/restore:', error);
+    console.error('❌ Error creating complete video (disk-based):', error);
     res.status(500).json({ 
       error: 'Failed to create complete video', 
-      details: error.message 
+      details: error.message,
+      processingMethod: 'disk-based'
     });
   } finally {
     // Clean up temporary files
@@ -8028,6 +8042,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       if (file) {
         try {
           await fsPromises.unlink(file);
+          console.log(`🗑️ Cleaned up: ${path.basename(file)}`);
         } catch (e) {
           console.warn(`⚠️  Could not delete ${file}:`, e.message);
         }
