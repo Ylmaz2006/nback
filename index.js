@@ -4924,20 +4924,20 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     const parsedMusicData = JSON.parse(musicData);
     const newSegmentIdx = parseInt(newSegmentIndex);
     
-    // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Parse trimmed video info if provided
+    // Parse trimmed video info if provided
     const parsedTrimInfo = trimInfo ? JSON.parse(trimInfo) : null;
     const isTrimmedVideo = !!parsedTrimInfo;
     
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ PROGRESSIVE VIDEO UPDATE - TRIMMED VIDEO SUPPORT');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ New segment with music: ${newSegmentIdx + 1}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total segments with music: ${Object.keys(parsedMusicData).length}`);
-    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Is trimmed video: ${isTrimmedVideo ? 'YES' : 'NO'}`);
+    console.log('🎬 ===============================================');
+    console.log('🎬 PROGRESSIVE VIDEO UPDATE - TRIMMED VIDEO SUPPORT');
+    console.log('🎬 ===============================================');
+    console.log(`🎞️ Total segments: ${parsedSegments.length}`);
+    console.log(`🎵 New segment with music: ${newSegmentIdx + 1}`);
+    console.log(`🎵 Total segments with music: ${Object.keys(parsedMusicData).length}`);
+    console.log(`✂️ Is trimmed video: ${isTrimmedVideo ? 'YES' : 'NO'}`);
     
     if (isTrimmedVideo) {
-      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Trimmed video info:`, {
+      console.log(`✂️ Trimmed video info:`, {
         originalStart: parsedTrimInfo.original_start + 's',
         originalEnd: parsedTrimInfo.original_end + 's',
         trimmedDuration: parsedTrimInfo.trimmed_duration + 's'
@@ -4946,11 +4946,26 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     
     // Show which segments currently have music
     const segmentsWithMusic = Object.keys(parsedMusicData).map(k => parseInt(k) + 1);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segments with music: [${segmentsWithMusic.join(', ')}]`);
+    console.log(`🎵 Segments with music: [${segmentsWithMusic.join(', ')}]`);
     
-    // Save uploaded video
+    // Save uploaded video - FIX: Handle both buffer and file path cases
     videoFilePath = path.join(tempDir, `progressive_video_source_${Date.now()}.mp4`);
-    await fsPromises.writeFile(videoFilePath, req.file.buffer);
+    
+    if (req.file.buffer) {
+      // Memory storage - write buffer to file
+      await fsPromises.writeFile(videoFilePath, req.file.buffer);
+    } else if (req.file.path) {
+      // Disk storage - copy/move existing file
+      await fsPromises.copyFile(req.file.path, videoFilePath);
+      // Clean up original multer file
+      try {
+        await fsPromises.unlink(req.file.path);
+      } catch (e) {
+        console.warn('Could not delete original multer file:', e.message);
+      }
+    } else {
+      throw new Error('No video data available in req.file');
+    }
     
     // Download and process ALL segments that have music (including the new one)
     const activeAudioSegments = [];
@@ -4963,7 +4978,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       if (musicInfo && musicInfo.audioUrl && originalSegment) {
         const volume = getEffectiveVolume(musicInfo, originalSegment);
         
-        // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Handle timing for both trimmed and full video
+        // Handle timing for both trimmed and full video
         let segmentStartTime, segmentEndTime, timingSource;
 
         if (musicInfo.actualMusicTiming) {
@@ -4974,11 +4989,11 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           
           // Log trimmed video specific info
           if (musicInfo.actualMusicTiming.isTrimmedVideo) {
-            console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segment ${segmentIndex + 1} (TRIMMED VIDEO):`);
+            console.log(`🎵 Segment ${segmentIndex + 1} (TRIMMED VIDEO):`);
             console.log(`   Absolute placement: ${segmentStartTime}s - ${segmentEndTime}s`);
             console.log(`   Relative to trimmed: ${musicInfo.actualMusicTiming.trimmedVideoInfo.relativeStart}s - ${musicInfo.actualMusicTiming.trimmedVideoInfo.relativeEnd}s`);
           } else {
-            console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Segment ${segmentIndex + 1} (FULL VIDEO):`);
+            console.log(`🎵 Segment ${segmentIndex + 1} (FULL VIDEO):`);
             console.log(`   Placement: ${segmentStartTime}s - ${segmentEndTime}s`);
           }
           
@@ -4994,11 +5009,11 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
 
         console.log(`   Volume: ${Math.round(volume * 100)}%`);
         console.log(`   Timing source: ${timingSource}`);
-        console.log(`   ${segmentIndex === newSegmentIdx ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ NEW!' : 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Existing'}`);
+        console.log(`   ${segmentIndex === newSegmentIdx ? '🎵 NEW!' : '✅ Existing'}`);
         
         if (volume > 0) {
           try {
-            console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading audio for segment ${segmentIndex + 1}...`);
+            console.log(`🔽 Downloading audio for segment ${segmentIndex + 1}...`);
             
             const audioResponse = await axios({
               method: 'get',
@@ -5007,6 +5022,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
             });
             
             const audioFilePath = path.join(tempDir, `progressive_audio_${segmentIndex}_${Date.now()}.mp3`);
+            audioFilePaths.push(audioFilePath); // Track for cleanup
             const audioWriter = fs.createWriteStream(audioFilePath);
             audioResponse.data.pipe(audioWriter);
             
@@ -5035,13 +5051,13 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
               isNew: segmentIndex === newSegmentIdx
             });
             
-            console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Audio ready for segment ${segmentIndex + 1}`);
+            console.log(`✅ Audio ready for segment ${segmentIndex + 1}`);
             
           } catch (error) {
-            console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+            console.error(`❌ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
           }
         } else {
-          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ Segment ${segmentIndex + 1} is muted - skipping`);
+          console.log(`🔇 Segment ${segmentIndex + 1} is muted - skipping`);
         }
       }
     }
@@ -5049,19 +5065,19 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     // Sort segments by start time for proper layering
     activeAudioSegments.sort((a, b) => parseFloat(a.segment.start_time) - parseFloat(b.segment.start_time));
     
-    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FINAL PROGRESSIVE VIDEO COMPOSITION:');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+    console.log('\n🎵 FINAL PROGRESSIVE VIDEO COMPOSITION:');
+    console.log('🎵 ===============================================');
     activeAudioSegments.forEach(({ index, segment, musicInfo, isNew }) => {
       const trimmedIndicator = segment.music_placement_timing?.isTrimmedVideo ? ' (Trimmed)' : ' (Full)';
-      console.log(`${isNew ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢' : 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦'} Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)${trimmedIndicator}`);
+      console.log(`${isNew ? '🎵' : '✅'} Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)${trimmedIndicator}`);
     });
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================\n');
+    console.log('🎵 ===============================================\n');
     
     const outputPath = path.join(tempDir, `progressive_video_${Date.now()}.mp4`);
     
     // Handle case where no active segments
     if (activeAudioSegments.length === 0) {
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ No active music segments - restoring original video with FULL VOLUME');
+      console.log('🔇 No active music segments - restoring original video with FULL VOLUME');
       
       await new Promise((resolve, reject) => {
         ffmpeg(videoFilePath)
@@ -5075,7 +5091,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           ])
           .output(outputPath)
           .on('end', () => {
-            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Original video restored with FULL VOLUME (no music segments)');
+            console.log('✅ Original video restored with FULL VOLUME (no music segments)');
             resolve();
           })
           .on('error', reject)
@@ -5096,7 +5112,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       });
       
     } else {
-      console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Creating progressive video with ${activeAudioSegments.length} music segments...`);
+      console.log(`🎵 Creating progressive video with ${activeAudioSegments.length} music segments...`);
       
       await new Promise((resolve, reject) => {
         let command = ffmpeg(videoFilePath);
@@ -5112,7 +5128,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           const segmentStart = parseFloat(segment.start_time);
           const volume = musicInfo.effectiveVolume;
           
-          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Progressive single segment: ${index + 1}`);
+          console.log(`🎵 Progressive single segment: ${index + 1}`);
           console.log(`   Music volume: ${Math.round(volume * 100)}%`);
           console.log(`   Original video audio: PRESERVED at full volume`);
           
@@ -5141,7 +5157,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
           const filterParts = [];
           const mixInputs = ['[0:a]'];
           
-          console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Progressive multiple segments: ${activeAudioSegments.length}`);
+          console.log(`🎵 Progressive multiple segments: ${activeAudioSegments.length}`);
           console.log(`   Original video audio: PRESERVED`);
           
           activeAudioSegments.forEach(({ index, musicInfo, segment }, arrayIndex) => {
@@ -5181,19 +5197,19 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
         command
           .output(outputPath)
           .on('start', (commandLine) => {
-            console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ Progressive video FFmpeg command:', commandLine.substring(0, 200) + '...');
+            console.log('🎬 Progressive video FFmpeg command:', commandLine.substring(0, 200) + '...');
           })
           .on('end', () => {
-            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Progressive video update completed');
+            console.log('✅ Progressive video update completed');
             resolve();
           })
           .on('error', (err) => {
-            console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Progressive video error:', err.message);
+            console.error('❌ Progressive video error:', err.message);
             reject(err);
           })
           .on('progress', (progress) => {
             if (progress.percent) {
-              console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Progressive update: ${Math.round(progress.percent)}% done`);
+              console.log(`🎯 Progressive update: ${Math.round(progress.percent)}% done`);
             }
           })
           .run();
@@ -5206,17 +5222,17 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
       throw new Error('Progressive video output is empty');
     }
 
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Progressive video ready:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('✅ Progressive video ready:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° PROGRESSIVE VIDEO UPDATE SUCCESSFUL');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Updated Video URL:', combinedUrl);
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â¢ Added segment ${newSegmentIdx + 1} to the progressive video`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Total active segments: ${activeAudioSegments.length}`);
-    console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å¡ÃƒÂ¯Ã‚Â¸Ã‚Â Video type: ${isTrimmedVideo ? 'Trimmed' : 'Full'} video`);
+    console.log('\n🎊 ===============================================');
+    console.log('🎊 PROGRESSIVE VIDEO UPDATE SUCCESSFUL');
+    console.log('🎊 ===============================================');
+    console.log('🎬 Updated Video URL:', combinedUrl);
+    console.log(`🎵 Added segment ${newSegmentIdx + 1} to the progressive video`);
+    console.log(`🎵 Total active segments: ${activeAudioSegments.length}`);
+    console.log(`✂️ Video type: ${isTrimmedVideo ? 'Trimmed' : 'Full'} video`);
     
     res.json({ 
       success: true, 
@@ -5230,7 +5246,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
     });
 
   } catch (error) {
-    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in progressive video update:', error);
+    console.error('❌ Error in progressive video update:', error);
     res.status(500).json({ 
       error: 'Failed to update progressive video', 
       details: error.message 
@@ -5243,7 +5259,7 @@ app.post('/api/update-progressive-video', upload.single('video'), async (req, re
         try {
           await fsPromises.unlink(file);
         } catch (e) {
-          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete ${file}:`, e.message);
+          console.warn(`⚠️ Could not delete ${file}:`, e.message);
         }
       }
     }
