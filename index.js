@@ -2511,21 +2511,89 @@ const filesToClean = [originalPath];
     console.log(`   Duration: ${clipDuration} seconds`);
     console.log(`   Range: ${start}s to ${end}s`);
 
-    // Trim video to segment
-    trimmedPath = path.join(tempDir, `trimmed_segment_${Date.now()}.mp4`);
-    await new Promise((resolve, reject) => {
-      ffmpeg(originalPath)
-        .setStartTime(start)
-        .setDuration(clipDuration)
-        .output(trimmedPath)
-        .on('end', () => {
-          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video segment trimmed successfully');
-          resolve();
-        })
-        .on('error', reject)
-        .run();
+// Trim video to segment with memory monitoring
+trimmedPath = path.join(tempDir, `trimmed_segment_${Date.now()}.mp4`);
+await new Promise((resolve, reject) => {
+  let ffmpegProcess;
+  let memoryCheckInterval;
+  
+  // Start memory monitoring
+  memoryCheckInterval = setInterval(() => {
+    const memoryUsage = process.memoryUsage();
+    const rssMB = memoryUsage.rss / 1024 / 1024;
+    const heapMB = memoryUsage.heapUsed / 1024 / 1024;
+    
+    console.log(`🧠 Memory: RSS=${rssMB.toFixed(2)}MB, Heap=${heapMB.toFixed(2)}MB`);
+    
+    // Kill process if memory gets too high
+    if (rssMB > 450 || heapMB > 350) {
+      console.log('🚨 MEMORY LIMIT REACHED - Killing FFmpeg process');
+      clearInterval(memoryCheckInterval);
+      if (ffmpegProcess) {
+        ffmpegProcess.kill('SIGKILL');
+      }
+      reject(new Error(`Memory limit reached: RSS=${rssMB.toFixed(2)}MB, Heap=${heapMB.toFixed(2)}MB`));
+    }
+  }, 2000); // Check every 2 seconds
+  
+  ffmpegProcess = ffmpeg(originalPath)
+    .setStartTime(start)
+    .setDuration(clipDuration)
+    .output(trimmedPath)
+    .outputOptions([
+      // 🚨 CRITICAL: Memory-saving options
+      '-preset ultrafast',    // Fastest encoding (less CPU/memory)
+      '-crf 32',             // Higher compression (smaller output)
+      '-vf scale=720:480',   // Reduce resolution to 720x480
+      '-r 20',               // Reduce frame rate to 20fps
+      '-ac 2',               // Stereo audio (not mono, for compatibility)
+      '-ar 44100',           // Standard audio sample rate
+      '-b:a 128k',           // Lower audio bitrate
+      '-maxrate 1500k',      // Limit video bitrate
+      '-bufsize 3000k',      // Buffer size for bitrate control
+      '-threads 2',          // Limit CPU threads
+      '-avoid_negative_ts make_zero'  // Fix timestamp issues
+    ])
+    .on('start', (commandLine) => {
+      console.log('🎬 Memory-safe FFmpeg started for trimming');
+      console.log('📝 Command preview:', commandLine.substring(0, 100) + '...');
+    })
+    .on('progress', (progress) => {
+      const percent = Math.round(progress.percent || 0);
+      const currentMem = process.memoryUsage().rss / 1024 / 1024;
+      
+      console.log(`🎬 Trimming progress: ${percent}%, Memory: ${currentMem.toFixed(2)}MB`);
+      
+      // Additional safety check during progress
+      if (currentMem > 400) {
+        console.log('⚠️ High memory usage detected during trimming');
+      }
+    })
+    .on('end', () => {
+      clearInterval(memoryCheckInterval);
+      console.log('✅ Video segment trimmed successfully');
+      
+      // Check output file size
+      if (typeof fsPromises !== 'undefined') {
+        fsPromises.stat(trimmedPath).then(stats => {
+          const outputSizeMB = stats.size / 1024 / 1024;
+          console.log(`📊 Trimmed file size: ${outputSizeMB.toFixed(2)}MB`);
+        }).catch(() => {
+          console.log('📊 Could not check output file size');
+        });
+      }
+      
+      resolve();
+    })
+    .on('error', (err) => {
+      clearInterval(memoryCheckInterval);
+      console.error('❌ Memory-safe trimming error:', err.message);
+      reject(err);
     });
-
+    
+  // Start the process
+  ffmpegProcess.run();
+});
     // Clean up original file
     await fsPromises.unlink(originalPath);
     originalPath = null;
