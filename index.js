@@ -7604,8 +7604,24 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
   try {
     const { segments, musicData, videoDuration, allowEmptyMusic } = req.body;
     
+    // Enhanced file validation
     if (!req.file) {
       return res.status(400).json({ error: 'No video file provided' });
+    }
+    
+    // Check if file buffer exists and has content
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      console.error('File buffer is missing or empty:', {
+        hasBuffer: !!req.file.buffer,
+        bufferLength: req.file.buffer?.length || 0,
+        fileSize: req.file.size,
+        fileName: req.file.originalname,
+        mimeType: req.file.mimetype
+      });
+      return res.status(400).json({ 
+        error: 'Invalid video file - file buffer is empty or corrupted',
+        details: 'The uploaded file appears to be corrupted or incomplete'
+      });
     }
     
     if (!segments || !musicData) {
@@ -7615,18 +7631,34 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     const parsedSegments = JSON.parse(segments);
     const parsedMusicData = JSON.parse(musicData);
     
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ CREATING COMPLETE VIDEO WITH REMOVE/RESTORE SUPPORT');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music data provided for: ${Object.keys(parsedMusicData).length} segments`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â§ Allow empty music: ${allowEmptyMusic === 'true' ? 'YES' : 'NO'}`);
+    console.log('🎬 ===============================================');
+    console.log('🎬 CREATING COMPLETE VIDEO WITH REMOVE/RESTORE SUPPORT');
+    console.log('🎬 ===============================================');
+    console.log(`🎵 Total segments: ${parsedSegments.length}`);
+    console.log(`🎵 Music data provided for: ${Object.keys(parsedMusicData).length} segments`);
+    console.log(`🎧 Allow empty music: ${allowEmptyMusic === 'true' ? 'YES' : 'NO'}`);
+    console.log(`📁 File info: ${req.file.originalname} (${(req.file.size / 1024 / 1024).toFixed(2)} MB)`);
     
-    // Save uploaded video
+    // Save uploaded video with additional error handling
     videoFilePath = path.join(tempDir, `complete_video_source_${Date.now()}.mp4`);
-    await fsPromises.writeFile(videoFilePath, req.file.buffer);
     
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Filter out removed segments and process only active ones
+    try {
+      await fsPromises.writeFile(videoFilePath, req.file.buffer);
+      
+      // Verify the file was written correctly
+      const writtenStats = await fsPromises.stat(videoFilePath);
+      if (writtenStats.size === 0) {
+        throw new Error('Written file is empty');
+      }
+      
+      console.log(`✅ Video file saved: ${(writtenStats.size / 1024 / 1024).toFixed(2)} MB`);
+      
+    } catch (writeError) {
+      console.error('❌ Failed to save video file:', writeError);
+      throw new Error(`Failed to save uploaded video: ${writeError.message}`);
+    }
+    
+    // ⚡ ENHANCED: Filter out removed segments and process only active ones
     const activeAudioSegments = [];
     let removedSegmentCount = 0;
     
@@ -7636,19 +7668,19 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       const originalSegment = parsedSegments[segmentIndex];
       
       if (!musicInfo || !originalSegment) {
-        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Segment ${segmentIndex + 1}: Missing music info or segment data`);
+        console.warn(`⚠️  Segment ${segmentIndex + 1}: Missing music info or segment data`);
         continue;
       }
       
-      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CHECK FOR REMOVED STATUS
+      // ⚡ CHECK FOR REMOVED STATUS
       if (musicInfo.removed === true || musicInfo.isRemovedFromVideo === true) {
         removedSegmentCount++;
-        console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Segment ${segmentIndex + 1}: SKIPPED (marked as removed)`);
+        console.log(`🗑️ Segment ${segmentIndex + 1}: SKIPPED (marked as removed)`);
         continue;
       }
       
       if (!musicInfo.audioUrl) {
-        console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Segment ${segmentIndex + 1}: Missing audio URL`);
+        console.warn(`⚠️  Segment ${segmentIndex + 1}: Missing audio URL`);
         continue;
       }
       
@@ -7672,21 +7704,22 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         timingSource = 'FALLBACK_ORIGINAL';
       }
 
-      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Segment ${segmentIndex + 1}: ACTIVE`);
+      console.log(`✅ Segment ${segmentIndex + 1}: ACTIVE`);
       console.log(`   Placement: ${segmentStartTime}s - ${segmentEndTime}s`);
       console.log(`   Volume: ${Math.round(volume * 100)}%`);
       console.log(`   Timing source: ${timingSource}`);
       console.log(`   Audio URL: ${musicInfo.audioUrl.substring(0, 50)}...`);
       
-      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ONLY PROCESS IF VOLUME > 0
+      // ⚡ ONLY PROCESS IF VOLUME > 0
       if (volume > 0) {
         try {
-          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading audio for segment ${segmentIndex + 1}...`);
+          console.log(`🎵 Downloading audio for segment ${segmentIndex + 1}...`);
           
           const audioResponse = await axios({
             method: 'get',
             url: musicInfo.audioUrl,
-            responseType: 'stream'
+            responseType: 'stream',
+            timeout: 30000 // Add timeout for audio downloads
           });
           
           const audioFilePath = path.join(tempDir, `complete_audio_${segmentIndex}_${Date.now()}.mp3`);
@@ -7696,7 +7729,15 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           await new Promise((resolve, reject) => {
             audioWriter.on('finish', resolve);
             audioWriter.on('error', reject);
+            // Add timeout for audio write
+            setTimeout(() => reject(new Error('Audio write timeout')), 30000);
           });
+          
+          // Verify audio file was written
+          const audioStats = await fsPromises.stat(audioFilePath);
+          if (audioStats.size === 0) {
+            throw new Error('Downloaded audio file is empty');
+          }
           
           activeAudioSegments.push({ 
             index: segmentIndex, 
@@ -7716,44 +7757,46 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           });
           
           audioFilePaths.push(audioFilePath); // For cleanup
-          console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Audio ready for segment ${segmentIndex + 1}`);
+          console.log(`✅ Audio ready for segment ${segmentIndex + 1} (${(audioStats.size / 1024).toFixed(1)} KB)`);
           
         } catch (error) {
-          console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+          console.error(`❌ Failed to download audio for segment ${segmentIndex + 1}:`, error.message);
+          // Continue processing other segments instead of failing completely
+          continue;
         }
       } else {
-        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
+        console.log(`🔇 Segment ${segmentIndex + 1} is muted (0%) - skipping audio download`);
       }
     }
     
     const outputPath = path.join(tempDir, `complete_video_${Date.now()}.mp4`);
     
-    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  PROCESSING SUMMARY:');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================');
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Active segments with music: ${activeAudioSegments.length}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Removed segments: ${removedSegmentCount}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total segments: ${parsedSegments.length}`);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  ===============================================\n');
+    console.log('\n🎵 PROCESSING SUMMARY:');
+    console.log('🎵 ===============================================');
+    console.log(`🎵 Active segments with music: ${activeAudioSegments.length}`);
+    console.log(`🗑️ Removed segments: ${removedSegmentCount}`);
+    console.log(`🎵 Total segments: ${parsedSegments.length}`);
+    console.log('🎵 ===============================================\n');
     
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ HANDLE CASE WHERE NO ACTIVE SEGMENTS (ALL REMOVED OR MUTED)
+    // ⚡ HANDLE CASE WHERE NO ACTIVE SEGMENTS (ALL REMOVED OR MUTED)
     if (activeAudioSegments.length === 0) {
       if (allowEmptyMusic === 'true') {
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ No active music segments - restoring original video with FULL VOLUME');
+        console.log('🔇 No active music segments - restoring original video with FULL VOLUME');
         
         await new Promise((resolve, reject) => {
           ffmpeg(videoFilePath)
-            // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: Use original audio at full volume (no mixing)
+            // ⚡ CRITICAL: Use original audio at full volume (no mixing)
             .outputOptions([
               '-c:v copy',           // Copy video without re-encoding
               '-c:a aac',            // Re-encode audio to ensure consistency
               '-b:a 192k',           // High quality audio
               '-ar 44100',           // Standard sample rate
               '-ac 2',               // Stereo
-              '-af volume=1.0'       // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ EXPLICIT: Set audio to 100% volume
+              '-af volume=1.0'       // ⚡ EXPLICIT: Set audio to 100% volume
             ])
             .output(outputPath)
             .on('end', () => {
-              console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Original video restored with FULL VOLUME (no music segments)');
+              console.log('✅ Original video restored with FULL VOLUME (no music segments)');
               resolve();
             })
             .on('error', reject)
@@ -7764,12 +7807,12 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const stats = await fsPromises.stat(outputPath);
         const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-        console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ORIGINAL VIDEO VOLUME FULLY RESTORED');
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', combinedUrl);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ…  Original audio: 100% volume (no music mixing)');
-        console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log('\n🎯 ===============================================');
+        console.log('🎯 ORIGINAL VIDEO VOLUME FULLY RESTORED');
+        console.log('🎯 ===============================================');
+        console.log('🎬 Video URL:', combinedUrl);
+        console.log('🔊 Original audio: 100% volume (no music mixing)');
+        console.log(`📁 File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
         
         return res.json({ 
           success: true, 
@@ -7791,13 +7834,13 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       }
     }
     
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PROCESS VIDEO WITH ACTIVE MUSIC SEGMENTS
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Creating video with ${activeAudioSegments.length} active music segments...`);
+    // ⚡ PROCESS VIDEO WITH ACTIVE MUSIC SEGMENTS
+    console.log(`🎵 Creating video with ${activeAudioSegments.length} active music segments...`);
     
     // Sort segments by start time for proper layering
     activeAudioSegments.sort((a, b) => parseFloat(a.segment.start_time) - parseFloat(b.segment.start_time));
     
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FINAL AUDIO COMPOSITION:');
+    console.log('🎵 FINAL AUDIO COMPOSITION:');
     activeAudioSegments.forEach(({ index, segment, musicInfo }) => {
       console.log(`   Segment ${index + 1}: ${segment.start_time}s-${segment.end_time}s (${Math.round(musicInfo.effectiveVolume * 100)}%)`);
     });
@@ -7816,7 +7859,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const segmentStart = parseFloat(segment.start_time);
         const musicVolume = musicInfo.effectiveVolume;
         
-        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Single active segment mixing: ${index + 1}`);
+        console.log(`🎵 Single active segment mixing: ${index + 1}`);
         console.log(`   Music volume: ${Math.round(musicVolume * 100)}%`);
         console.log(`   Original video audio: PRESERVED`);
         console.log(`   Placement: ${segmentStart}s - ${segment.end_time}s`);
@@ -7824,26 +7867,26 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const { filters, finalLabel } = buildAudioFilterWithFades(1, musicVolume, segment, segmentStart, 0);
         
         if (segmentStart > 0) {
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ PROPER MIXING: Both original audio + delayed music
+          // ⚡ PROPER MIXING: Both original audio + delayed music
           const silenceFilter = `anullsrc=channel_layout=stereo:sample_rate=44100:duration=${segmentStart}[silence]`;
           const concatFilter = `[silence]${finalLabel}concat=n=2:v=0:a=1[delayed_music]`;
           
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ CRITICAL: MIX original video audio WITH music (not replace)
+          // ⚡ CRITICAL: MIX original video audio WITH music (not replace)
           const mixFilter = `[0:a][delayed_music]amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
           
           command = command.complexFilter([
             silenceFilter,
             ...filters,
             concatFilter,
-            mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
+            mixFilter  // ⚡ This mixes BOTH audio streams
           ]);
         } else {
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DIRECT MIXING: Original audio + music from start
+          // ⚡ DIRECT MIXING: Original audio + music from start
           const mixFilter = `[0:a]${finalLabel}amix=inputs=2:duration=first:dropout_transition=0[final_audio]`;
           
           command = command.complexFilter([
             ...filters,
-            mixFilter  // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ This mixes BOTH audio streams
+            mixFilter  // ⚡ This mixes BOTH audio streams
           ]);
         }
       } else {
@@ -7851,7 +7894,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         const filterParts = [];
         const mixInputs = ['[0:a]']; // Always include original video audio
         
-        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Multiple active segments processing: ${activeAudioSegments.length}`);
+        console.log(`🎵 Multiple active segments processing: ${activeAudioSegments.length}`);
         console.log(`   Original video audio: PRESERVED at full volume`);
         
         activeAudioSegments.forEach(({ index, musicInfo, segment }, arrayIndex) => {
@@ -7861,7 +7904,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           
           console.log(`   ${arrayIndex + 1}. Segment ${index + 1}: ${segmentStart}s (${Math.round(musicVolume * 100)}%)`);
           
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Proper function call with correct parameters
+          // ⚡ FIXED: Proper function call with correct parameters
           const { filters, finalLabel } = buildAudioFilterWithFades(audioInputIndex, musicVolume, segment, segmentStart, arrayIndex);
           filterParts.push(...filters);
           
@@ -7875,11 +7918,11 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
           }
         });
         
-        // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ SIMPLIFIED: Mix all inputs without complex weights
+        // ⚡ SIMPLIFIED: Mix all inputs without complex weights
         const inputCount = mixInputs.length;
         filterParts.push(`${mixInputs.join('')}amix=inputs=${inputCount}:duration=first:dropout_transition=0[final_audio]`);
         
-        console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ FFmpeg filter: Mixing ${inputCount} audio streams (1 original + ${activeAudioSegments.length} music)`);
+        console.log(`🎵 FFmpeg filter: Mixing ${inputCount} audio streams (1 original + ${activeAudioSegments.length} music)`);
         
         command = command.complexFilter(filterParts);
       }
@@ -7898,48 +7941,48 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
       command
         .output(outputPath)
         .on('start', (commandLine) => {
-          console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ FFmpeg command:', commandLine);
+          console.log('🎬 FFmpeg command:', commandLine);
           
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ DEBUG: Log the complex filter being used
+          // ⚡ DEBUG: Log the complex filter being used
           const filterMatch = commandLine.match(/-filter_complex\s+"([^"]+)"/);
           if (filterMatch) {
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Complex filter being used:');
+            console.log('🎧 Complex filter being used:');
             console.log(filterMatch[1]);
           }
         })
         .on('end', () => {
-          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Complete video with active segments finished');
+          console.log('✅ Complete video with active segments finished');
           resolve();
         })
         .on('error', (err) => {
-          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ FFmpeg error:', err.message);
+          console.error('❌ FFmpeg error:', err.message);
           
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Better error logging
+          // ⚡ ENHANCED: Better error logging
           if (err.message.includes('Invalid stream specifier')) {
-            console.error('ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Stream specifier error - likely too many audio inputs or invalid filter syntax');
+            console.error('🚨 Stream specifier error - likely too many audio inputs or invalid filter syntax');
           }
           if (err.message.includes('filter_complex')) {
-            console.error('ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Complex filter error - check filter syntax');
+            console.error('🚨 Complex filter error - check filter syntax');
           }
           
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Attempting fallback: copy original video...');
+          console.log('🔄 Attempting fallback: copy original video...');
           
-          // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FALLBACK: Copy original video if mixing fails
+          // ⚡ FALLBACK: Copy original video if mixing fails
           ffmpeg(videoFilePath)
             .output(outputPath)
             .on('end', () => {
-              console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Fallback completed - original video without music');
+              console.log('✅ Fallback completed - original video without music');
               resolve();
             })
             .on('error', (fallbackErr) => {
-              console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Fallback also failed:', fallbackErr.message);
+              console.error('❌ Fallback also failed:', fallbackErr.message);
               reject(fallbackErr);
             })
             .run();
         })
         .on('progress', (progress) => {
           if (progress.percent) {
-            console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Progress: ${Math.round(progress.percent)}% done`);
+            console.log(`🔄 Progress: ${Math.round(progress.percent)}% done`);
           }
         })
         .run();
@@ -7953,13 +7996,13 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
 
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
 
-    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° COMPLETE VIDEO WITH REMOVE/RESTORE READY');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Video URL:', combinedUrl);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Active segments: ${activeAudioSegments.length}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â« Removed segments: ${removedSegmentCount}`);
-    console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log('\n🎯 ===============================================');
+    console.log('🎯 COMPLETE VIDEO WITH REMOVE/RESTORE READY');
+    console.log('🎯 ===============================================');
+    console.log('🎬 Video URL:', combinedUrl);
+    console.log(`🎵 Active segments: ${activeAudioSegments.length}`);
+    console.log(`🗑️ Removed segments: ${removedSegmentCount}`);
+    console.log(`📁 File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
     
     res.json({ 
       success: true, 
@@ -7973,7 +8016,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
     });
 
   } catch (error) {
-    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error creating complete video with remove/restore:', error);
+    console.error('❌ Error creating complete video with remove/restore:', error);
     res.status(500).json({ 
       error: 'Failed to create complete video', 
       details: error.message 
@@ -7986,7 +8029,7 @@ app.post('/api/create-complete-video', upload.single('video'), async (req, res) 
         try {
           await fsPromises.unlink(file);
         } catch (e) {
-          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete ${file}:`, e.message);
+          console.warn(`⚠️  Could not delete ${file}:`, e.message);
         }
       }
     }
