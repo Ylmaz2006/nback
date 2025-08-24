@@ -8248,11 +8248,69 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       console.log('Video downloaded to:', videoFilePath);
 
     } else if (req.file) {
-      videoFilePath = path.join(tempDir, `uploaded_video_${Date.now()}.mp4`);
-      await fsPromises.writeFile(videoFilePath, req.file.buffer);
-      console.log('Video uploaded to:', videoFilePath);
+      // 🔧 FIXED: Handle both disk storage and memory storage
+      console.log('Processing uploaded video file...');
+      console.log('File handling debug:', {
+        hasPath: !!req.file.path,
+        hasBuffer: !!req.file.buffer,
+        filename: req.file.originalname,
+        size: req.file.size,
+        destination: req.file.destination
+      });
+
+      if (req.file.path) {
+        // 🔧 DISK STORAGE: File is already on disk
+        videoFilePath = path.join(tempDir, `uploaded_video_${Date.now()}.mp4`);
+        await fsPromises.copyFile(req.file.path, videoFilePath);
+        console.log('Video copied from disk storage:', videoFilePath);
+        
+        // Clean up original multer file
+        try {
+          await fsPromises.unlink(req.file.path);
+          console.log('Original multer file cleaned up');
+        } catch (e) {
+          console.warn('Could not delete original multer file:', e.message);
+        }
+      } else if (req.file.buffer) {
+        // 🔧 MEMORY STORAGE: File is in buffer
+        videoFilePath = path.join(tempDir, `uploaded_video_${Date.now()}.mp4`);
+        await fsPromises.writeFile(videoFilePath, req.file.buffer);
+        console.log('Video written from buffer:', videoFilePath);
+      } else {
+        // 🔧 ERROR: No file data available
+        console.error('No video data available in req.file:', {
+          hasPath: !!req.file.path,
+          hasBuffer: !!req.file.buffer,
+          keys: Object.keys(req.file)
+        });
+        return res.status(400).json({ 
+          error: 'Invalid file upload - no file data available',
+          details: 'Neither file path nor buffer found in uploaded file',
+          fileInfo: {
+            hasPath: !!req.file.path,
+            hasBuffer: !!req.file.buffer,
+            filename: req.file.originalname,
+            size: req.file.size
+          }
+        });
+      }
     } else {
       return res.status(400).json({ error: 'No video source provided (file or URL).' });
+    }
+
+    // 🔧 VERIFY: Check that video file exists and has content
+    try {
+      const stats = await fsPromises.stat(videoFilePath);
+      if (stats.size === 0) {
+        throw new Error('Video file is empty');
+      }
+      console.log('Video file verified:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    } catch (verifyError) {
+      console.error('Video file verification failed:', verifyError.message);
+      return res.status(400).json({ 
+        error: 'Video file verification failed',
+        details: verifyError.message
+      });
     }
 
     if (!audioUrl) {
@@ -8291,24 +8349,24 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       throw new Error('Invalid numeric parameters for video/audio combination.');
     }
 
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Audio mixing parameters:');
+    console.log('🎵 Audio mixing parameters:');
     console.log('   - Video duration:', videoDurationNum, 'seconds');
     console.log('   - Video start time:', videoStartNum, 'seconds');
     console.log('   - Music duration:', musicDurationNum, 'seconds');
     console.log('   - Music volume:', Math.round(musicVolumeNum * 100) + '%');
     console.log('   - Audio start:', audioStartNum, 'seconds');
 
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Simplified audio stream detection (no ffprobe needed)
+    // 🔧 FIXED: Simplified audio stream detection (no ffprobe needed)
     const hasAudioStream = true; // Assume video has audio by default
 
     console.log('Assuming video has audio stream (simplified approach)');
 
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ FIXED: Better audio mixing logic with proper delay and volume
+    // 🔧 FIXED: Better audio mixing logic with proper delay and volume
     await new Promise((resolve, reject) => {
       let command = ffmpeg(videoFilePath)
         .input(audioFilePath);
 
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Processing video with audio mixing');
+      console.log('🎵 Processing video with audio mixing');
       
       const backgroundMusicVolume = musicVolumeNum;
       
@@ -8351,19 +8409,19 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       command
         .output(outputPath)
         .on('start', (commandLine) => {
-          console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ FFmpeg command:', commandLine);
+          console.log('🎬 FFmpeg command:', commandLine);
         })
         .on('end', () => {
-          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video processing completed successfully');
+          console.log('✅ Video processing completed successfully');
           resolve();
         })
         .on('error', (err) => {
-          console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ FFmpeg error:', err.message);
+          console.error('❌ FFmpeg error:', err.message);
           reject(err);
         })
         .on('progress', (progress) => {
           if (progress.percent) {
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ Processing: ' + Math.round(progress.percent) + '% done');
+            console.log('🔄 Processing: ' + Math.round(progress.percent) + '% done');
           }
         })
         .run();
@@ -8375,14 +8433,14 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       throw new Error('Output file is empty');
     }
 
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Combined video created:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('✅ Combined video created:', outputPath, 'Size:', (stats.size / 1024 / 1024).toFixed(2), 'MB');
 
     // Return the URL for the combined video
     const combinedUrl = `https://nback-6gqw.onrender.com/trimmed/${path.basename(outputPath)}`;
     res.json({ combinedUrl });
 
   } catch (err) {
-    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error combining video and audio:', err);
+    console.error('❌ Error combining video and audio:', err);
     res.status(500).json({ 
       error: 'Failed to combine video and audio', 
       details: err.message 
@@ -8394,15 +8452,14 @@ app.post('/api/combine-video-audio', upload.single('video'), async (req, res) =>
       if (file) {
         try {
           await fsPromises.unlink(file);
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â€Ã¢â‚¬ËœÃƒÂ¯Ã‚Â¸Ã‚Â Cleaned up:', file);
+          console.log('🗑️ Cleaned up:', file);
         } catch (e) {
-          console.warn(`ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not delete temporary file ${file}:`, e.message);
+          console.warn(`⚠️ Could not delete temporary file ${file}:`, e.message);
         }
       }
     }
   }
 });
-
 // User authentication routes (example, not fully implemented here)
 app.post('/api/register', async (req, res) => { /* ... */ });
 app.post('/api/login', async (req, res) => { /* ... */ });
