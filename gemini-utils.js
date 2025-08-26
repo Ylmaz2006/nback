@@ -3695,7 +3695,67 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `
+Analyze the uploaded video and provide a concise, 5-6 word description of its content. 
+The description should be suitable as a search query for finding similar videos on YouTube.
+Respond ONLY with the search query phrase, no additional text, explanation, or formatting.
+`;
 
+async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
+  try {
+    const { customPrompt = '' } = options;
+
+    console.log('🎬 Starting YouTube search description analysis...');
+    console.log('📦 Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+
+    // Build the full prompt
+    let fullPrompt = YOUTUBE_SEARCH_DESCRIPTION_PROMPT;
+    if (customPrompt) {
+      fullPrompt += `\n\nCUSTOM PROMPT:\n${customPrompt}`;
+    }
+
+    // Prepare video part for Gemini
+    const videoPart = {
+      inlineData: {
+        data: videoBuffer.toString('base64'),
+        mimeType: mimeType
+      }
+    };
+
+    console.log('🤖 Sending video to Gemini for search description...');
+    const startTime = Date.now();
+
+    // Assume you have initialized `model` from Google Generative AI SDK
+    const result = await model.generateContent([fullPrompt, videoPart]);
+    const response = await result.response;
+    const descriptionText = response.text();
+
+    const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    console.log('✅ YouTube search description completed!');
+    console.log('⏱️ Processing time:', processingTime, 'seconds');
+    console.log('📝 Raw response:', descriptionText);
+
+    // Optionally: Clean and trim the output to just the 5-6 words
+    // For now, just return as-is
+    return {
+      success: true,
+      searchDescription: descriptionText,
+      processingTime: processingTime + 's',
+      promptUsed: fullPrompt,
+      videoSize: (videoBuffer.length / 1024 / 1024).toFixed(2) + ' MB'
+    };
+
+  } catch (error) {
+    console.error('❌ YouTube search description analysis error:', error);
+
+    return {
+      success: false,
+      error: error.message,
+      details: 'Failed to generate YouTube search description'
+    };
+  }
+}
 // âœ… NEW: Analyze video for dual music outputs
 async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp4', options = {}) {
   try {
@@ -3760,6 +3820,7 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
 }
 module.exports = {
   // Core analysis functions
+  analyzeVideoForYouTubeSearchDescription,
   analyzeVideoForMusic,
   analyzeVideoFromGCS,
   analyzeVideoForAdvancedMusic,

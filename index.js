@@ -5570,7 +5570,16 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
         }
       }
     }
+   const { analyzeVideoForYouTubeSearchDescription } = require('./gemini-utils');
+    const ytDescResult = await analyzeVideoForYouTubeSearchDescription(finalVideoBuffer, 'video/mp4');
 
+    if (ytDescResult.success) {
+      console.log('\n🟦 YOUTUBE SEARCH DESCRIPTION:');
+      console.log('→', ytDescResult.searchDescription);
+      console.log('🟦 PROMPT USED:', ytDescResult.promptUsed);
+    } else {
+      console.warn('⚠️ Failed to get YouTube search description:', ytDescResult.error);
+    }
     // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Get video duration with better error handling
     try {
       const tempVideoPath = path.join(__dirname, 'temp_videos', `temp_analysis_${Date.now()}.mp4`);
@@ -5972,7 +5981,8 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
       dualAnalysisResult: dualAnalysisResult,
       musicResult: musicResult,
       videoDurationSeconds: videoDurationSeconds,
-      videoUrl: videoUrl
+      videoUrl: videoUrL,
+       youtubeSearchDescription: ytDescResult.searchDescription
     };
 
   } catch (error) {
@@ -6444,7 +6454,10 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
       
       // IMMEDIATELY CLEAR THE BUFFER
       analysisBuffer.fill(0);
-      
+          if (analysisResult.youtubeSearchDescription) {
+      console.log('\n🟦 FINAL YOUTUBE SEARCH QUERY SUGGESTION:');
+      console.log('→', analysisResult.youtubeSearchDescription);
+    }
       logMemoryUsage('After analysis complete');
       
       if (compressionInfo) {
