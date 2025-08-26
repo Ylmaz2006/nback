@@ -6456,7 +6456,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
 // ... after analysisResult is set ...
 let youtubeVideos = [];
 if (analysisResult.youtubeSearchDescription) {
-  youtubeVideos = await searchYouTubeVideos(analysisResult.youtubeSearchDescription, 5);
+  youtubeVideos = await searchYouTubeVideos(analysisResult.youtubeSearchDescription, 7);
   console.log('🔎 Top YouTube Results for:', analysisResult.youtubeSearchDescription);
   youtubeVideos.forEach((v, idx) => {
     console.log(`${idx+1}. ${v.title} - ${v.url}`);

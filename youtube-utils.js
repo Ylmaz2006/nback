@@ -2,13 +2,14 @@ const axios = require('axios');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // Store your key in env!
 
-async function searchYouTubeVideos(query, maxResults = 5) {
+async function searchYouTubeVideos(query, maxResults = 7) {
   const url = `https://www.googleapis.com/youtube/v3/search`;
   const params = {
     part: 'snippet',
     q: query,
     type: 'video',
     maxResults,
+    order: 'viewCount',    // <--- This gets videos by view count
     key: YOUTUBE_API_KEY
   };
 
