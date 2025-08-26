@@ -5981,8 +5981,8 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
       dualAnalysisResult: dualAnalysisResult,
       musicResult: musicResult,
       videoDurationSeconds: videoDurationSeconds,
-      videoUrl: videoUrL,
-       youtubeSearchDescription: ytDescResult.searchDescription
+      videoUrl: videoUrl,
+      youtubeSearchDescription: ytDescResult.searchDescription
     };
 
   } catch (error) {
