@@ -90,51 +90,45 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
   }
 
   let tries = 0;
+  let foundMusic = false;
   while (tries < 20) {
-    await new Promise(res => setTimeout(res, 5000)); // Wait 5 seconds
-    const file = await getAcrCloudFileStatus(uploadResult.id);
-    if (!file) {
-      console.log("Error fetching file status.");
+    await new Promise(res => setTimeout(res, 5000));
+    const fileArray = await getAcrCloudFileStatus(uploadResult.id);
+    if (!fileArray || !Array.isArray(fileArray) || fileArray.length === 0) {
+      console.log("Error fetching file status or empty file array.");
       return false;
     }
 
-    // DEBUG: Print the actual API response
-    if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(file, null, 2));
+    // Always print debug response for inspection
+    if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(fileArray, null, 2));
 
-    const state = file.state !== undefined ? file.state : file.status; // fallback field names
-    let statusText;
-
-    if (state === 0) statusText = "Processing";
-    else if (state === 1) statusText = "Ready";
-    else if (state === -1) statusText = "No results";
-    else if (state === undefined) statusText = "Unknown";
-    else statusText = `Error (${state})`;
-
+    const file = fileArray[0];
+    const state = file.state;
+    const statusText = state === 0 ? "Processing" :
+                       state === 1 ? "Ready" :
+                       state === -1 ? "No results" :
+                       state === undefined ? "Unknown" : `Error (${state})`;
     process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
 
-    if (state === 0 || state === undefined) {
-      tries++;
-      continue;
+    // Check for music results ANYTIME they're present
+    if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
+      foundMusic = true;
+      file.results.music.forEach((track, idx) => {
+        const res = track.result;
+        const artists = res.artists.map(a => a.name).join(", ");
+        console.log(`\n🎵 Song Name: ${res.title}`);
+        console.log(`🎤 Artist(s): ${artists}`);
+      });
+      return true; // Music found, exit polling
     }
 
-    // Only print results if status is "Ready" (1)
     if (state === 1) {
-      console.log(`\n🎵 Music Recognition Result for: ${name}`);
-      if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
-        file.results.music.forEach((track, idx) => {
-          const res = track.result;
-          console.log(`${idx + 1}. Title: ${res.title}`);
-          console.log(`   Artists: ${res.artists.map(a => a.name).join(", ")}`);
-          console.log(`   ISRC: ${res.external_ids?.isrc || "N/A"}`);
-          // Print more metadata if needed
-        });
-        return true;
-      } else {
-        console.log("No music found in this video.");
+      // If ready but no music, only then print "No music found"
+      if (!foundMusic) {
+        console.log("\nNo music found in this video.");
         return false;
       }
     }
-
     if (state === -1) {
       console.log("\n❌ No music found in this video.");
       return false;
