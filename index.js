@@ -6452,7 +6452,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
         analysisBuffer  // Pass buffer directly for analysis
       );
       const { searchYouTubeVideos ,recognizeYouTubeMusic} = require('./youtube-utils');
-
+const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
 // ... after analysisResult is set ...
 let youtubeVideos = [];
 if (analysisResult.youtubeSearchDescription) {
@@ -6463,13 +6463,14 @@ if (analysisResult.youtubeSearchDescription) {
   });
 }
 
-  if (youtubeVideos.length > 0) {
-    const firstUrl = youtubeVideos[0].url;
-    console.log('Uploading first YouTube URL to AcrCloud:', firstUrl);
-    await recognizeYouTubeMusic(firstUrl);
-  } else {
-    console.log('No YouTube videos found.');
-  }
+if (youtubeVideos.length > 0) {
+  const firstUrl = youtubeVideos[0].url;
+  console.log('Uploading first YouTube URL to AcrCloud:', firstUrl);
+  // This will upload and poll, and print results at the terminal
+  await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
+} else {
+  console.log('No YouTube videos found.');
+}
 
       // IMMEDIATELY CLEAR THE BUFFER
       analysisBuffer.fill(0);
