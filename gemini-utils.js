@@ -3695,10 +3695,109 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `
-Analyze the uploaded video and provide a concise, 5-6 word description of the type of the vide. 
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `ducational / Informational
+
+Tutorials & How-To’s
+
+Explainers (science, tech, medicine, history, etc.)
+
+Study tips, exam prep, lectures
+
+Reviews of products, apps, or services
+
+2. Entertainment
+
+Vlogs (daily life, travel vlogs, lifestyle)
+
+Comedy skits / parodies
+
+Reaction videos
+
+Storytime videos
+
+Challenges & dares
+
+3. Gaming
+
+Let’s Plays
+
+Walkthroughs / playthroughs
+
+Live streams
+
+Esports highlights
+
+Game reviews
+
+4. Music & Audio
+
+Official music videos
+
+Covers & remixes
+
+Lyrics videos
+
+Instrumentals / beats
+
+Podcasts & talk shows (also in audio-visual form)
+
+5. Reviews & Unboxings
+
+Tech unboxings
+
+Gadget/product reviews
+
+Food tasting / mukbang
+
+Book / movie reviews
+
+6. Lifestyle & Personal Development
+
+Fitness & health videos
+
+Cooking & recipes
+
+Fashion & beauty tutorials
+
+Travel content
+
+Finance & business tips
+
+7. News & Commentary
+
+Breaking news / analysis
+
+Commentary on trending topics
+
+Political or social commentary
+
+8. Live & Interactive
+
+YouTube Live streams (gaming, Q&A, events)
+
+Webinars & workshops
+
+Concerts or live performances
+
+9. Short-Form Content
+
+YouTube Shorts (under 60s vertical format, like TikTok)
+
+Quick tips, hacks, memes
+
+10. Professional / Niche
+
+Documentaries
+
+Interviews
+
+Case studies & research presentations
+
+Product demos / brand content
+Analyze the uploaded video and provide a concise, 5-6 word description of the type of the videos thetype examples are above . 
 The description should be suitable as a search AT youtube data api when i search wth these words at the api the similar type videos should appear .
 Respond ONLY with the search query phrase, no additional text, explanation, or formatting.
+example prompt is ths vlog about ai or educational video about ai
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
