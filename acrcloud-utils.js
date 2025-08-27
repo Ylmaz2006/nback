@@ -83,29 +83,66 @@ async function getAcrCloudFileResult(fileId) {
  * @param {string} [name] - Optional name for the file.
  */
 async function recognizeMusicFromYouTube(youtubeUrl, name) {
-  // Step 1: Upload video URL
+  // Upload to AcrCloud
   const uploadResult = await uploadYouTubeToAcrCloud(youtubeUrl, name);
   if (!uploadResult || !uploadResult.id) {
     console.log("❌ Upload failed or no file ID received.");
-    return;
+    return false;
   }
 
-  // Step 2: Poll for result until ready
   let tries = 0;
-  let fileResult = null;
-  while (tries < 20) { // Try up to 20 times
+  while (tries < 20) {
     await new Promise(res => setTimeout(res, 5000)); // Wait 5 seconds
-    fileResult = await getAcrCloudFileResult(uploadResult.id);
-    // Check if processing is done and results are present
-    if (fileResult && fileResult.music && fileResult.music.length > 0) break;
-    tries++;
-    process.stdout.write(`Polling attempt ${tries}...\r`);
-  }
-  if (!fileResult) {
-    console.log("❌ No result after polling.");
-  }
-}
+    const file = await getAcrCloudFileStatus(uploadResult.id); // <-- returns file.status and results
+    if (!file) {
+      console.log("Error fetching file status.");
+      return false;
+    }
 
+    // Print status each poll
+    const statusText = file.state === 0 ? "Processing" :
+                       file.state === 1 ? "Ready" :
+                       file.state === -1 ? "No results" : `Error (${file.state})`;
+    process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
+
+    // If still processing, keep polling
+    if (file.state === 0) {
+      tries++;
+      continue;
+    }
+
+    // If ready, print music info (if any)
+    if (file.state === 1) {
+      console.log(`\n🎵 Music Recognition Result for: ${name}`);
+      if (file.results && file.results.music && file.results.music.length > 0) {
+        file.results.music.forEach((track, idx) => {
+          const res = track.result;
+          console.log(`${idx + 1}. Title: ${res.title}`);
+          console.log(`   Artists: ${res.artists.map(a => a.name).join(", ")}`);
+          console.log(`   ISRC: ${res.external_ids?.isrc || "N/A"}`);
+          // ...print more metadata as needed
+        });
+        return true;
+      } else {
+        console.log("No music found in this video.");
+        return false;
+      }
+    }
+
+    // If no results or error, break
+    if (file.state === -1) {
+      console.log("\n❌ No music found in this video.");
+      return false;
+    }
+    if (file.state < 0) {
+      console.log(`\n❌ Error processing video. State: ${file.state}`);
+      return false;
+    }
+    tries++;
+  }
+  console.log("\n❌ Timed out polling for results.");
+  return false;
+}
 module.exports = {
   uploadYouTubeToAcrCloud,
   getAcrCloudFileResult,
