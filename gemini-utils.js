@@ -3695,7 +3695,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `analyze and give thetype of the vido such as vlog ed8ucational video just  word ill be given which is the typeof the vieo suchas example out puts:"vlog"
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style of this video. Respond with only one word that best describes the type or genre of the video (for example: vlog, tutorial, music, documentary, interview, etc). Do not provide any explanation or extra words—just the single word."
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
