@@ -2,6 +2,12 @@ const axios = require('axios');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY; // Store your key in env!
 
+/**
+ * Search YouTube for videos by relevance (most relevant first).
+ * @param {string} query - Search query, e.g., "artist - song".
+ * @param {number} maxResults - Number of results to return (default 7).
+ * @returns {Promise<Array>} Array of video objects (title, videoId, url, thumbnail, description).
+ */
 async function searchYouTubeVideos(query, maxResults = 7) {
   const url = `https://www.googleapis.com/youtube/v3/search`;
   const params = {
@@ -9,7 +15,7 @@ async function searchYouTubeVideos(query, maxResults = 7) {
     q: query,
     type: 'video',
     maxResults,
-    order: 'viewCount',    // <--- This gets videos by view count
+    order: 'relevance',    // <--- This gets videos by relevance, not view count!
     key: YOUTUBE_API_KEY
   };
 
@@ -27,6 +33,7 @@ async function searchYouTubeVideos(query, maxResults = 7) {
     return [];
   }
 }
+
 async function recognizeYouTubeMusic(youtubeUrl) {
   const acrHost = process.env.ACRCLOUD_HOST;
   const acrKey = process.env.ACRCLOUD_ACCESS_KEY;
@@ -60,4 +67,5 @@ async function recognizeYouTubeMusic(youtubeUrl) {
     return null;
   }
 }
-module.exports = { searchYouTubeVideos , recognizeYouTubeMusic };
+
+module.exports = { searchYouTubeVideos, recognizeYouTubeMusic };
