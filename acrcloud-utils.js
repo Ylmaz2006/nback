@@ -83,7 +83,6 @@ async function getAcrCloudFileResult(fileId) {
  * @param {string} [name] - Optional name for the file.
  */
 async function recognizeMusicFromYouTube(youtubeUrl, name) {
-  // Upload to AcrCloud
   const uploadResult = await uploadYouTubeToAcrCloud(youtubeUrl, name);
   if (!uploadResult || !uploadResult.id) {
     console.log("❌ Upload failed or no file ID received.");
@@ -93,34 +92,41 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
   let tries = 0;
   while (tries < 20) {
     await new Promise(res => setTimeout(res, 5000)); // Wait 5 seconds
-    const file = await getAcrCloudFileStatus(uploadResult.id); // <-- returns file.status and results
+    const file = await getAcrCloudFileStatus(uploadResult.id);
     if (!file) {
       console.log("Error fetching file status.");
       return false;
     }
 
-    // Print status each poll
-    const statusText = file.state === 0 ? "Processing" :
-                       file.state === 1 ? "Ready" :
-                       file.state === -1 ? "No results" : `Error (${file.state})`;
+    // DEBUG: Print the actual API response
+    if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(file, null, 2));
+
+    const state = file.state !== undefined ? file.state : file.status; // fallback field names
+    let statusText;
+
+    if (state === 0) statusText = "Processing";
+    else if (state === 1) statusText = "Ready";
+    else if (state === -1) statusText = "No results";
+    else if (state === undefined) statusText = "Unknown";
+    else statusText = `Error (${state})`;
+
     process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
 
-    // If still processing, keep polling
-    if (file.state === 0) {
+    if (state === 0 || state === undefined) {
       tries++;
       continue;
     }
 
-    // If ready, print music info (if any)
-    if (file.state === 1) {
+    // Only print results if status is "Ready" (1)
+    if (state === 1) {
       console.log(`\n🎵 Music Recognition Result for: ${name}`);
-      if (file.results && file.results.music && file.results.music.length > 0) {
+      if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
         file.results.music.forEach((track, idx) => {
           const res = track.result;
           console.log(`${idx + 1}. Title: ${res.title}`);
           console.log(`   Artists: ${res.artists.map(a => a.name).join(", ")}`);
           console.log(`   ISRC: ${res.external_ids?.isrc || "N/A"}`);
-          // ...print more metadata as needed
+          // Print more metadata if needed
         });
         return true;
       } else {
@@ -129,13 +135,12 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
       }
     }
 
-    // If no results or error, break
-    if (file.state === -1) {
+    if (state === -1) {
       console.log("\n❌ No music found in this video.");
       return false;
     }
-    if (file.state < 0) {
-      console.log(`\n❌ Error processing video. State: ${file.state}`);
+    if (state < 0) {
+      console.log(`\n❌ Error processing video. State: ${state}`);
       return false;
     }
     tries++;
