@@ -3696,8 +3696,8 @@ function extractDualMusicOutputs(geminiResponse) {
   }
 }
 const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `
-Analyze the uploaded video and provide a concise, 5-6 word description of its content. 
-The description should be suitable as a search query for finding similar videos on YouTube.
+Analyze the uploaded video and provide a concise, 5-6 word description of the type of the vide. 
+The description should be suitable as a search AT youtube data api when i search wth these words at the api the similar type videos should appear .
 Respond ONLY with the search query phrase, no additional text, explanation, or formatting.
 `;
 
