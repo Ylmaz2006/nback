@@ -143,8 +143,24 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
   console.log("\n❌ Timed out polling for results.");
   return false;
 }
+async function getAcrCloudFileStatus(fileId) {
+  const endpoint = `https://api-${REGION}.acrcloud.com/api/fs-containers/${CONTAINER_ID}/files/${fileId}`;
+  try {
+    const response = await axios.get(endpoint, {
+      headers: {
+        'Authorization': `Bearer ${ACRCLOUD_TOKEN}`,
+        'Accept': 'application/json'
+      }
+    });
+    return response.data.data;
+  } catch (err) {
+    console.error("AcrCloud File Status Error:", err.response?.data || err.message);
+    return null;
+  }
+}
 module.exports = {
   uploadYouTubeToAcrCloud,
   getAcrCloudFileResult,
   recognizeMusicFromYouTube,
+  getAcrCloudFileStatus,
 };

@@ -6452,7 +6452,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
         analysisBuffer  // Pass buffer directly for analysis
       );
       const { searchYouTubeVideos ,recognizeYouTubeMusic} = require('./youtube-utils');
-const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
+const { recognizeMusicFromYouTube,getAcrCloudFileStatus } = require('./acrcloud-utils');
 // ... after analysisResult is set ...
 let youtubeVideos = [];
 if (analysisResult.youtubeSearchDescription) {
