@@ -1,16 +1,13 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const ACRCLOUD_TOKEN = process.env.ACRCLOUD_BEARER_TOKEN; // Your Bearer token from .env
-const REGION = process.env.ACRCLOUD_REGION || 'eu-west-1'; // Example: 'eu-west-1'
-const CONTAINER_ID = process.env.ACRCLOUD_CONTAINER_ID;    // Your container ID
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;       // Your YouTube API key
+const ACRCLOUD_TOKEN = process.env.ACRCLOUD_BEARER_TOKEN;
+const REGION = process.env.ACRCLOUD_REGION || 'eu-west-1';
+const CONTAINER_ID = process.env.ACRCLOUD_CONTAINER_ID;
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 /**
  * Upload a YouTube URL to AcrCloud FS Container for music recognition.
- * @param {string} youtubeUrl - The YouTube video URL.
- * @param {string} [name] - Optional name for the file.
- * @returns {Promise<object|null>} - The upload result containing file id, uri, etc.
  */
 async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
   const endpoint = `https://api-${REGION}.acrcloud.com/api/fs-containers/${CONTAINER_ID}/files`;
@@ -19,7 +16,6 @@ async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
     url: youtubeUrl,
     name: name || youtubeUrl,
   };
-
   try {
     const response = await axios.post(endpoint, body, {
       headers: {
@@ -29,7 +25,7 @@ async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
       }
     });
     console.log("📤 Uploaded to AcrCloud:", response.data.data);
-    return response.data.data; // Contains id, uri, etc.
+    return response.data.data;
   } catch (err) {
     console.error("AcrCloud Upload Error:", err.response?.data || err.message);
     return null;
@@ -37,10 +33,7 @@ async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
 }
 
 /**
- * Get the music recognition results for a file in AcrCloud FS Container.
- * Returns the array of file info objects.
- * @param {string} fileId - The file id returned from upload.
- * @returns {Promise<object[]|null>} - The array of file info objects.
+ * Get music recognition results from AcrCloud FS Container.
  */
 async function getAcrCloudFileStatus(fileId) {
   const endpoint = `https://api-${REGION}.acrcloud.com/api/fs-containers/${CONTAINER_ID}/files/${fileId}`;
@@ -51,7 +44,7 @@ async function getAcrCloudFileStatus(fileId) {
         'Accept': 'application/json'
       }
     });
-    return response.data.data; // Should be an array
+    return response.data.data;
   } catch (err) {
     console.error("AcrCloud File Status Error:", err.response?.data || err.message);
     return null;
@@ -59,26 +52,25 @@ async function getAcrCloudFileStatus(fileId) {
 }
 
 /**
- * YouTube search by song title and artist, returns the most viewed video URL.
- * @param {string} query - Song and artist query.
- * @returns {Promise<string|null>} - YouTube video URL or null.
+ * YouTube search: "artist - song" and get the most relevant video (first result).
  */
-async function searchYouTubeMostViewed(query) {
+async function searchYouTubeMostRelevant(artist, songTitle) {
   const endpoint = `https://www.googleapis.com/youtube/v3/search`;
+  const query = `${artist} - ${songTitle}`;
   const params = {
     part: 'snippet',
     q: query,
     type: 'video',
-    maxResults: 5,
+    maxResults: 1,
     key: YOUTUBE_API_KEY,
-    order: 'viewCount'
+    order: 'relevance'
   };
   try {
     const url = endpoint + '?' + new URLSearchParams(params).toString();
     const response = await axios.get(url);
     const items = response.data.items;
     if (!items || items.length === 0) return null;
-    // Return most viewed video's URL
+    // Return the first (most relevant) video's URL
     return `https://www.youtube.com/watch?v=${items[0].id.videoId}`;
   } catch (err) {
     console.error("YouTube Search Error:", err.response?.data || err.message);
@@ -87,9 +79,7 @@ async function searchYouTubeMostViewed(query) {
 }
 
 /**
- * Print music title and artist(s) and show YouTube most viewed video for the recognized song.
- * @param {object[]} fileArray - The array of file info objects.
- * @returns {Promise<boolean>} - True if music found, false otherwise.
+ * Print music title, artist and the most relevant YouTube video.
  */
 async function printAcrCloudMusic(fileArray) {
   if (!Array.isArray(fileArray) || fileArray.length === 0) {
@@ -108,11 +98,10 @@ async function printAcrCloudMusic(fileArray) {
       const songTitle = res.title;
       console.log(`🎵 Song Name: ${songTitle}`);
       console.log(`🎤 Artist(s): ${artists}`);
-      // Search YouTube for the most viewed video
-      const ytQuery = `${songTitle} ${artists}`;
-      const mostViewedUrl = await searchYouTubeMostViewed(ytQuery);
-      if (mostViewedUrl) {
-        console.log(`🔥 Most Viewed YouTube Video: ${mostViewedUrl}`);
+      // Search YouTube for "artist - song"
+      const mostRelevantUrl = await searchYouTubeMostRelevant(artists, songTitle);
+      if (mostRelevantUrl) {
+        console.log(`🔗 Most Relevant YouTube Video: ${mostRelevantUrl}`);
       } else {
         console.log("No YouTube video found for this song/artist.");
       }
@@ -127,8 +116,6 @@ async function printAcrCloudMusic(fileArray) {
 /**
  * Recognize music from a YouTube video URL using AcrCloud FS Container workflow.
  * Uploads video, polls for result, prints recognized music name, artist, and YouTube video.
- * @param {string} youtubeUrl - The YouTube video URL.
- * @param {string} [name] - Optional name for the file.
  */
 async function recognizeMusicFromYouTube(youtubeUrl, name) {
   const uploadResult = await uploadYouTubeToAcrCloud(youtubeUrl, name);
@@ -146,10 +133,7 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
       console.log("Error fetching file status or empty file array.");
       return false;
     }
-
-    // Always print debug response for inspection
     if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(fileArray, null, 2));
-
     const file = fileArray[0];
     const state = file.state;
     const statusText = state === 0 ? "Processing" :
@@ -157,17 +141,13 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
                        state === -1 ? "No results" :
                        state === undefined ? "Unknown" : `Error (${state})`;
     process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
-
-    // Check for music results ANYTIME they're present
     if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
       foundMusic = true;
       console.log(""); // newline after polling
       await printAcrCloudMusic(fileArray);
       return true; // Music found, exit polling
     }
-
     if (state === 1) {
-      // If ready but no music, only then print "No music found"
       if (!foundMusic) {
         console.log("\nNo music found in this video.");
         return false;
@@ -192,5 +172,5 @@ module.exports = {
   getAcrCloudFileStatus,
   printAcrCloudMusic,
   recognizeMusicFromYouTube,
-  searchYouTubeMostViewed,
+  searchYouTubeMostRelevant,
 };
