@@ -3695,7 +3695,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style of this video. Respond with only one word that best describes the type or genre of the video (for example: vlog, tutorial, music, documentary, interview, etc). Do not provide any explanation or extra words—just the single word."
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentene word that describes the type style and content of the video Do not provide any explanation or extra words "
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
