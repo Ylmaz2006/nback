@@ -5624,14 +5624,18 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
     console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO BUFFER FOR DUAL 280-CHAR OUTPUTS');
     console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
 
-    const dualAnalysisResult = await analyzeVideoForDualMusicOutputs(finalVideoBuffer, 'video/mp4', {
-      customPrompt: customPrompt + `
-      
-FOCUS ON MUSICAL TERMINOLOGY:
+ const dualAnalysisResult = await analyzeVideoForDualMusicOutputs(finalVideoBuffer, 'video/mp4', {
+  customPrompt: customPrompt + `
+  
+${youtubeUrl ? `REFERENCE YOUTUBE VIDEO: ${youtubeUrl}
+
+Use this YouTube video as reference context while analyzing the uploaded video.
+
+` : ''}FOCUS ON MUSICAL TERMINOLOGY:
 Include specific terms like: BPM, key signatures, time signatures, dynamics (pp, ff), articulations (legato, staccato), intervals (octaves, 5ths), scales (major, minor, dorian), chord types (maj7, min9), orchestration details, playing techniques (pizzicato, tremolo), tempo markings (andante, allegro), and instrument specifics.
 
 Generate TWO separate 280-character outputs with maximum musical detail.`
-    });
+});
 
     if (!dualAnalysisResult.success) {
       throw new Error(`Dual output analysis failed: ${dualAnalysisResult.error}`);
@@ -6454,22 +6458,21 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
       const { searchYouTubeVideos ,recognizeYouTubeMusic} = require('./youtube-utils');
 const { recognizeMusicFromYouTube,getAcrCloudFileStatus } = require('./acrcloud-utils');
 // ... after analysisResult is set ...
-let youtubeVideos = [];
+let youtubeUrl = null;
 if (analysisResult.youtubeSearchDescription) {
-  youtubeVideos = await searchYouTubeVideos(analysisResult.youtubeSearchDescription, 5);
-  console.log('🔎 Top YouTube Results for:', analysisResult.youtubeSearchDescription);
-  youtubeVideos.forEach((v, idx) => {
-    console.log(`${idx+1}. ${v.title} - ${v.url}`);
-  });
-}
-
-if (youtubeVideos.length > 0) {
-  const firstUrl = youtubeVideos[0].url;
-  console.log('Uploading first YouTube URL to AcrCloud:', firstUrl);
-  // This will upload and poll, and print results at the terminal
-  await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
-} else {
-  console.log('No YouTube videos found.');
+  const youtubeVideos = await searchYouTubeVideos(analysisResult.youtubeSearchDescription, 1);
+  console.log('🔎 Searching YouTube for:', analysisResult.youtubeSearchDescription);
+  
+  if (youtubeVideos.length > 0) {
+    youtubeUrl = youtubeVideos[0].url;
+    console.log('Found YouTube URL:', youtubeUrl);
+    console.log('Video title:', youtubeVideos[0].title);
+    
+    // Upload to AcrCloud for music recognition
+    await recognizeMusicFromYouTube(youtubeUrl, youtubeVideos[0].title);
+  } else {
+    console.log('No YouTube videos found.');
+  }
 }
 
       // IMMEDIATELY CLEAR THE BUFFER
