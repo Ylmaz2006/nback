@@ -5729,17 +5729,26 @@ Generate TWO separate 280-character outputs with maximum musical detail.`,
         console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
         console.log('🎵 Original track:', youtubeVideos[0].title);
 
-        const musicgptPayload = {
-          audio_url: youtubeVideos[0].url, // Use YouTube URL as audio source
-          prompt: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`, // Combine both prompts
-          webhook_url: webhookUrl
-        };
+        // STEP 3.1: Download YouTube audio first
+        console.log('📥 Downloading YouTube audio for remix...');
+        const { downloadYouTubeAudio } = require('./youtube-utils');
 
-        console.log('📤 MusicGPT Remix Payload:');
-        console.log('🎵 Audio URL:', youtubeVideos[0].url);
-        console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
-        console.log('🎭 Music Style:', dualAnalysisResult.music_style);
-        console.log('🔗 Webhook URL:', webhookUrl);
+        let audioFileBuffer = null;
+        let audioFilePath = null;
+
+        try {
+          // Download YouTube audio as MP3
+          const downloadResult = await downloadYouTubeAudio(youtubeVideos[0].url);
+          audioFileBuffer = downloadResult.buffer;
+          audioFilePath = downloadResult.filePath;
+          
+          console.log('✅ YouTube audio downloaded successfully');
+          console.log('📊 Audio file size:', (audioFileBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+          
+        } catch (downloadError) {
+          console.error('❌ Failed to download YouTube audio:', downloadError.message);
+          throw new Error(`Could not download YouTube audio: ${downloadError.message}`);
+        }
 
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
@@ -5747,18 +5756,54 @@ Generate TWO separate 280-character outputs with maximum musical detail.`,
         
         const musicgptStartTime = Date.now();
 
+        // STEP 3.2: Create FormData for file upload
+        const FormData = require('form-data');
+        const formData = new FormData();
+
+        // Add the audio file
+        formData.append('audio_file', audioFileBuffer, {
+          filename: 'youtube_audio.mp3',
+          contentType: 'audio/mpeg'
+        });
+
+        // Add other parameters
+        formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`);
+        formData.append('webhook_url', webhookUrl);
+
+        console.log('📤 MusicGPT Remix Payload:');
+        console.log('🎵 Audio File:', 'youtube_audio.mp3');
+        console.log('🎵 Audio Size:', (audioFileBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+        console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
+        console.log('🎭 Music Style:', dualAnalysisResult.music_style);
+        console.log('🔗 Webhook URL:', webhookUrl);
+
+        console.log('📤 Uploading audio file to MusicGPT Remix...');
+
+        // STEP 3.3: Make the API call with FormData
         const musicgptResponse = await axios.post(
-          'https://api.musicgpt.com/api/public/v1/Remix', // Changed from MusicAI to Remix
-          musicgptPayload,
+          'https://api.musicgpt.com/api/public/v1/Remix',
+          formData,
           {
             headers: {
               'accept': 'application/json',
               'Authorization': MUSICGPT_API_KEY,
-              'Content-Type': 'application/json'
+              ...formData.getHeaders() // This adds the correct multipart headers
             },
-            timeout: 1000 * 60 * 2
+            timeout: 1000 * 60 * 2,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
           }
         );
+
+        // Clean up downloaded audio file
+        if (audioFilePath) {
+          try {
+            await fsPromises.unlink(audioFilePath);
+            console.log('✅ Cleaned up downloaded audio file');
+          } catch (cleanupError) {
+            console.warn('⚠️ Could not clean up audio file:', cleanupError.message);
+          }
+        }
 
         const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
 
