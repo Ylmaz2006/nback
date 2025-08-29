@@ -5776,11 +5776,10 @@ if (youtubeUrl.includes('watch?v=vmHs2-Fylcw')) {
 // Create FormData for multipart/form-data request (required by API)
 const FormData = require('form-data');
 const formData = new FormData();
-        // Add parameters as form fields
-        formData.append('audio_url', youtubeVideos[0].url);
-        formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`);
-        formData.append('webhook_url', webhookUrl);
-
+// Add parameters as form fields
+formData.append('audio_url', youtubeVideos[0].url);
+formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - make it only instrumental`);
+formData.append('webhook_url', webhookUrl);
         console.log('📤 MusicGPT Remix Payload (FormData):');
         console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
         console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
