@@ -82,33 +82,43 @@ async function searchYouTubeMostRelevant(artist, songTitle) {
  * Print music title, artist and the most relevant YouTube video.
  */
 async function printAcrCloudMusic(fileArray) {
-  const detectedSongUrls = []; // Array to collect the YouTube URLs
+  const detectedSongs = [];
   
   for (const file of fileArray) {
     if (file.results && file.results.music && Array.isArray(file.results.music)) {
       for (const song of file.results.music) {
-        console.log(`🎵 Song Name: ${song.title || 'Unknown'}`);
-        console.log(`🎤 Artist(s): ${song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown'}`);
+        const songTitle = song.title || 'Unknown';
+        const artistName = song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown';
         
-        // Extract the YouTube URL from external_metadata
-        if (song.external_metadata && song.external_metadata.youtube && song.external_metadata.youtube.vid) {
-          const youtubeUrl = `https://www.youtube.com/watch?v=${song.external_metadata.youtube.vid}`;
-          console.log(`🔗 Most Relevant YouTube Video: ${youtubeUrl}`);
+        console.log(`🎵 Song Name: ${songTitle}`);
+        console.log(`🎤 Artist(s): ${artistName}`);
+        
+        // Search YouTube for this song
+        try {
+          const { searchYouTubeVideos } = require('./youtube-utils');
+          const searchQuery = `${songTitle} ${artistName}`;
+          const songSearchResults = await searchYouTubeVideos(searchQuery, 1);
           
-          // Collect this URL
-          detectedSongUrls.push({
-            title: `${song.title || 'Unknown'} - ${(song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown')}`,
-            url: youtubeUrl,
-            artist: song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown',
-            songTitle: song.title || 'Unknown',
-            duration: song.duration_ms ? Math.round(song.duration_ms / 1000) : null
-          });
+          if (songSearchResults && songSearchResults.length > 0) {
+            const songYouTubeUrl = songSearchResults[0].url;
+            console.log(`🔗 Most Relevant YouTube Video: ${songYouTubeUrl}`);
+            
+            detectedSongs.push({
+              title: `${songTitle} - ${artistName}`,
+              url: songYouTubeUrl,
+              artist: artistName,
+              songTitle: songTitle,
+              duration: song.duration_ms ? Math.round(song.duration_ms / 1000) : null
+            });
+          }
+        } catch (error) {
+          console.error(`❌ Error searching for ${songTitle}:`, error.message);
         }
       }
     }
   }
   
-  return detectedSongUrls; // Return the collected URLs
+  return detectedSongs;
 }
 /**
  * Recognize music from a YouTube video URL using AcrCloud FS Container workflow.
@@ -145,10 +155,46 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
       foundMusic = true;
       console.log(""); // newline after polling
       
-      // Get the detected song URLs from printAcrCloudMusic
-      detectedSongs = await printAcrCloudMusic(fileArray);
+      // Extract detected songs and search for YouTube URLs
+      for (const song of file.results.music) {
+        const songTitle = song.title || 'Unknown';
+        const artistName = song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown';
+        
+        console.log(`🎵 Song Name: ${songTitle}`);
+        console.log(`🎤 Artist(s): ${artistName}`);
+        
+        // Search YouTube for this specific song
+        try {
+          const { searchYouTubeVideos } = require('./youtube-utils');
+          const searchQuery = `${songTitle} ${artistName}`;
+          console.log(`🔍 Searching YouTube for: "${searchQuery}"`);
+          
+          const songSearchResults = await searchYouTubeVideos(searchQuery, 1);
+          
+          if (songSearchResults && songSearchResults.length > 0) {
+            const songYouTubeUrl = songSearchResults[0].url;
+            
+            detectedSongs.push({
+              title: `${songTitle} - ${artistName}`,
+              url: songYouTubeUrl,
+              artist: artistName,
+              songTitle: songTitle,
+              duration: song.duration_ms ? Math.round(song.duration_ms / 1000) : null
+            });
+            
+            console.log(`🔗 Most Relevant YouTube Video: ${songYouTubeUrl}`);
+          } else {
+            console.log(`❌ No YouTube video found for: ${searchQuery}`);
+          }
+          
+        } catch (searchError) {
+          console.error(`❌ Error searching YouTube for ${songTitle}:`, searchError.message);
+        }
+      }
       
-      return { success: true, detectedSongs: detectedSongs }; // Return detected songs with URLs
+      await printAcrCloudMusic(fileArray); // Keep original printing
+      
+      return { success: true, detectedSongs: detectedSongs };
     }
     
     if (state === 1) {
