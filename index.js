@@ -5473,6 +5473,7 @@ async function handleVideoUpload(fileBuffer, originalname, mimetype, size) {
   }
 }
 
+
 async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, videoBuffer = null) {
   try {
     const { 
@@ -5485,37 +5486,34 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       maxPollMinutes = 5               
     } = options;
 
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ENHANCED GEMINI ÃƒÂ¢Ã¢â‚¬ Ã¢â‚¬â„¢ MUSICGPT WITH WEBHOOK MONITORING');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Video URL:', videoUrl);
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Generate Music:', generateMusic);
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Monitoring:', enableWebhookMonitoring);
-    console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Max Poll Time:', maxPollMinutes, 'minutes');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Video buffer provided:', !!videoBuffer);
+    console.log('🎬 ===============================================');
+    console.log('🎬 ENHANCED GEMINI → MUSICGPT WITH WEBHOOK MONITORING');
+    console.log('🎬 ===============================================');
+    console.log('📹 Video URL:', videoUrl);
+    console.log('🎵 Generate Music:', generateMusic);
+    console.log('🔗 Webhook Monitoring:', enableWebhookMonitoring);
+    console.log('⏰ Max Poll Time:', maxPollMinutes, 'minutes');
+    console.log('📦 Video buffer provided:', !!videoBuffer);
 
     // STEP 1: Get video buffer and duration
-    console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
-    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ PREPARING VIDEO FOR ANALYSIS');
-    console.log('1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    console.log('\n1️⃣ ===============================================');
+    console.log('1️⃣ PREPARING VIDEO FOR ANALYSIS');
+    console.log('1️⃣ ===============================================');
 
     const { analyzeVideoForDualMusicOutputs, analyzeVideoWithAudioFiles } = require('./gemini-utils');
-  
     
     let finalVideoBuffer;
     let videoDurationSeconds = 0;
     
     if (videoBuffer) {
-      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ USE PROVIDED BUFFER (recommended for immediate processing)
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Using provided video buffer (immediate processing)');
+      console.log('📦 Using provided video buffer (immediate processing)');
       finalVideoBuffer = videoBuffer;
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Buffer size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+      console.log('📊 Buffer size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
     } else {
-      // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Download with retry logic and proper error handling
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading video from GCS with retry logic...');
-      
+      // Enhanced download logic (existing code)
+      console.log('📥 Downloading video from GCS with retry logic...');
       const fileName = extractFileNameFromUrl(videoUrl);
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â File name:', fileName);
+      console.log('📁 File name:', fileName);
       
       let downloadAttempts = 0;
       const maxDownloadAttempts = 3;
@@ -5525,30 +5523,28 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
         downloadAttempts++;
         
         try {
-          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Download attempt ${downloadAttempts}/${maxDownloadAttempts}...`);
+          console.log(`📥 Download attempt ${downloadAttempts}/${maxDownloadAttempts}...`);
           
           if (downloadAttempts > 1) {
-            const delay = 5000 * downloadAttempts; // Increasing delay: 5s, 10s, 15s
-            console.log(`ÃƒÂ¢Ã‚ÂÃ‚Â³ Waiting ${delay}ms for file to be ready...`);
+            const delay = 5000 * downloadAttempts;
+            console.log(`⏳ Waiting ${delay}ms for file to be ready...`);
             await new Promise(resolve => setTimeout(resolve, delay));
           }
           
           let downloadUrl;
           if (videoUrl.includes('storage.googleapis.com') && videoUrl.includes('X-Goog-Algorithm')) {
-            // Already a signed URL
             downloadUrl = videoUrl;
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Using provided signed URL');
+            console.log('🔗 Using provided signed URL');
           } else {
-            // Generate new signed URL
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â Generating new signed URL...');
+            console.log('🔗 Generating new signed URL...');
             downloadUrl = await getSignedDownloadUrl(fileName, 1);
-            console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Signed URL generated');
+            console.log('✅ Signed URL generated');
           }
           
-          console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Attempting download from: ${downloadUrl.substring(0, 100)}...`);
+          console.log(`📡 Attempting download from: ${downloadUrl.substring(0, 100)}...`);
           
           const response = await fetch(downloadUrl, {
-            timeout: 60000 // 60 second timeout
+            timeout: 60000
           });
           
           if (!response.ok) {
@@ -5558,29 +5554,20 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
           finalVideoBuffer = Buffer.from(await response.arrayBuffer());
           downloadSuccess = true;
           
-          console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Video downloaded successfully');
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Downloaded size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+          console.log('✅ Video downloaded successfully');
+          console.log('📊 Downloaded size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
           
         } catch (downloadError) {
-          console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Download attempt ${downloadAttempts} failed:`, downloadError.message);
+          console.error(`❌ Download attempt ${downloadAttempts} failed:`, downloadError.message);
           
           if (downloadAttempts === maxDownloadAttempts) {
-            throw new Error(`Failed to download video after ${maxDownloadAttempts} attempts. Last error: ${downloadError.message}. The file may not be ready yet or the URL may be invalid.`);
+            throw new Error(`Failed to download video after ${maxDownloadAttempts} attempts. Last error: ${downloadError.message}`);
           }
         }
       }
     }
-   const { analyzeVideoForYouTubeSearchDescription } = require('./gemini-utils');
-    const ytDescResult = await analyzeVideoForYouTubeSearchDescription(finalVideoBuffer, 'video/mp4');
 
-    if (ytDescResult.success) {
-      console.log('\n🟦 YOUTUBE SEARCH DESCRIPTION:');
-      console.log('→', ytDescResult.searchDescription);
-      console.log('🟦 PROMPT USED:', ytDescResult.promptUsed);
-    } else {
-      console.warn('⚠️ Failed to get YouTube search description:', ytDescResult.error);
-    }
-    // ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ENHANCED: Get video duration with better error handling
+    // Get video duration
     try {
       const tempVideoPath = path.join(__dirname, 'temp_videos', `temp_analysis_${Date.now()}.mp4`);
       await fsPromises.writeFile(tempVideoPath, finalVideoBuffer);
@@ -5588,64 +5575,104 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       videoDurationSeconds = await new Promise((resolve, reject) => {
         ffmpeg.ffprobe(tempVideoPath, (err, metadata) => {
           if (err) {
-            console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Could not get video duration with ffprobe:', err.message);
+            console.warn('⚠️ Could not get video duration with ffprobe:', err.message);
             reject(err);
           } else {
             const duration = metadata.format.duration;
-            console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration detected:', duration, 'seconds');
+            console.log('⏱️ Video duration detected:', duration, 'seconds');
             resolve(Math.round(duration * 100) / 100);
           }
         });
       }).catch(async (error) => {
-        console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â FFprobe failed, trying alternative method:', error.message);
+        console.warn('⚠️ FFprobe failed, trying alternative method:', error.message);
         
         try {
           const { getVideoDurationInSeconds } = require('get-video-duration');
           const duration = await getVideoDurationInSeconds(tempVideoPath);
-          console.log('ÃƒÂ¢Ã‚ÂÃ‚Â±ÃƒÂ¯Ã‚Â¸Ã‚Â Video duration detected (alternative method):', duration, 'seconds');
+          console.log('⏱️ Video duration detected (alternative method):', duration, 'seconds');
           return Math.round(duration * 100) / 100;
         } catch (altError) {
-          console.warn('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Alternative duration detection failed:', altError.message);
-          return 120; // Default to 2 minutes if all methods fail
+          console.warn('⚠️ Alternative duration detection failed:', altError.message);
+          return 120;
         }
       });
       
       await fsPromises.unlink(tempVideoPath).catch(() => {});
       
     } catch (durationError) {
-      console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error detecting video duration:', durationError.message);
-      videoDurationSeconds = 120; // Default fallback to 2 minutes
+      console.error('❌ Error detecting video duration:', durationError.message);
+      videoDurationSeconds = 120;
     }
     
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Final video duration:', videoDurationSeconds, 'seconds');
+    console.log('📊 Final video duration:', videoDurationSeconds, 'seconds');
 
-    // STEP 2: Analyze video for dual outputs using the buffer
-    console.log('\n2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
-    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ANALYZING VIDEO BUFFER FOR DUAL 280-CHAR OUTPUTS');
-    console.log('2ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+    // 🔥 STEP 1.5: GET YOUTUBE SEARCH DESCRIPTION FIRST (BEFORE GEMINI ANALYSIS)
+    console.log('\n🔍 ===============================================');
+    console.log('🔍 GETTING YOUTUBE SEARCH DESCRIPTION BEFORE GEMINI');
+    console.log('🔍 ===============================================');
+    
+    const { analyzeVideoForYouTubeSearchDescription } = require('./gemini-utils');
+    const ytDescResult = await analyzeVideoForYouTubeSearchDescription(finalVideoBuffer, 'video/mp4');
+
+    let youtubeVideos = [];
+    let youtubeSearchDescription = '';
+    
+    if (ytDescResult.success) {
+      youtubeSearchDescription = ytDescResult.searchDescription;
+      console.log('🟦 YOUTUBE SEARCH DESCRIPTION:', youtubeSearchDescription);
+      
+      // Search YouTube immediately
+      const { searchYouTubeVideos } = require('./youtube-utils');
+      youtubeVideos = await searchYouTubeVideos(youtubeSearchDescription, 5);
+      console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
+      youtubeVideos.forEach((v, idx) => {
+        console.log(`${idx+1}. ${v.title} - ${v.url}`);
+      });
+
+      // Upload first video to AcrCloud
+      if (youtubeVideos.length > 0) {
+        const firstUrl = youtubeVideos[0].url;
+        console.log('📤 Uploading first YouTube URL to AcrCloud:', firstUrl);
+        const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
+        await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
+      } else {
+        console.log('⚠️ No YouTube videos found.');
+      }
+    } else {
+      console.warn('⚠️ Failed to get YouTube search description:', ytDescResult.error);
+    }
+
+    // STEP 2: Analyze video for dual outputs WITH YouTube URL
+    console.log('\n2️⃣ ===============================================');
+    console.log('2️⃣ ANALYZING VIDEO FOR DUAL 280-CHAR OUTPUTS WITH YOUTUBE');
+    console.log('2️⃣ ===============================================');
 
     const dualAnalysisResult = await analyzeVideoForDualMusicOutputs(finalVideoBuffer, 'video/mp4', {
       customPrompt: customPrompt + `
       
+🎵 YOUTUBE REFERENCE: ${youtubeVideos.length > 0 ? youtubeVideos[0].url : 'No YouTube reference found'}
+📺 VIDEO STYLE: ${youtubeSearchDescription || 'Unknown style'}
+
 FOCUS ON MUSICAL TERMINOLOGY:
 Include specific terms like: BPM, key signatures, time signatures, dynamics (pp, ff), articulations (legato, staccato), intervals (octaves, 5ths), scales (major, minor, dorian), chord types (maj7, min9), orchestration details, playing techniques (pizzicato, tremolo), tempo markings (andante, allegro), and instrument specifics.
 
-Generate TWO separate 280-character outputs with maximum musical detail.`
+Generate TWO separate 280-character outputs with maximum musical detail.`,
+      youtubeUrl: youtubeVideos.length > 0 ? youtubeVideos[0].url : null // 🔥 PASS YOUTUBE URL TO GEMINI
     });
 
     if (!dualAnalysisResult.success) {
       throw new Error(`Dual output analysis failed: ${dualAnalysisResult.error}`);
     }
 
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Dual output analysis completed successfully');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Raw analysis length:', dualAnalysisResult.rawAnalysis.length, 'characters');
+    console.log('✅ Dual output analysis completed successfully');
+    console.log('📄 Raw analysis length:', dualAnalysisResult.rawAnalysis.length, 'characters');
     
-    console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â EXTRACTED DUAL OUTPUTS:');
+    console.log('\n📝 EXTRACTED DUAL OUTPUTS:');
     console.log('='.repeat(80));
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ PROMPT (', dualAnalysisResult.prompt.length, 'chars):');
+    console.log('🎵 PROMPT (', dualAnalysisResult.prompt.length, 'chars):');
     console.log(dualAnalysisResult.prompt);
     console.log('-'.repeat(40));
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ MUSIC_STYLE (', dualAnalysisResult.music_style.length, 'chars):');
+    console.log('🎭 MUSIC_STYLE (', dualAnalysisResult.music_style.length, 'chars):');
     console.log(dualAnalysisResult.music_style);
     console.log('='.repeat(80));
 
@@ -5653,16 +5680,16 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
 
     if (generateMusic) {
       // STEP 3: Send dual outputs to MusicGPT with webhook monitoring
-      console.log('\n3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
-      console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ SENDING TO MUSICGPT WITH WEBHOOK MONITORING');
-      console.log('3ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
+      console.log('\n3️⃣ ===============================================');
+      console.log('3️⃣ SENDING TO MUSICGPT WITH WEBHOOK MONITORING');
+      console.log('3️⃣ ===============================================');
 
       try {
         const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
         const webhookToken = extractWebhookToken(webhookUrl);
         
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhookUrl);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Ëœ Webhook Token:', webhookToken);
+        console.log('🔗 Webhook URL:', webhookUrl);
+        console.log('🔑 Webhook Token:', webhookToken);
 
         const musicgptPayload = {
           prompt: dualAnalysisResult.prompt,
@@ -5672,15 +5699,15 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
           webhook_url: webhookUrl
         };
 
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ MusicGPT Payload:');
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Prompt:', dualAnalysisResult.prompt);
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â­ Music Style:', dualAnalysisResult.music_style);
-        console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¼ Make Instrumental:', true);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook URL:', webhookUrl);
+        console.log('📤 MusicGPT Payload:');
+        console.log('🎵 Prompt:', dualAnalysisResult.prompt);
+        console.log('🎭 Music Style:', dualAnalysisResult.music_style);
+        console.log('🎼 Make Instrumental:', true);
+        console.log('🔗 Webhook URL:', webhookUrl);
 
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¤ Calling MusicGPT API...');
+        console.log('📤 Calling MusicGPT API...');
         
         const musicgptStartTime = Date.now();
 
@@ -5699,15 +5726,15 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
 
         const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
 
-        console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MusicGPT API Response:');
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Status:', musicgptResponse.status);
-        console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Response:', JSON.stringify(musicgptResponse.data, null, 2));
+        console.log('✅ MusicGPT API Response:');
+        console.log('📊 Status:', musicgptResponse.status);
+        console.log('📄 Response:', JSON.stringify(musicgptResponse.data, null, 2));
 
         const musicData = musicgptResponse.data;
 
         if (musicData.audio_url) {
-          console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° MUSIC GENERATED IMMEDIATELY!');
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ Audio URL:', musicData.audio_url);
+          console.log('\n🎉 MUSIC GENERATED IMMEDIATELY!');
+          console.log('🎵 Audio URL:', musicData.audio_url);
           
           musicResult = {
             success: true,
@@ -5720,30 +5747,30 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
         } else if (musicData.task_id || musicData.conversion_id || musicData.conversion_id_1) {
           const taskId = musicData.task_id || musicData.conversion_id_1 || musicData.conversion_id;
           
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å¾ MusicGPT generation started - beginning webhook monitoring...');
-          console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ Ã¢â‚¬Â Task ID:', taskId);
-          console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ETA:', musicData.eta || 120, 'seconds');
+          console.log('⏳ MusicGPT generation started - beginning webhook monitoring...');
+          console.log('🆔 Task ID:', taskId);
+          console.log('⏰ ETA:', musicData.eta || 120, 'seconds');
           
           if (enableWebhookMonitoring && webhookToken) {
-            console.log('\nÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ ===============================================');
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ STARTING REAL-TIME WEBHOOK MONITORING');
-            console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ ===============================================');
+            console.log('\n🔗 ===============================================');
+            console.log('🔗 STARTING REAL-TIME WEBHOOK MONITORING');
+            console.log('🔗 ===============================================');
             
             const maxRetries = Math.floor((maxPollMinutes * 60) / 10);
             const minRequestsToWaitFor = 3;
             const webhookResult = await monitorWebhookForMusicGPT(webhookToken, maxRetries, 10000, minRequestsToWaitFor);
             
             if (webhookResult.success) {
-              console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
-              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° WEBHOOK MONITORING SUCCESS!');
-              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° ===============================================');
+              console.log('\n🎉 ===============================================');
+              console.log('🎉 WEBHOOK MONITORING SUCCESS!');
+              console.log('🎉 ===============================================');
               
               const webhookData = webhookResult.webhookData;
               const allRequests = webhookResult.allRequests;
               
-              console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
-              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING MP3 FILES FROM WEBHOOK DATA');
-              console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ ===============================================');
+              console.log('\n🎵 ===============================================');
+              console.log('🎵 EXTRACTING MP3 FILES FROM WEBHOOK DATA');
+              console.log('🎵 ===============================================');
               
               const mp3Files = [];
               allRequests.forEach((request, index) => {
@@ -5755,29 +5782,29 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
                     videoDuration: videoDurationSeconds,
                     requestNumber: index + 1
                   });
-                  console.log(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ MP3 #${index + 1}: ${request.content.conversion_path}`);
+                  console.log(`🎵 MP3 #${index + 1}: ${request.content.conversion_path}`);
                   console.log(`   Title: ${request.content.title || 'Untitled'}`);
                   console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
                   console.log(`   Video Duration: ${videoDurationSeconds}s`);
                 }
               });
               
-              console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total MP3 files found: ${mp3Files.length}`);
+              console.log(`📊 Total MP3 files found: ${mp3Files.length}`);
               
-              // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ NEW: GEMINI TIMING ANALYSIS FOR MULTIPLE MP3 FILES
+              // 🎯 GEMINI TIMING ANALYSIS FOR MULTIPLE MP3 FILES
               let timingAnalysis = null;
               if (mp3Files.length >= 2) {
-                console.log('\nÃƒÂ°Ã…Â¸Ã‚Â§  ===============================================');
-                console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  ANALYZING VIDEO + MP3S WITH GEMINI FOR OPTIMAL TIMING');
-                console.log('ÃƒÂ°Ã…Â¸Ã‚Â§  ===============================================');
+                console.log('\n🧠 ===============================================');
+                console.log('🧠 ANALYZING VIDEO + MP3S WITH GEMINI FOR OPTIMAL TIMING');
+                console.log('🧠 ===============================================');
                 
                 try {
-                  console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading MP3 files for Gemini analysis...');
+                  console.log('📥 Downloading MP3 files for Gemini analysis...');
                   
                   const mp3Buffers = [];
                   for (const mp3File of mp3Files) {
                     try {
-                      console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¥ Downloading: ${mp3File.title}`);
+                      console.log(`📥 Downloading: ${mp3File.title}`);
                       const mp3Response = await axios({
                         method: 'get',
                         url: mp3File.url,
@@ -5792,16 +5819,16 @@ Generate TWO separate 280-character outputs with maximum musical detail.`
                         mimeType: 'audio/mpeg'
                       });
                       
-                      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Downloaded ${mp3File.title}: ${(mp3Response.data.byteLength / 1024 / 1024).toFixed(2)} MB`);
+                      console.log(`✅ Downloaded ${mp3File.title}: ${(mp3Response.data.byteLength / 1024 / 1024).toFixed(2)} MB`);
                       
                     } catch (mp3Error) {
-                      console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ Failed to download ${mp3File.title}:`, mp3Error.message);
+                      console.error(`❌ Failed to download ${mp3File.title}:`, mp3Error.message);
                     }
                   }
                   
-                  console.log(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Successfully downloaded ${mp3Buffers.length}/${mp3Files.length} MP3 files`);
+                  console.log(`📊 Successfully downloaded ${mp3Buffers.length}/${mp3Files.length} MP3 files`);
                   
-                  // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ PERFORM GEMINI TIMING ANALYSIS
+                  // 🎯 PERFORM GEMINI TIMING ANALYSIS
                   timingAnalysis = await analyzeVideoWithAudioFiles(finalVideoBuffer, 'video/mp4', mp3Buffers, {
                     customPrompt: `
 ANALYZE THIS VIDEO AND THE PROVIDED MP3 AUDIO FILES TO SUGGEST OPTIMAL TIMING.
@@ -5810,6 +5837,9 @@ VIDEO DURATION: ${videoDurationSeconds} seconds
 
 AUDIO FILES PROVIDED:
 ${mp3Files.map((file, i) => `${i + 1}. ${file.title} (Original: ${file.mp3Duration}s)`).join('\n')}
+
+🎵 YOUTUBE REFERENCE: ${youtubeVideos.length > 0 ? youtubeVideos[0].url : 'No YouTube reference found'}
+📺 VIDEO STYLE: ${youtubeSearchDescription || 'Unknown style'}
 
 CRITICAL REQUIREMENT: 
 - EACH TRACK MUST BE EXACTLY ${videoDurationSeconds} SECONDS LONG
@@ -5852,33 +5882,28 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
                   });
                   
                   if (timingAnalysis.success) {
-                    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini timing analysis completed successfully');
-                    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis length:', timingAnalysis.analysis.length, 'characters');
+                    console.log('✅ Gemini timing analysis completed successfully');
+                    console.log('📄 Analysis length:', timingAnalysis.analysis.length, 'characters');
                     
-                    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
-                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ GEMINI TIMING ANALYSIS RESULTS');
-                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
+                    console.log('\n🎯 ===============================================');
+                    console.log('🎯 GEMINI TIMING ANALYSIS RESULTS');
+                    console.log('🎯 ===============================================');
                     console.log(timingAnalysis.analysis);
-                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
-                    
-                    // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACT TIMING RECOMMENDATIONS
-                    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
-                    
-               
+                    console.log('🎯 ===============================================');
                     
                   } else {
-                    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Gemini timing analysis failed:', timingAnalysis.error);
+                    console.error('❌ Gemini timing analysis failed:', timingAnalysis.error);
                   }
                   
                 } catch (timingError) {
-                  console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in Gemini timing analysis:', timingError.message);
+                  console.error('❌ Error in Gemini timing analysis:', timingError.message);
                   timingAnalysis = {
                     success: false,
                     error: timingError.message
                   };
                 }
               } else {
-                console.log('ÃƒÂ¢Ã…Â¡ ÃƒÂ¯Ã‚Â¸Ã‚Â Not enough MP3 files for timing analysis (need at least 2)');
+                console.log('⚠️ Not enough MP3 files for timing analysis (need at least 2)');
               }
               
               musicResult = {
@@ -5901,13 +5926,13 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
                   totalRequestsFound: webhookResult.totalRequestsFound
                 },
                 allMP3Files: mp3Files,
-                timingAnalysis: timingAnalysis  // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ INCLUDE TIMING ANALYSIS
+                timingAnalysis: timingAnalysis
               };
               
             } else {
-              console.log('\nÃƒÂ¢Ã‚ÂÃ‚Â° ===============================================');
-              console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° WEBHOOK MONITORING TIMEOUT');
-              console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° ===============================================');
+              console.log('\n⏰ ===============================================');
+              console.log('⏰ WEBHOOK MONITORING TIMEOUT');
+              console.log('⏰ ===============================================');
               
               musicResult = {
                 success: false,
@@ -5940,7 +5965,7 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
         }
 
       } catch (musicError) {
-        console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in MusicGPT generation:', musicError);
+        console.error('❌ Error in MusicGPT generation:', musicError);
         
         musicResult = {
           success: false,
@@ -5952,28 +5977,30 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
     }
 
     // Final logging and response preparation
-    console.log('\nÃƒÂ°Ã…Â¸Ã…Â½Ã…  ===============================================');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã…  ENHANCED WORKFLOW WITH WEBHOOK MONITORING COMPLETE');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã…  ===============================================');
-    console.log('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Gemini Analysis: COMPLETED');
-    console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ Music Generation:', musicResult?.status?.toUpperCase() || 'UNKNOWN');
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Monitoring:', enableWebhookMonitoring ? 'ENABLED' : 'DISABLED');
+    console.log('\n🎊 ===============================================');
+    console.log('🎊 ENHANCED WORKFLOW WITH WEBHOOK MONITORING COMPLETE');
+    console.log('🎊 ===============================================');
+    console.log('✅ Gemini Analysis: COMPLETED');
+    console.log('🎵 Music Generation:', musicResult?.status?.toUpperCase() || 'UNKNOWN');
+    console.log('🔗 Webhook Monitoring:', enableWebhookMonitoring ? 'ENABLED' : 'DISABLED');
+    console.log('🔍 YouTube Search:', youtubeSearchDescription || 'NOT FOUND');
+    console.log('📺 YouTube Videos Found:', youtubeVideos.length);
     
     if (musicResult?.audio_url) {
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ FINAL AUDIO URL:', musicResult.audio_url);
+      console.log('🎵 FINAL AUDIO URL:', musicResult.audio_url);
     }
     if (musicResult?.audio_url_wav) {
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â€ FINAL WAV URL:', musicResult.audio_url_wav);
+      console.log('🎵 FINAL WAV URL:', musicResult.audio_url_wav);
     }
     if (musicResult?.webhookInfo) {
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Attempts:', musicResult.webhookInfo.monitoringAttempts);
-      console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…  Total Requests Found:', musicResult.webhookInfo.totalRequestsFound);
+      console.log('🔗 Webhook Attempts:', musicResult.webhookInfo.monitoringAttempts);
+      console.log('📊 Total Requests Found:', musicResult.webhookInfo.totalRequestsFound);
     }
     if (musicResult?.allMP3Files) {
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Âµ MP3 Files Collected:', musicResult.allMP3Files.length);
+      console.log('🎵 MP3 Files Collected:', musicResult.allMP3Files.length);
     }
     if (musicResult?.timingAnalysis?.success) {
-      console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Timing Analysis: COMPLETED');
+      console.log('🎯 Timing Analysis: COMPLETED');
     }
 
     return {
@@ -5982,15 +6009,15 @@ Analyze the ACTUAL AUDIO CONTENT, not just the video.`,
       musicResult: musicResult,
       videoDurationSeconds: videoDurationSeconds,
       videoUrl: videoUrl,
-      youtubeSearchDescription: ytDescResult.searchDescription
+      youtubeSearchDescription: youtubeSearchDescription, // 🔥 INCLUDE YOUTUBE DESCRIPTION IN RESPONSE
+      youtubeVideos: youtubeVideos // 🔥 INCLUDE YOUTUBE VIDEOS IN RESPONSE
     };
 
   } catch (error) {
-    console.error('ÃƒÂ¢Ã‚ÂÃ…â€™ Error in enhanced workflow with webhook monitoring:', error);
+    console.error('❌ Error in enhanced workflow with webhook monitoring:', error);
     throw new Error(`Video analysis and music generation failed: ${error.message}`);
   }
 }
-
 function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
   console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
   console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis text length:', analysisText.length);
