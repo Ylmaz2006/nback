@@ -7046,6 +7046,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
 });
 
 // 🎸 NEW: Extract instrumental from existing music
+// 🎸 UPDATED: Extract instrumental from existing music (NO TIMEOUT)
 async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
   try {
     console.log('🎸 Extracting instrumental from:', musicUrl);
@@ -7072,8 +7073,8 @@ async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
           'accept': 'application/json',
           'Authorization': MUSICGPT_API_KEY,
           ...formData.getHeaders()
-        },
-        timeout: 1000 * 60 * 2
+        }
+        // ❌ REMOVED: timeout: 1000 * 60 * 2
       }
     );
 
@@ -7085,10 +7086,10 @@ async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
     if (extractionData.success && extractionData.task_id) {
       console.log('🔄 Extraction started, task ID:', extractionData.task_id);
       
-      // Monitor webhook for completion
+      // Monitor webhook for completion (NO TIMEOUT LIMITS)
       const webhookToken = extractWebhookToken(webhookUrl);
       if (webhookToken) {
-        const webhookResult = await monitorWebhookForInstrumental(webhookToken, 2, 10000);
+        const webhookResult = await monitorWebhookForInstrumental(webhookToken);
         
         if (webhookResult.success && webhookResult.instrumentalUrl) {
           return {
@@ -7122,19 +7123,19 @@ async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
   }
 }
 
-// 🎸 NEW: Monitor webhook for instrumental results
-async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, pollInterval = 10000) {
+// 🎸 UPDATED: Monitor webhook for instrumental results (NO TIMEOUT LIMITS)
+async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 10, pollInterval = 15000) {
   const API_KEY = '563460a6-5c0b-4f4f-9240-2c714823510c';
   const webhookApiUrl = `https://webhook.site/token/${webhookToken}/requests`;
-  const maxRetries = Math.floor((maxPollMinutes * 60) / (pollInterval / 1000));
+  const maxRetries = Math.floor((maxPollMinutes * 60) / (pollInterval / 1000)); // 40 attempts (10 minutes)
   let seenRequestUuids = new Set();
 
-  console.log('🎸 Monitoring webhook for instrumental extraction...');
+  console.log(`🎸 Monitoring webhook for instrumental extraction... (${maxPollMinutes} minutes max)`);
 
   // Get existing requests
   try {
     const baselineResponse = await axios.get(webhookApiUrl, {
-      timeout: 15000,
+      // ❌ REMOVED: timeout: 15000,
       headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
     });
     
@@ -7148,7 +7149,7 @@ async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, p
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const response = await axios.get(webhookApiUrl, {
-        timeout: 15000,
+        // ❌ REMOVED: timeout: 15000,
         headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
       });
       
@@ -7177,7 +7178,8 @@ async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, p
                 webhookInfo: {
                   uuid: request.uuid,
                   timestamp: request.created_at,
-                  attempts: attempt
+                  attempts: attempt,
+                  totalTime: `${((attempt * pollInterval) / 1000).toFixed(1)}s`
                 }
               };
             }
@@ -7188,7 +7190,7 @@ async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, p
       }
 
       if (attempt < maxRetries) {
-        console.log(`⏳ Waiting for instrumental (${attempt}/${maxRetries})...`);
+        console.log(`⏳ Waiting for instrumental (${attempt}/${maxRetries}) - ${((attempt * pollInterval) / 1000).toFixed(1)}s elapsed...`);
         await new Promise(resolve => setTimeout(resolve, pollInterval));
       }
 
@@ -7200,11 +7202,12 @@ async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, p
     }
   }
 
-  console.log('⏰ Instrumental webhook monitoring timeout');
+  console.log(`⏰ Instrumental webhook monitoring completed after ${maxPollMinutes} minutes`);
   return {
     success: false,
-    error: 'Webhook monitoring timeout',
-    attempts: maxRetries
+    error: `Webhook monitoring completed after ${maxPollMinutes} minutes without result`,
+    attempts: maxRetries,
+    totalTime: `${maxPollMinutes} minutes`
   };
 }
 
