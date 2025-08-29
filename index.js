@@ -5661,14 +5661,36 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       });
 
       // Upload first video to AcrCloud ONLY ONCE (removed duplicate later)
-      if (youtubeVideos.length > 0) {
-        const firstUrl = youtubeVideos[0].url;
-        console.log('📤 Uploading first YouTube URL to AcrCloud:', firstUrl);
-        const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
-        await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
-      } else {
-        console.log('⚠️ No YouTube videos found.');
+  // Upload first video to AcrCloud to detect actual songs
+if (youtubeVideos.length > 0) {
+  const firstUrl = youtubeVideos[0].url;
+  console.log('📤 Uploading first YouTube URL to AcrCloud for song detection:', firstUrl);
+  const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
+  const acrResult = await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
+  
+  if (acrResult.success && acrResult.detectedSongs.length > 0) {
+    console.log('\n🎵 ===============================================');
+    console.log('🎵 DETECTED SONGS TO USE FOR REMIX:');
+    console.log('🎵 ===============================================');
+    
+    acrResult.detectedSongs.forEach((song, idx) => {
+      console.log(`${idx+1}. ${song.title}`);
+      console.log(`   URL: ${song.url}`);
+      if (song.duration) {
+        console.log(`   Duration: ${song.duration} seconds`);
       }
+    });
+    
+    // REPLACE the original YouTube search results with detected song URLs
+    youtubeVideos = acrResult.detectedSongs;
+    console.log(`✅ Replaced search results with ${acrResult.detectedSongs.length} detected song URLs`);
+    
+  } else {
+    console.log('⚠️ No songs detected, using original search results as fallback');
+  }
+} else {
+  console.log('⚠️ No YouTube videos found.');
+}
     } else {
       console.warn('⚠️ Failed to get YouTube search description:', ytDescResult.error);
     }

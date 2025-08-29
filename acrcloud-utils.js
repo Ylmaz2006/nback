@@ -82,37 +82,34 @@ async function searchYouTubeMostRelevant(artist, songTitle) {
  * Print music title, artist and the most relevant YouTube video.
  */
 async function printAcrCloudMusic(fileArray) {
-  if (!Array.isArray(fileArray) || fileArray.length === 0) {
-    console.log("No file data received.");
-    return false;
-  }
-  const file = fileArray[0];
-  if (file.state !== 1) {
-    console.log("File not ready for music results. State:", file.state);
-    return false;
-  }
-  if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
-    for (const track of file.results.music) {
-      const res = track.result;
-      const artists = res.artists.map(a => a.name).join(", ");
-      const songTitle = res.title;
-      console.log(`🎵 Song Name: ${songTitle}`);
-      console.log(`🎤 Artist(s): ${artists}`);
-      // Search YouTube for "artist - song"
-      const mostRelevantUrl = await searchYouTubeMostRelevant(artists, songTitle);
-      if (mostRelevantUrl) {
-        console.log(`🔗 Most Relevant YouTube Video: ${mostRelevantUrl}`);
-      } else {
-        console.log("No YouTube video found for this song/artist.");
+  const detectedSongUrls = []; // Array to collect the YouTube URLs
+  
+  for (const file of fileArray) {
+    if (file.results && file.results.music && Array.isArray(file.results.music)) {
+      for (const song of file.results.music) {
+        console.log(`🎵 Song Name: ${song.title || 'Unknown'}`);
+        console.log(`🎤 Artist(s): ${song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown'}`);
+        
+        // Extract the YouTube URL from external_metadata
+        if (song.external_metadata && song.external_metadata.youtube && song.external_metadata.youtube.vid) {
+          const youtubeUrl = `https://www.youtube.com/watch?v=${song.external_metadata.youtube.vid}`;
+          console.log(`🔗 Most Relevant YouTube Video: ${youtubeUrl}`);
+          
+          // Collect this URL
+          detectedSongUrls.push({
+            title: `${song.title || 'Unknown'} - ${(song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown')}`,
+            url: youtubeUrl,
+            artist: song.artists ? song.artists.map(a => a.name).join(', ') : 'Unknown',
+            songTitle: song.title || 'Unknown',
+            duration: song.duration_ms ? Math.round(song.duration_ms / 1000) : null
+          });
+        }
       }
     }
-    return true;
-  } else {
-    console.log("No music found in this video.");
-    return false;
   }
+  
+  return detectedSongUrls; // Return the collected URLs
 }
-
 /**
  * Recognize music from a YouTube video URL using AcrCloud FS Container workflow.
  * Uploads video, polls for result, prints recognized music name, artist, and YouTube video.
@@ -121,17 +118,19 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
   const uploadResult = await uploadYouTubeToAcrCloud(youtubeUrl, name);
   if (!uploadResult || !uploadResult.id) {
     console.log("❌ Upload failed or no file ID received.");
-    return false;
+    return { success: false, detectedSongs: [] };
   }
 
   let tries = 0;
   let foundMusic = false;
+  let detectedSongs = [];
+  
   while (tries < 20) {
     await new Promise(res => setTimeout(res, 5000));
     const fileArray = await getAcrCloudFileStatus(uploadResult.id);
     if (!fileArray || !Array.isArray(fileArray) || fileArray.length === 0) {
       console.log("Error fetching file status or empty file array.");
-      return false;
+      return { success: false, detectedSongs: [] };
     }
     if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(fileArray, null, 2));
     const file = fileArray[0];
@@ -141,32 +140,36 @@ async function recognizeMusicFromYouTube(youtubeUrl, name) {
                        state === -1 ? "No results" :
                        state === undefined ? "Unknown" : `Error (${state})`;
     process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
+    
     if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
       foundMusic = true;
       console.log(""); // newline after polling
-      await printAcrCloudMusic(fileArray);
-      return true; // Music found, exit polling
+      
+      // Get the detected song URLs from printAcrCloudMusic
+      detectedSongs = await printAcrCloudMusic(fileArray);
+      
+      return { success: true, detectedSongs: detectedSongs }; // Return detected songs with URLs
     }
+    
     if (state === 1) {
       if (!foundMusic) {
         console.log("\nNo music found in this video.");
-        return false;
+        return { success: false, detectedSongs: [] };
       }
     }
     if (state === -1) {
       console.log("\n❌ No music found in this video.");
-      return false;
+      return { success: false, detectedSongs: [] };
     }
     if (state < 0) {
       console.log(`\n❌ Error processing video. State: ${state}`);
-      return false;
+      return { success: false, detectedSongs: [] };
     }
     tries++;
   }
   console.log("\n❌ Timed out polling for results.");
-  return false;
+  return { success: false, detectedSongs: [] };
 }
-
 module.exports = {
   uploadYouTubeToAcrCloud,
   getAcrCloudFileStatus,
