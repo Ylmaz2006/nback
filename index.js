@@ -6478,33 +6478,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
         analysisOptions,
         analysisBuffer  // Pass buffer directly for analysis
       );
-      const { searchYouTubeVideos ,recognizeYouTubeMusic} = require('./youtube-utils');
-const { recognizeMusicFromYouTube,getAcrCloudFileStatus } = require('./acrcloud-utils');
-// ... after analysisResult is set ...
-let youtubeVideos = [];
-if (analysisResult.youtubeSearchDescription) {
-  youtubeVideos = await searchYouTubeVideos(analysisResult.youtubeSearchDescription, 5);
-  console.log('🔎 Top YouTube Results for:', analysisResult.youtubeSearchDescription);
-  youtubeVideos.forEach((v, idx) => {
-    console.log(`${idx+1}. ${v.title} - ${v.url}`);
-  });
-}
-
-if (youtubeVideos.length > 0) {
-  const firstUrl = youtubeVideos[0].url;
-  console.log('Uploading first YouTube URL to AcrCloud:', firstUrl);
-  // This will upload and poll, and print results at the terminal
-  await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
-} else {
-  console.log('No YouTube videos found.');
-}
-
-      // IMMEDIATELY CLEAR THE BUFFER
-      analysisBuffer.fill(0);
-          if (analysisResult.youtubeSearchDescription) {
-      console.log('\n🟦 FINAL YOUTUBE SEARCH QUERY SUGGESTION:');
-      console.log('→', analysisResult.youtubeSearchDescription);
-    }
+    
       logMemoryUsage('After analysis complete');
       
       if (compressionInfo) {
