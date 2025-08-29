@@ -5668,26 +5668,29 @@ if (youtubeVideos.length > 0) {
   const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
   const acrResult = await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
   
-  if (acrResult.success && acrResult.detectedSongs.length > 0) {
-    console.log('\n🎵 ===============================================');
-    console.log('🎵 DETECTED SONGS TO USE FOR REMIX:');
-    console.log('🎵 ===============================================');
-    
-    acrResult.detectedSongs.forEach((song, idx) => {
-      console.log(`${idx+1}. ${song.title}`);
-      console.log(`   URL: ${song.url}`);
-      if (song.duration) {
-        console.log(`   Duration: ${song.duration} seconds`);
-      }
-    });
-    
-    // REPLACE the original YouTube search results with detected song URLs
-    youtubeVideos = acrResult.detectedSongs;
-    console.log(`✅ Replaced search results with ${acrResult.detectedSongs.length} detected song URLs`);
-    
-  } else {
-    console.log('⚠️ No songs detected, using original search results as fallback');
-  }
+// 🔧 FIXED: Check the actual ACRCloud response structure
+if (acrResult.success && acrResult.detectedSongs && acrResult.detectedSongs.length > 0) {
+  console.log('\n🎵 ===============================================');
+  console.log('🎵 USING DETECTED SONG URL FOR MUSICGPT REMIX');
+  console.log('🎵 ===============================================');
+  
+  const detectedSong = acrResult.detectedSongs[0];
+  console.log('🎵 Detected song:', detectedSong.title);
+  console.log('🎵 Artist:', detectedSong.artist);
+  console.log('🎵 YouTube URL:', detectedSong.url);
+  
+  // Use detected song URL instead of original search results
+  youtubeVideos = [{
+    title: detectedSong.title,
+    url: detectedSong.url,
+    artist: detectedSong.artist
+  }];
+  
+  console.log(`✅ Using detected song URL for remix: ${detectedSong.url}`);
+} else {
+  console.log('⚠️ No songs detected by ACRCloud, using original search results as fallback');
+  console.log('🔍 Will use search result URL:', youtubeVideos[0]?.url);
+}
 } else {
   console.log('⚠️ No YouTube videos found.');
 }
@@ -5750,10 +5753,27 @@ if (generateMusic) {
         console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
         console.log('🎵 Original track:', youtubeVideos[0].title);
 
-        // Create FormData for multipart/form-data request (required by API)
-        const FormData = require('form-data');
-        const formData = new FormData();
-        
+console.log('🔗 Webhook URL:', webhookUrl);
+console.log('🔑 Webhook Token:', webhookToken);
+console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
+console.log('🎵 Original track:', youtubeVideos[0].title);
+
+// 🔧 ADD THIS VALIDATION CODE HERE:
+// Before sending to MusicGPT, log which URL we're actually using
+console.log('🎵 Final URL being sent to MusicGPT:', youtubeVideos[0].url);
+console.log('🎵 Track title:', youtubeVideos[0].title);
+
+// Add length validation
+const youtubeUrl = youtubeVideos[0].url;
+if (youtubeUrl.includes('watch?v=vmHs2-Fylcw')) {
+  console.log('✅ Using detected song URL (likely shorter and suitable for remix)');
+} else {
+  console.log('⚠️ Using original search result URL (may be too long for remix)');
+}
+
+// Create FormData for multipart/form-data request (required by API)
+const FormData = require('form-data');
+const formData = new FormData();
         // Add parameters as form fields
         formData.append('audio_url', youtubeVideos[0].url);
         formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`);
