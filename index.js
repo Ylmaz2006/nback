@@ -5728,14 +5728,16 @@ if (generateMusic) {
         console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
         console.log('🎵 Original track:', youtubeVideos[0].title);
 
-        // Simple payload with YouTube URL directly in audio_url field
-        const musicgptPayload = {
-          audio_url: youtubeVideos[0].url, // Direct YouTube URL
-          prompt: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`, // Combine both prompts
-          webhook_url: webhookUrl
-        };
+        // Create FormData for multipart/form-data request (required by API)
+        const FormData = require('form-data');
+        const formData = new FormData();
+        
+        // Add parameters as form fields
+        formData.append('audio_url', youtubeVideos[0].url);
+        formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`);
+        formData.append('webhook_url', webhookUrl);
 
-        console.log('📤 MusicGPT Remix Payload:');
+        console.log('📤 MusicGPT Remix Payload (FormData):');
         console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
         console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
         console.log('🎭 Music Style:', dualAnalysisResult.music_style);
@@ -5743,21 +5745,23 @@ if (generateMusic) {
 
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
-        console.log('📤 Calling MusicGPT Remix API with YouTube URL...');
+        console.log('📤 Calling MusicGPT Remix API with FormData...');
         
         const musicgptStartTime = Date.now();
 
-        // Send JSON payload with YouTube URL
+        // Send as multipart/form-data
         const musicgptResponse = await axios.post(
           'https://api.musicgpt.com/api/public/v1/Remix',
-          musicgptPayload,
+          formData,
           {
             headers: {
               'accept': 'application/json',
               'Authorization': MUSICGPT_API_KEY,
-              'Content-Type': 'application/json'
+              ...formData.getHeaders() // This sets Content-Type: multipart/form-data
             },
-            timeout: 1000 * 60 * 2
+            timeout: 1000 * 60 * 2,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
           }
         );
 
@@ -5837,7 +5841,7 @@ if (generateMusic) {
               
               console.log(`📊 Total MP3 files found: ${mp3Files.length}`);
               
-              // Continue with existing timing analysis code...
+              // Continue with existing timing analysis and result handling...
               let timingAnalysis = null;
               if (mp3Files.length >= 2) {
                 // ... existing timing analysis code ...
@@ -5870,10 +5874,7 @@ if (generateMusic) {
               };
               
             } else {
-              console.log('\n⏰ ===============================================');
-              console.log('⏰ WEBHOOK MONITORING TIMEOUT');
-              console.log('⏰ ===============================================');
-              
+              // Webhook timeout handling...
               musicResult = {
                 success: false,
                 status: 'webhook_timeout',
