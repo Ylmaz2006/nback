@@ -5482,7 +5482,9 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       detailLevel = 'detailed',
       generateMusic = true,
       enableWebhookMonitoring = true,  
-      maxPollMinutes = 5               
+      maxPollMinutes = 5,
+      // âœ… ENHANCED: Add YouTube URL support with timing parameters
+      youtubeUrl = null               
     } = options;
 
     console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¬ ===============================================');
@@ -5493,6 +5495,26 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
     console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¡ Webhook Monitoring:', enableWebhookMonitoring);
     console.log('ÃƒÂ¢Ã‚ÂÃ‚Â° Max Poll Time:', maxPollMinutes, 'minutes');
     console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ Video buffer provided:', !!videoBuffer);
+
+    // âœ… ENHANCED: Log YouTube URL information if provided
+    if (youtubeUrl) {
+      const { parseYouTubeUrl } = require('./youtube-utils');
+      const parsedYouTube = parseYouTubeUrl(youtubeUrl);
+      
+      if (parsedYouTube.isValid) {
+        console.log('ðŸŽµ YouTube Reference:', parsedYouTube.normalizedUrl);
+        if (parsedYouTube.hasTimingParameter) {
+          console.log('â° YouTube Timing:', parsedYouTube.formattedTiming, `(${parsedYouTube.timingSeconds}s)`);
+        } else {
+          console.log('â° YouTube Timing: Full song (no specific timestamp)');
+        }
+      } else {
+        console.log('âš ï¸ YouTube URL error:', parsedYouTube.error);
+        console.log('ðŸŽµ Original YouTube URL:', youtubeUrl);
+      }
+    } else {
+      console.log('ðŸŽµ YouTube Reference: None provided');
+    }
 
     // STEP 1: Get video buffer and duration
     console.log('\n1ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£ ===============================================');
@@ -5630,7 +5652,9 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
 FOCUS ON MUSICAL TERMINOLOGY:
 Include specific terms like: BPM, key signatures, time signatures, dynamics (pp, ff), articulations (legato, staccato), intervals (octaves, 5ths), scales (major, minor, dorian), chord types (maj7, min9), orchestration details, playing techniques (pizzicato, tremolo), tempo markings (andante, allegro), and instrument specifics.
 
-Generate TWO separate 280-character outputs with maximum musical detail.`
+Generate TWO separate 280-character outputs with maximum musical detail.`,
+      // âœ… ENHANCED: Pass YouTube URL with timing support to analysis
+      youtubeUrl: youtubeUrl
     });
 
     if (!dualAnalysisResult.success) {
