@@ -3754,14 +3754,36 @@ async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = '
   }
 }
 // âœ… NEW: Analyze video for dual music outputs
-// âœ… UPDATED: Modified analyzeVideoForDualMusicOutputs to include YouTube URL
+// âœ… UPDATED: Modified analyzeVideoForDualMusicOutputs to include YouTube URL with timing
 async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp4', options = {}) {
   try {
     const { customPrompt = '', youtubeUrl = null } = options;
 
     console.log('ðŸŽ¼ Starting DUAL OUTPUT visual-to-musical analysis...');
     console.log('ðŸ"Š Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-    console.log('ðŸŽµ YouTube URL:', youtubeUrl || 'None provided');
+    
+    // âœ… ENHANCED: Parse YouTube URL and extract timing information
+    let parsedYouTubeInfo = null;
+    if (youtubeUrl) {
+      const { parseYouTubeUrl } = require('./youtube-utils');
+      parsedYouTubeInfo = parseYouTubeUrl(youtubeUrl);
+      
+      if (parsedYouTubeInfo.isValid) {
+        console.log('ðŸŽµ YouTube URL:', parsedYouTubeInfo.normalizedUrl);
+        if (parsedYouTubeInfo.hasTimingParameter) {
+          console.log('â° YouTube Timing:', parsedYouTubeInfo.formattedTiming, `(${parsedYouTubeInfo.timingSeconds}s)`);
+          console.log('ðŸ"— Reference URL with timing:', parsedYouTubeInfo.urlWithTiming);
+        } else {
+          console.log('â° YouTube Timing: Not specified (will use full song)');
+        }
+      } else {
+        console.log('âš ï¸ YouTube URL parsing failed:', parsedYouTubeInfo.error);
+        console.log('ðŸŽµ Original YouTube URL:', youtubeUrl);
+      }
+    } else {
+      console.log('ðŸŽµ YouTube URL: None provided');
+    }
+    
     console.log('ðŸ"‡ Audio handling: STRIPPED (visual analysis only)');
 
     // Use the specialized dual output prompt with YouTube URL integration
@@ -3769,8 +3791,22 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
 1. Prompt — concise description of the video's emotional tone, vibe, and type, written neatly and clearly. No musical terms here.
 2. Music Style — BPM, key, genre, primary instruments, and progression (intro → build-up → climax → outro), including appropriate musical terms for tempo, dynamics, articulation, and mood.`;
 
-    // âœ… ADD YouTube URL to prompt if provided
-    if (youtubeUrl) {
+    // âœ… ENHANCED: Add YouTube URL with timing context to prompt if provided
+    if (youtubeUrl && parsedYouTubeInfo && parsedYouTubeInfo.isValid) {
+      fullPrompt += `
+
+🎵 REFERENCE MUSIC: ${parsedYouTubeInfo.normalizedUrl}`;
+      
+      if (parsedYouTubeInfo.hasTimingParameter) {
+        fullPrompt += `
+â° TIMING REFERENCE: Start analysis from ${parsedYouTubeInfo.formattedTiming} (${parsedYouTubeInfo.timingSeconds} seconds) into the reference song.
+Consider the musical characteristics, style, and mood of the reference song specifically at this timestamp when creating the Music Style line.`;
+      } else {
+        fullPrompt += `
+Consider the overall style, mood, and musical characteristics of this reference song when creating the Music Style line.`;
+      }
+    } else if (youtubeUrl) {
+      // Fallback for unparseable URLs
       fullPrompt += `
 
 🎵 REFERENCE MUSIC: ${youtubeUrl}
@@ -3822,6 +3858,18 @@ Rules: Do not exceed 280 characters for either line. Avoid repetition, vague ter
       promptUsed: fullPrompt,
       videoSize: (videoBuffer.length / 1024 / 1024).toFixed(2) + ' MB',
       youtubeReference: youtubeUrl,
+      // âœ… ENHANCED: Include parsed YouTube URL information
+      youtubeInfo: parsedYouTubeInfo ? {
+        originalUrl: youtubeUrl,
+        isValid: parsedYouTubeInfo.isValid,
+        videoId: parsedYouTubeInfo.videoId,
+        normalizedUrl: parsedYouTubeInfo.normalizedUrl,
+        hasTimingParameter: parsedYouTubeInfo.hasTimingParameter,
+        timingSeconds: parsedYouTubeInfo.timingSeconds,
+        formattedTiming: parsedYouTubeInfo.formattedTiming,
+        urlWithTiming: parsedYouTubeInfo.urlWithTiming,
+        error: parsedYouTubeInfo.error
+      } : null,
       focusType: 'dual-output-visual-to-musical-composition-with-youtube-reference',
       outputs: dualOutputs
     };
@@ -3833,7 +3881,9 @@ Rules: Do not exceed 280 characters for either line. Avoid repetition, vague ter
       success: false,
       error: error.message,
       details: 'Failed to generate dual musical outputs',
-      youtubeReference: options.youtubeUrl || null
+      youtubeReference: options.youtubeUrl || null,
+      // âœ… ENHANCED: Include parsed YouTube URL information even in error cases
+      youtubeInfo: parsedYouTubeInfo || null
     };
   }
 }

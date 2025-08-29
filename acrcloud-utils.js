@@ -8,13 +8,39 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
 /**
  * Upload a YouTube URL to AcrCloud FS Container for music recognition.
+ * Now supports YouTube URLs with timing parameters.
  */
 async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
+  // âœ… ENHANCED: Parse YouTube URL to handle timing parameters
+  const { parseYouTubeUrl } = require('./youtube-utils');
+  const parsedUrl = parseYouTubeUrl(youtubeUrl);
+  
+  let finalUrl = youtubeUrl;
+  let displayName = name || youtubeUrl;
+  
+  if (parsedUrl.isValid) {
+    // Use the URL with timing for AcrCloud (they should handle it)
+    finalUrl = parsedUrl.urlWithTiming;
+    
+    // Enhanced name with timing info
+    if (parsedUrl.hasTimingParameter) {
+      displayName = name ? `${name} (at ${parsedUrl.formattedTiming})` : `${parsedUrl.videoId} (at ${parsedUrl.formattedTiming})`;
+      console.log(`🎵 YouTube URL with timing detected: ${parsedUrl.formattedTiming} (${parsedUrl.timingSeconds}s)`);
+      console.log(`🔗 Normalized URL: ${finalUrl}`);
+    } else {
+      displayName = name || parsedUrl.videoId;
+      console.log(`🎵 YouTube URL (no timing): ${parsedUrl.normalizedUrl}`);
+    }
+  } else {
+    console.log(`⚠️ YouTube URL parsing failed: ${parsedUrl.error}`);
+    console.log(`🔗 Using original URL: ${youtubeUrl}`);
+  }
+
   const endpoint = `https://api-${REGION}.acrcloud.com/api/fs-containers/${CONTAINER_ID}/files`;
   const body = {
     data_type: "platforms",
-    url: youtubeUrl,
-    name: name || youtubeUrl,
+    url: finalUrl,
+    name: displayName,
   };
   try {
     const response = await axios.post(endpoint, body, {
@@ -25,7 +51,21 @@ async function uploadYouTubeToAcrCloud(youtubeUrl, name) {
       }
     });
     console.log("📤 Uploaded to AcrCloud:", response.data.data);
-    return response.data.data;
+    
+    // âœ… ENHANCED: Return additional timing info
+    const result = response.data.data;
+    if (parsedUrl.isValid) {
+      result.youtubeInfo = {
+        originalUrl: youtubeUrl,
+        finalUrl: finalUrl,
+        hasTimingParameter: parsedUrl.hasTimingParameter,
+        timingSeconds: parsedUrl.timingSeconds,
+        formattedTiming: parsedUrl.formattedTiming,
+        videoId: parsedUrl.videoId
+      };
+    }
+    
+    return result;
   } catch (err) {
     console.error("AcrCloud Upload Error:", err.response?.data || err.message);
     return null;
