@@ -3754,20 +3754,39 @@ async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = '
   }
 }
 // âœ… NEW: Analyze video for dual music outputs
+// âœ… UPDATED: Modified analyzeVideoForDualMusicOutputs to include YouTube URL
 async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp4', options = {}) {
   try {
-    const { customPrompt = '' } = options;
+    const { customPrompt = '', youtubeUrl = null } = options;
 
     console.log('ðŸŽ¼ Starting DUAL OUTPUT visual-to-musical analysis...');
-    console.log('ðŸ“Š Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-    console.log('ðŸ”‡ Audio handling: STRIPPED (visual analysis only)');
+    console.log('ðŸ"Š Video buffer size:', (videoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('ðŸŽµ YouTube URL:', youtubeUrl || 'None provided');
+    console.log('ðŸ"‡ Audio handling: STRIPPED (visual analysis only)');
 
-    // Use the specialized dual output prompt
-    let fullPrompt = DUAL_OUTPUT_MUSIC_PROMPT;
+    // Use the specialized dual output prompt with YouTube URL integration
+    let fullPrompt = `Analyze the uploaded video's visuals, dialogues, and pacing. Then produce exactly 2 lines, each ≤280 characters:
+1. Prompt — concise description of the video's emotional tone, vibe, and type, written neatly and clearly. No musical terms here.
+2. Music Style — BPM, key, genre, primary instruments, and progression (intro → build-up → climax → outro), including appropriate musical terms for tempo, dynamics, articulation, and mood.`;
+
+    // âœ… ADD YouTube URL to prompt if provided
+    if (youtubeUrl) {
+      fullPrompt += `
+
+🎵 REFERENCE MUSIC: ${youtubeUrl}
+Consider the style, mood, and musical characteristics of this reference song when creating the Music Style line.`;
+    }
     
     if (customPrompt) {
-      fullPrompt += `\n\n**CUSTOM PROMPTS:**\n${customPrompt}`;
+      fullPrompt += `
+
+**CUSTOM INSTRUCTIONS:**
+${customPrompt}`;
     }
+
+    fullPrompt += `
+
+Rules: Do not exceed 280 characters for either line. Avoid repetition, vague terms, or extra commentary. Output in the exact format below:`;
 
     // Prepare video data for Gemini (audio will be ignored)
     const videoPart = {
@@ -3777,7 +3796,7 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
       }
     };
 
-    console.log('ðŸ¤– Sending video to Gemini for dual output analysis...');
+    console.log('ðŸ¤– Sending video + YouTube URL to Gemini for dual output analysis...');
     const startTime = Date.now();
 
     const result = await model.generateContent([fullPrompt, videoPart]);
@@ -3787,8 +3806,9 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
     const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     console.log('âœ… Dual output analysis completed!');
-    console.log('â±ï¸ Processing time:', processingTime, 'seconds');
-    console.log('ðŸ“„ Raw response length:', analysisText.length, 'characters');
+    console.log('â±ï¸ Processing time:', processingTime, 'seconds');
+    console.log('ðŸ"„ Raw response length:', analysisText.length, 'characters');
+    console.log('ðŸŽµ Used YouTube reference:', youtubeUrl ? 'Yes' : 'No');
 
     // Extract the two 280-char outputs
     const dualOutputs = extractDualMusicOutputs(analysisText);
@@ -3801,17 +3821,19 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
       processingTime: processingTime + 's',
       promptUsed: fullPrompt,
       videoSize: (videoBuffer.length / 1024 / 1024).toFixed(2) + ' MB',
-      focusType: 'dual-output-visual-to-musical-composition',
+      youtubeReference: youtubeUrl,
+      focusType: 'dual-output-visual-to-musical-composition-with-youtube-reference',
       outputs: dualOutputs
     };
 
   } catch (error) {
-    console.error('âŒ Dual output musical analysis error:', error);
+    console.error('âŒ Dual output musical analysis error:', error);
     
     return {
       success: false,
       error: error.message,
-      details: 'Failed to generate dual musical outputs'
+      details: 'Failed to generate dual musical outputs',
+      youtubeReference: options.youtubeUrl || null
     };
   }
 }
