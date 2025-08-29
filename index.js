@@ -5662,35 +5662,37 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
 
       // Upload first video to AcrCloud ONLY ONCE (removed duplicate later)
   // Upload first video to AcrCloud to detect actual songs
+// Upload first video to AcrCloud to detect actual songs
 if (youtubeVideos.length > 0) {
   const firstUrl = youtubeVideos[0].url;
   console.log('📤 Uploading first YouTube URL to AcrCloud for song detection:', firstUrl);
   const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
   const acrResult = await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
   
-// 🔧 FIXED: Check the actual ACRCloud response structure
-if (acrResult.success && acrResult.detectedSongs && acrResult.detectedSongs.length > 0) {
-  console.log('\n🎵 ===============================================');
-  console.log('🎵 USING DETECTED SONG URL FOR MUSICGPT REMIX');
-  console.log('🎵 ===============================================');
-  
-  const detectedSong = acrResult.detectedSongs[0];
-  console.log('🎵 Detected song:', detectedSong.title);
-  console.log('🎵 Artist:', detectedSong.artist);
-  console.log('🎵 YouTube URL:', detectedSong.url);
-  
-  // Use detected song URL instead of original search results
-  youtubeVideos = [{
-    title: detectedSong.title,
-    url: detectedSong.url,
-    artist: detectedSong.artist
-  }];
-  
-  console.log(`✅ Using detected song URL for remix: ${detectedSong.url}`);
-} else {
-  console.log('⚠️ No songs detected by ACRCloud, using original search results as fallback');
-  console.log('🔍 Will use search result URL:', youtubeVideos[0]?.url);
-}
+  // 🔧 FIXED: Check the correct response structure
+  if (acrResult.success && acrResult.detectedSongs && acrResult.detectedSongs.length > 0) {
+    console.log('\n🎵 ===============================================');
+    console.log('🎵 USING DETECTED SONG URL FOR MUSICGPT REMIX');
+    console.log('🎵 ===============================================');
+    
+    const detectedSong = acrResult.detectedSongs[0];
+    console.log('🎵 Detected song:', detectedSong.title);
+    console.log('🎵 Artist:', detectedSong.artist);
+    console.log('🎵 YouTube URL:', detectedSong.url);
+    
+    // Use detected song URL instead of original search results
+    youtubeVideos = [{
+      title: detectedSong.title,
+      url: detectedSong.url,
+      artist: detectedSong.artist
+    }];
+    
+    console.log(`✅ Using detected song URL for remix: ${detectedSong.url}`);
+  } else {
+    console.log('⚠️ ACRCloud result:', acrResult.error || 'No songs detected');
+    console.log('🔍 Using original search results as fallback');
+    console.log('🔍 Will use search result URL:', youtubeVideos[0]?.url);
+  }
 } else {
   console.log('⚠️ No YouTube videos found.');
 }

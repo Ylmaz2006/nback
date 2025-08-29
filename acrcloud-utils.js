@@ -118,55 +118,133 @@ async function printAcrCloudMusic(fileArray) {
  * Uploads video, polls for result, prints recognized music name, artist, and YouTube video.
  */
 async function recognizeMusicFromYouTube(youtubeUrl, name) {
+  console.log('🎵 Starting ACRCloud music recognition for:', youtubeUrl);
+  
   const uploadResult = await uploadYouTubeToAcrCloud(youtubeUrl, name);
   if (!uploadResult || !uploadResult.id) {
     console.log("❌ Upload failed or no file ID received.");
-    return false;
+    return {
+      success: false,
+      error: 'Upload failed',
+      detectedSongs: []
+    };
   }
 
   let tries = 0;
-  let foundMusic = false;
+  let detectedSongs = [];
+  
   while (tries < 20) {
     await new Promise(res => setTimeout(res, 5000));
     const fileArray = await getAcrCloudFileStatus(uploadResult.id);
+    
     if (!fileArray || !Array.isArray(fileArray) || fileArray.length === 0) {
       console.log("Error fetching file status or empty file array.");
-      return false;
+      return {
+        success: false,
+        error: 'File status error',
+        detectedSongs: []
+      };
     }
-    if (tries === 0) console.log("DEBUG raw file response:", JSON.stringify(fileArray, null, 2));
+    
     const file = fileArray[0];
+    // Add this line after: const file = fileArray[0];
+if (tries === 0) debugAcrCloudResponse(fileArray);
     const state = file.state;
     const statusText = state === 0 ? "Processing" :
                        state === 1 ? "Ready" :
                        state === -1 ? "No results" :
                        state === undefined ? "Unknown" : `Error (${state})`;
-    process.stdout.write(`Polling attempt ${tries + 1}, state: ${statusText}\r`);
+    
+    process.stdout.write(`🔍 ACRCloud polling attempt ${tries + 1}, state: ${statusText}\r`);
+    
+    // ✅ FIXED: Check for music results and extract them properly
     if (file.results && Array.isArray(file.results.music) && file.results.music.length > 0) {
-      foundMusic = true;
-      console.log(""); // newline after polling
-      await printAcrCloudMusic(fileArray);
-      return true; // Music found, exit polling
-    }
-    if (state === 1) {
-      if (!foundMusic) {
-        console.log("\nNo music found in this video.");
-        return false;
+      console.log("\n🎵 Music detected by ACRCloud!");
+      
+      // Extract detected songs with YouTube URLs
+      for (const track of file.results.music) {
+        const res = track.result;
+        const artists = res.artists.map(a => a.name).join(", ");
+        const songTitle = res.title;
+        
+        console.log(`🎵 Detected: ${songTitle} by ${artists}`);
+        
+        // Search YouTube for the most relevant video
+        const youtubeUrl = await searchYouTubeMostRelevant(artists, songTitle);
+        
+        if (youtubeUrl) {
+          console.log(`🔗 Found YouTube URL: ${youtubeUrl}`);
+          detectedSongs.push({
+            title: songTitle,
+            artist: artists,
+            url: youtubeUrl
+          });
+        }
       }
+      
+      return {
+        success: true,
+        detectedSongs: detectedSongs,
+        totalSongs: detectedSongs.length
+      };
     }
+    
+    if (state === 1 && detectedSongs.length === 0) {
+      console.log("\n⚠️ ACRCloud processing complete but no music found");
+      return {
+        success: false,
+        error: 'No music detected in video',
+        detectedSongs: []
+      };
+    }
+    
     if (state === -1) {
-      console.log("\n❌ No music found in this video.");
-      return false;
+      console.log("\n❌ ACRCloud: No music found in this video");
+      return {
+        success: false,
+        error: 'No music found',
+        detectedSongs: []
+      };
     }
+    
     if (state < 0) {
-      console.log(`\n❌ Error processing video. State: ${state}`);
-      return false;
+      console.log(`\n❌ ACRCloud error. State: ${state}`);
+      return {
+        success: false,
+        error: `Processing error (state: ${state})`,
+        detectedSongs: []
+      };
     }
+    
     tries++;
   }
-  console.log("\n❌ Timed out polling for results.");
-  return false;
+  
+  console.log("\n❌ ACRCloud polling timeout");
+  return {
+    success: false,
+    error: 'Polling timeout',
+    detectedSongs: []
+  };
 }
-
+// Temporary debug function - remove after testing
+function debugAcrCloudResponse(fileArray) {
+  console.log('\n🔍 DEBUG: Full ACRCloud response structure:');
+  console.log('=====================================');
+  console.log(JSON.stringify(fileArray, null, 2));
+  console.log('=====================================');
+  
+  if (fileArray && fileArray[0] && fileArray[0].results) {
+    console.log('🔍 Results structure:');
+    console.log('- Has music:', !!fileArray[0].results.music);
+    console.log('- Music array length:', fileArray[0].results.music?.length || 0);
+    
+    if (fileArray[0].results.music) {
+      fileArray[0].results.music.forEach((track, index) => {
+        console.log(`🎵 Track ${index + 1}:`, track.result?.title, 'by', track.result?.artists?.map(a => a.name).join(', '));
+      });
+    }
+  }
+}
 module.exports = {
   uploadYouTubeToAcrCloud,
   getAcrCloudFileStatus,
