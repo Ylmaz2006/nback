@@ -4879,10 +4879,11 @@ app.post('/api/set-default-payment-method', async (req, res) => {
     });
   }
 });
+// 🆕 MODIFY your existing trackSchema - add these fields:
 const trackSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  title: String, // This will now be the user-provided track name
-  trackName: String, // NEW: Specific field for track name (same as title for consistency)
+  title: String,
+  trackName: String,
   audioUrl: String,
   duration: String,
   generatedAt: { type: Date, default: Date.now },
@@ -4891,15 +4892,29 @@ const trackSchema = new mongoose.Schema({
   youtubeUrls: [String],
   start: String,
   end: String,
-  // NEW: Additional metadata
+  
+  // 🆕 NEW fields for instrumental support:
+  musicType: { type: String, default: 'original' }, // 'original' or 'instrumental'
+  originalMusicUrl: String, // URL of original track if this is instrumental
+  extractionTaskId: String, // MusicGPT extraction task ID
+  
   segmentInfo: {
     segmentIndex: Number,
     originalStart: String,
     originalEnd: String,
     wasAdjusted: Boolean
   },
-  generationType: { type: String, default: 'segment' }, // 'segment' or 'full'
-  originalFileName: String // Store original video file name if available
+  generationType: { type: String, default: 'segment' },
+  originalFileName: String,
+  
+  // 🆕 NEW: Extraction info for instrumental tracks
+  extractionInfo: {
+    originalTrackUrl: String,
+    extractionMethod: String,
+    extractedStems: [String],
+    taskId: String,
+    extractedAt: { type: Date, default: Date.now }
+  }
 });
 
 const Track = mongoose.model('Track', trackSchema);
@@ -5504,7 +5519,167 @@ async function handleVideoUpload(fileBuffer, originalname, mimetype, size) {
   }
 }
 
+// 🆕 NEW: Add this function to your existing index.js
+async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
+  try {
+    console.log('🎸 Extracting instrumental from:', musicUrl);
+    
+    const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
+    const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
 
+    const FormData = require('form-data');
+    const formData = new FormData();
+    
+    formData.append('audio_url', musicUrl);
+    formData.append('stems', JSON.stringify(['instrumental']));
+    formData.append('preprocessing_options', JSON.stringify(['Denoise']));
+    formData.append('webhook_url', webhookUrl);
+
+    console.log('📤 Sending extraction request...');
+    const startTime = Date.now();
+
+    const response = await axios.post(
+      'https://api.musicgpt.com/api/public/v1/Extraction',
+      formData,
+      {
+        headers: {
+          'accept': 'application/json',
+          'Authorization': MUSICGPT_API_KEY,
+          ...formData.getHeaders()
+        },
+        timeout: 1000 * 60 * 2
+      }
+    );
+
+    const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    const extractionData = response.data;
+
+    console.log('📊 Extraction response:', extractionData);
+
+    if (extractionData.success && extractionData.task_id) {
+      console.log('🔄 Extraction started, task ID:', extractionData.task_id);
+      
+      // Monitor webhook for completion
+      const webhookToken = extractWebhookToken(webhookUrl);
+      if (webhookToken) {
+        const webhookResult = await monitorWebhookForInstrumental(webhookToken, 2, 10000);
+        
+        if (webhookResult.success && webhookResult.instrumentalUrl) {
+          return {
+            success: true,
+            instrumentalUrl: webhookResult.instrumentalUrl,
+            taskId: extractionData.task_id,
+            processingTime: processingTime + 's',
+            webhookInfo: webhookResult.webhookInfo
+          };
+        }
+      }
+      
+      // Fallback: return task info
+      return {
+        success: false,
+        taskId: extractionData.task_id,
+        eta: extractionData.eta,
+        error: 'Webhook monitoring timeout',
+        processingTime: processingTime + 's'
+      };
+    }
+
+    throw new Error('Extraction request failed');
+
+  } catch (error) {
+    console.error('❌ Extraction error:', error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+// 🆕 NEW: Add this function to monitor webhook for instrumental results
+async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, pollInterval = 10000) {
+  const API_KEY = '563460a6-5c0b-4f4f-9240-2c714823510c';
+  const webhookApiUrl = `https://webhook.site/token/${webhookToken}/requests`;
+  const maxRetries = Math.floor((maxPollMinutes * 60) / (pollInterval / 1000));
+  let seenRequestUuids = new Set();
+
+  console.log('🎸 Monitoring webhook for instrumental extraction...');
+
+  // Get existing requests
+  try {
+    const baselineResponse = await axios.get(webhookApiUrl, {
+      timeout: 15000,
+      headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
+    });
+    
+    if (baselineResponse.data?.data) {
+      baselineResponse.data.data.forEach(req => seenRequestUuids.add(req.uuid));
+    }
+  } catch (error) {
+    console.warn('Could not get baseline requests:', error.message);
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await axios.get(webhookApiUrl, {
+        timeout: 15000,
+        headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
+      });
+      
+      if (response.data?.data) {
+        const newRequests = response.data.data.filter(req => 
+          req.method === 'POST' && 
+          !seenRequestUuids.has(req.uuid) && 
+          req.content
+        );
+
+        for (const request of newRequests) {
+          try {
+            const content = JSON.parse(request.content);
+            seenRequestUuids.add(request.uuid);
+
+            // Check for instrumental extraction result
+            if (content.stems?.instrumental || content.conversion_path) {
+              const instrumentalUrl = content.stems?.instrumental || content.conversion_path;
+              
+              console.log('🎸 ✅ INSTRUMENTAL FOUND:', instrumentalUrl);
+              
+              return {
+                success: true,
+                instrumentalUrl: instrumentalUrl,
+                extractionData: content,
+                webhookInfo: {
+                  uuid: request.uuid,
+                  timestamp: request.created_at,
+                  attempts: attempt
+                }
+              };
+            }
+          } catch (parseError) {
+            console.warn('Could not parse webhook content:', parseError.message);
+          }
+        }
+      }
+
+      if (attempt < maxRetries) {
+        console.log(`⏳ Waiting for instrumental (${attempt}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+
+    } catch (error) {
+      console.error(`Webhook poll error (${attempt}):`, error.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+    }
+  }
+
+  console.log('⏰ Instrumental webhook monitoring timeout');
+  return {
+    success: false,
+    error: 'Webhook monitoring timeout',
+    attempts: maxRetries
+  };
+}
 async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, videoBuffer = null) {
   try {
     const { 
@@ -6216,6 +6391,7 @@ module.exports = {
 // Modified process-video route using the shared analysis function instead of ClipTune
 // REPLACE your existing /api/process-video route in index.js with this fixed version
 
+// COMPLETE UPDATED /api/process-video endpoint with instrumental extraction
 app.post('/api/process-video', upload.single('video'), async (req, res) => {
   logMemoryUsage('Endpoint start');
   
@@ -6247,7 +6423,7 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
     }
 
     console.log('🎬 ===============================================');
-    console.log('🎬 DISK-OPTIMIZED VIDEO PROCESSING WITH TIMING FIX');
+    console.log('🎬 ENHANCED VIDEO PROCESSING WITH INSTRUMENTAL EXTRACTION');
     console.log('🎬 ===============================================');
     console.log('📁 File saved to disk:', originalPath);
     console.log('📊 Original file size:', (req.file.size / 1024 / 1024).toFixed(2), 'MB');
@@ -6261,12 +6437,14 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
     const clipDuration = videoEnd - videoStart;
     const trackName = req.body.track_name || req.body.song_title || 'Generated Track';
     const userId = req.body.userId || 'anonymous';
+    const extractInstrumental = req.body.extract_instrumental !== 'false'; // Default true
 
-    console.log('⏱️ Timing parameters:');
+    console.log('⏱️ Processing parameters:');
     console.log(`   Video start: ${videoStart}s`);
     console.log(`   Video end: ${videoEnd}s`);
     console.log(`   Clip duration: ${clipDuration}s`);
     console.log(`   Track name: "${trackName}"`);
+    console.log(`   Extract instrumental: ${extractInstrumental}`);
 
     // Validate timing
     if (clipDuration <= 0) {
@@ -6512,18 +6690,50 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
     let responseData = {
       success: true,
       tracks: [],
-      processing_method: 'disk_based_analysis',
+      processing_method: 'disk_based_analysis_with_instrumental',
       trimmed_duration: clipDuration,
       original_timing: {
         video_start: videoStart,
         video_end: videoEnd,
         clip_duration: clipDuration
+      },
+      instrumental_extraction: {
+        enabled: extractInstrumental,
+        status: 'not_started'
       }
     };
 
     // 9. PROCESS MUSIC RESULT AND CREATE TRACKS ARRAY
     if (analysisResult.musicResult?.success && analysisResult.musicResult?.audio_url) {
       console.log('🎵 Processing successful music result...');
+      
+      const originalMusicUrl = analysisResult.musicResult.audio_url;
+      let instrumentalData = null;
+      
+      // 🎸 NEW: EXTRACT INSTRUMENTAL VERSION
+      if (extractInstrumental) {
+        console.log('\n🎸 ===============================================');
+        console.log('🎸 EXTRACTING INSTRUMENTAL VERSION');
+        console.log('🎸 ===============================================');
+        
+        try {
+          instrumentalData = await extractInstrumentalFromExistingMusic(originalMusicUrl, trackName);
+          
+          if (instrumentalData.success) {
+            console.log('✅ Instrumental extraction successful!');
+            responseData.instrumental_extraction.status = 'completed';
+            responseData.instrumental_extraction.data = instrumentalData;
+          } else {
+            console.warn('⚠️ Instrumental extraction failed:', instrumentalData.error);
+            responseData.instrumental_extraction.status = 'failed';
+            responseData.instrumental_extraction.error = instrumentalData.error;
+          }
+        } catch (extractionError) {
+          console.error('❌ Instrumental extraction error:', extractionError.message);
+          responseData.instrumental_extraction.status = 'error';
+          responseData.instrumental_extraction.error = extractionError.message;
+        }
+      }
       
       // Handle multiple MP3 files if available
       if (analysisResult.musicResult.allMP3Files && analysisResult.musicResult.allMP3Files.length > 0) {
@@ -6575,7 +6785,8 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
             });
           }
           
-          responseData.tracks.push({
+          // 🎵 ORIGINAL TRACK
+          const originalTrack = {
             // Audio URLs
             audioUrl: mp3File.url,
             url: mp3File.url,
@@ -6608,15 +6819,54 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
             
             // Music generation metadata
             generationType: 'full_generation_with_timing',
+            musicType: 'original', // 🎵 NEW
             index: index,
-            isInstrumental: req.body.instrumental === 'true',
+            isInstrumental: false,
             generatedAt: new Date().toISOString()
-          });
+          };
+          
+          responseData.tracks.push(originalTrack);
+          
+          // 🎸 INSTRUMENTAL TRACK (if extraction succeeded and this is the first track)
+          if (instrumentalData?.success && instrumentalData.instrumentalUrl && index === 0) {
+            const instrumentalTrack = {
+              ...originalTrack, // Copy all properties from original
+              
+              // Override with instrumental-specific data
+              audioUrl: instrumentalData.instrumentalUrl,
+              url: instrumentalData.instrumentalUrl,
+              audio_url: instrumentalData.instrumentalUrl,
+              
+              title: `${originalTrack.title} (Instrumental)`,
+              trackName: `${originalTrack.trackName} (Instrumental)`,
+              
+              // 🎸 Instrumental-specific metadata
+              musicType: 'instrumental',
+              isInstrumental: true,
+              originalMusicUrl: mp3File.url,
+              extractionTaskId: instrumentalData.taskId,
+              generationType: 'instrumental_extraction',
+              
+              // Extraction info
+              extractionInfo: {
+                originalTrackUrl: mp3File.url,
+                extractionMethod: 'musicgpt_api',
+                extractedStems: ['instrumental'],
+                taskId: instrumentalData.taskId,
+                extractedAt: new Date().toISOString()
+              }
+            };
+            
+            responseData.tracks.push(instrumentalTrack);
+            console.log('🎸 Added instrumental track to response');
+          }
         });
       } else {
         // Single track result
         console.log('🎵 Processing single track result...');
-        responseData.tracks.push({
+        
+        // 🎵 ORIGINAL TRACK
+        const originalTrack = {
           // Audio URLs
           audioUrl: analysisResult.musicResult.audio_url,
           url: analysisResult.musicResult.audio_url,
@@ -6640,14 +6890,51 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
           
           // Music generation metadata
           generationType: 'full_generation',
-          isInstrumental: req.body.instrumental === 'true',
+          musicType: 'original', // 🎵 NEW
+          isInstrumental: false,
           generatedAt: new Date().toISOString(),
           
           // Include additional music metadata if available
           ...(analysisResult.musicResult.title && { musicTitle: analysisResult.musicResult.title }),
           ...(analysisResult.musicResult.lyrics && { lyrics: analysisResult.musicResult.lyrics }),
           ...(analysisResult.musicResult.album_cover && { albumCover: analysisResult.musicResult.album_cover })
-        });
+        };
+        
+        responseData.tracks.push(originalTrack);
+        
+        // 🎸 INSTRUMENTAL TRACK (if extraction succeeded)
+        if (instrumentalData?.success && instrumentalData.instrumentalUrl) {
+          const instrumentalTrack = {
+            ...originalTrack, // Copy all properties from original
+            
+            // Override with instrumental-specific data
+            audioUrl: instrumentalData.instrumentalUrl,
+            url: instrumentalData.instrumentalUrl,
+            audio_url: instrumentalData.instrumentalUrl,
+            
+            title: `${originalTrack.title} (Instrumental)`,
+            trackName: `${originalTrack.trackName} (Instrumental)`,
+            
+            // 🎸 Instrumental-specific metadata
+            musicType: 'instrumental',
+            isInstrumental: true,
+            originalMusicUrl: analysisResult.musicResult.audio_url,
+            extractionTaskId: instrumentalData.taskId,
+            generationType: 'instrumental_extraction',
+            
+            // Extraction info
+            extractionInfo: {
+              originalTrackUrl: analysisResult.musicResult.audio_url,
+              extractionMethod: 'musicgpt_api',
+              extractedStems: ['instrumental'],
+              taskId: instrumentalData.taskId,
+              extractedAt: new Date().toISOString()
+            }
+          };
+          
+          responseData.tracks.push(instrumentalTrack);
+          console.log('🎸 Added instrumental track to response');
+        }
       }
       
       // Add analysis metadata to response
@@ -6678,35 +6965,42 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
 
     // 10. LOG FINAL RESPONSE FOR DEBUG
     console.log('\n🎯 ===============================================');
-    console.log('🎯 DISK-BASED PROCESSING RESPONSE PREPARED');
+    console.log('🎯 ENHANCED PROCESSING RESPONSE PREPARED');
     console.log('🎯 ===============================================');
     console.log('✅ Success:', responseData.success);
     console.log('🎵 Tracks count:', responseData.tracks.length);
-    console.log('💾 Processing method: Disk-based');
+    console.log('🎸 Instrumental extraction:', extractInstrumental ? 'ENABLED' : 'DISABLED');
+    console.log('💾 Processing method: Disk-based with instrumental');
     
     if (responseData.tracks.length > 0) {
       responseData.tracks.forEach((track, index) => {
         console.log(`🎵 Track ${index + 1}:`);
         console.log(`   Title: ${track.title}`);
+        console.log(`   Type: ${track.musicType || 'original'}`);
         console.log(`   Start: ${track.start}`);
         console.log(`   End: ${track.end}`);
         console.log(`   Duration: ${track.duration}`);
         console.log(`   Audio URL: ${track.audioUrl?.substring(0, 50)}...`);
       });
     }
+    
+    if (responseData.instrumental_extraction?.status) {
+      console.log('🎸 Instrumental status:', responseData.instrumental_extraction.status);
+    }
+    
     console.log('🎯 ===============================================');
 
     // 11. SEND RESPONSE
     res.status(200).json(responseData);
 
   } catch (error) {
-    console.error('❌ Disk-based process video error:', error);
+    console.error('❌ Enhanced process video error:', error);
     
     res.status(500).json({
       success: false,
-      error: 'Disk-based music generation failed',
+      error: 'Enhanced music generation failed',
       details: error.message,
-      processing_method: 'disk_based_analysis',
+      processing_method: 'disk_based_analysis_with_instrumental',
       timestamp: new Date().toISOString()
     });
   } finally {
@@ -6750,6 +7044,169 @@ app.post('/api/process-video', upload.single('video'), async (req, res) => {
     logMemoryUsage('Endpoint end');
   }
 });
+
+// 🎸 NEW: Extract instrumental from existing music
+async function extractInstrumentalFromExistingMusic(musicUrl, trackName) {
+  try {
+    console.log('🎸 Extracting instrumental from:', musicUrl);
+    
+    const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
+    const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
+
+    const FormData = require('form-data');
+    const formData = new FormData();
+    
+    formData.append('audio_url', musicUrl);
+    formData.append('stems', JSON.stringify(['instrumental']));
+    formData.append('preprocessing_options', JSON.stringify(['Denoise']));
+    formData.append('webhook_url', webhookUrl);
+
+    console.log('📤 Sending extraction request...');
+    const startTime = Date.now();
+
+    const response = await axios.post(
+      'https://api.musicgpt.com/api/public/v1/Extraction',
+      formData,
+      {
+        headers: {
+          'accept': 'application/json',
+          'Authorization': MUSICGPT_API_KEY,
+          ...formData.getHeaders()
+        },
+        timeout: 1000 * 60 * 2
+      }
+    );
+
+    const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    const extractionData = response.data;
+
+    console.log('📊 Extraction response:', extractionData);
+
+    if (extractionData.success && extractionData.task_id) {
+      console.log('🔄 Extraction started, task ID:', extractionData.task_id);
+      
+      // Monitor webhook for completion
+      const webhookToken = extractWebhookToken(webhookUrl);
+      if (webhookToken) {
+        const webhookResult = await monitorWebhookForInstrumental(webhookToken, 2, 10000);
+        
+        if (webhookResult.success && webhookResult.instrumentalUrl) {
+          return {
+            success: true,
+            instrumentalUrl: webhookResult.instrumentalUrl,
+            taskId: extractionData.task_id,
+            processingTime: processingTime + 's',
+            webhookInfo: webhookResult.webhookInfo
+          };
+        }
+      }
+      
+      // Fallback: return task info
+      return {
+        success: false,
+        taskId: extractionData.task_id,
+        eta: extractionData.eta,
+        error: 'Webhook monitoring timeout',
+        processingTime: processingTime + 's'
+      };
+    }
+
+    throw new Error('Extraction request failed');
+
+  } catch (error) {
+    console.error('❌ Extraction error:', error.message);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// 🎸 NEW: Monitor webhook for instrumental results
+async function monitorWebhookForInstrumental(webhookToken, maxPollMinutes = 2, pollInterval = 10000) {
+  const API_KEY = '563460a6-5c0b-4f4f-9240-2c714823510c';
+  const webhookApiUrl = `https://webhook.site/token/${webhookToken}/requests`;
+  const maxRetries = Math.floor((maxPollMinutes * 60) / (pollInterval / 1000));
+  let seenRequestUuids = new Set();
+
+  console.log('🎸 Monitoring webhook for instrumental extraction...');
+
+  // Get existing requests
+  try {
+    const baselineResponse = await axios.get(webhookApiUrl, {
+      timeout: 15000,
+      headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
+    });
+    
+    if (baselineResponse.data?.data) {
+      baselineResponse.data.data.forEach(req => seenRequestUuids.add(req.uuid));
+    }
+  } catch (error) {
+    console.warn('Could not get baseline requests:', error.message);
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await axios.get(webhookApiUrl, {
+        timeout: 15000,
+        headers: { 'Accept': 'application/json', 'Api-Key': API_KEY }
+      });
+      
+      if (response.data?.data) {
+        const newRequests = response.data.data.filter(req => 
+          req.method === 'POST' && 
+          !seenRequestUuids.has(req.uuid) && 
+          req.content
+        );
+
+        for (const request of newRequests) {
+          try {
+            const content = JSON.parse(request.content);
+            seenRequestUuids.add(request.uuid);
+
+            // Check for instrumental extraction result
+            if (content.stems?.instrumental || content.conversion_path) {
+              const instrumentalUrl = content.stems?.instrumental || content.conversion_path;
+              
+              console.log('🎸 ✅ INSTRUMENTAL FOUND:', instrumentalUrl);
+              
+              return {
+                success: true,
+                instrumentalUrl: instrumentalUrl,
+                extractionData: content,
+                webhookInfo: {
+                  uuid: request.uuid,
+                  timestamp: request.created_at,
+                  attempts: attempt
+                }
+              };
+            }
+          } catch (parseError) {
+            console.warn('Could not parse webhook content:', parseError.message);
+          }
+        }
+      }
+
+      if (attempt < maxRetries) {
+        console.log(`⏳ Waiting for instrumental (${attempt}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+
+    } catch (error) {
+      console.error(`Webhook poll error (${attempt}):`, error.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+    }
+  }
+
+  console.log('⏰ Instrumental webhook monitoring timeout');
+  return {
+    success: false,
+    error: 'Webhook monitoring timeout',
+    attempts: maxRetries
+  };
+}
 
 // Simplified analyze-gcs-video route (now using shared function)
 app.post('/api/analyze-gcs-video-for-music-with-generation', async (req, res) => {
@@ -8533,6 +8990,7 @@ app.post('/api/get-recent-tracks', async (req, res) => {
 
 // REPLACE your existing /api/save-recent-track endpoint in index.js:
 
+// 🆕 MODIFY your existing /api/save-recent-track endpoint
 app.post('/api/save-recent-track', async (req, res) => {
   const { 
     userId, 
@@ -8543,26 +9001,31 @@ app.post('/api/save-recent-track', async (req, res) => {
     youtubeUrls, 
     start, 
     end,
-    trackName, // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Accept track name
+    trackName,
     segmentIndex,
-    originalFileName
+    originalFileName,
+    // 🆕 NEW fields:
+    musicType = 'original',
+    originalMusicUrl,
+    extractionTaskId
   } = req.body;
   
   try {
-    console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ Saving recent track with name:', trackName || 'Unnamed Track');
+    console.log('💾 Saving track:', trackName, `(${musicType})`);
     
-    // Find if a track with the same audioUrl and userId already exists
     const existingTrack = await Track.findOne({ userId, audioUrl });
 
     if (existingTrack) {
-      // Update existing track with new track name and timestamp
       existingTrack.generatedAt = Date.now();
-      existingTrack.trackName = trackName || existingTrack.trackName || 'Unnamed Track';
-      existingTrack.title = trackName || existingTrack.title || 'Unnamed Track'; // Keep title in sync
+      existingTrack.trackName = trackName || existingTrack.trackName;
+      existingTrack.title = trackName || existingTrack.title;
+      // 🆕 NEW: Update extraction info
+      existingTrack.musicType = musicType;
+      existingTrack.originalMusicUrl = originalMusicUrl;
+      existingTrack.extractionTaskId = extractionTaskId;
+      
       await existingTrack.save();
-      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Track "${trackName}" updated for user ${userId}`);
     } else {
-      // Create new entry with track name
       const newTrack = new Track({
         userId,
         audioUrl,
@@ -8572,8 +9035,13 @@ app.post('/api/save-recent-track', async (req, res) => {
         youtubeUrls,
         start,
         end,
-        title: trackName || 'Unnamed Track', // Use track name as title
-        trackName: trackName || 'Unnamed Track', // ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ NEW: Store track name
+        title: trackName || 'Unnamed Track',
+        trackName: trackName || 'Unnamed Track',
+        // 🆕 NEW fields:
+        musicType,
+        originalMusicUrl,
+        extractionTaskId,
+        
         segmentInfo: {
           segmentIndex: segmentIndex || 0,
           originalStart: start,
@@ -8581,28 +9049,36 @@ app.post('/api/save-recent-track', async (req, res) => {
           wasAdjusted: false
         },
         generationType: 'segment',
-        originalFileName: originalFileName || 'unknown_video'
+        originalFileName: originalFileName || 'unknown_video',
+        
+        // 🆕 NEW: Add extraction info if this is instrumental
+        ...(musicType === 'instrumental' && {
+          extractionInfo: {
+            originalTrackUrl: originalMusicUrl,
+            extractionMethod: 'musicgpt_api',
+            extractedStems: ['instrumental'],
+            taskId: extractionTaskId
+          }
+        })
       });
+      
       await newTrack.save();
-      console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ New track "${trackName}" saved for user ${userId}`);
     }
 
-    // Fetch the latest recent tracks to send back
     const recentTracks = await Track.find({ userId }).sort({ generatedAt: -1 }).limit(5);
     res.status(200).json({ 
-      message: 'Recent track saved/updated successfully!', 
+      message: `Track "${trackName}" (${musicType}) saved successfully!`, 
       recentTracks 
     });
     
   } catch (err) {
-    console.error('Error saving recent track:', err);
+    console.error('Error saving track:', err);
     res.status(500).json({ 
-      error: 'Failed to save recent track', 
+      error: 'Failed to save track', 
       details: err.message 
     });
   }
 });
-
 // REPLACE your existing /api/save-track endpoint:
 
 app.post('/api/save-track', async (req, res) => {
