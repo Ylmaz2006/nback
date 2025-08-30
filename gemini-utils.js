@@ -3691,7 +3691,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style and contentof the video this sentence will be used to find similar videos by youtube data api Do not provide any explanation or extra words examle:daily vlog type is vog and daily is the subtype this search will be upload to youtbe api so please make as when it is searched youtbe videos appearalso say what ou ant such as you ant commercial video say commercial video not just commercıal "
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style and contentof the video this sentence will be used to find similar videos by youtube data api Do not provide any explanation or extra words examle:daily vlog type is vog and daily is the subtype this search will be upload to youtbe api so please make as when it is searched youtbe videos appearalso say what ou ant such as you ant commercial video say commercial video not just commercıal .no extr words or starting words just vibe style tpe "
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
