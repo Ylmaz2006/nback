@@ -3691,7 +3691,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"analyze the content of the video give and give the type f the video just the typ of video to search at youtube data api no other words just the type"
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `analyze the content of the video and give the type of the video just 1 or 2 ord the type of the video no oter extra wors"
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
