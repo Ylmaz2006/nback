@@ -713,7 +713,7 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
     'User-Agent': 'ClipTune-Webhook-Monitor/1.0'
   };
   
-  // Get baseline requests to mark as seen
+  // 🔧 FIXED: Get baseline requests and mark ALL as seen
   console.log('\n🔍 Getting baseline requests...');
   try {
     const baselineResponse = await axios.get(webhookApiUrl, {
@@ -751,16 +751,22 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
       if (response.data && response.data.data && response.data.data.length > 0) {
         const allRequests = response.data.data;
         
-        const newPostRequests = allRequests.filter(request => {
+        // 🔧 FIXED: Properly filter out already seen requests
+        const actualNewPostRequests = allRequests.filter(request => {
           return request.method === 'POST' && 
                  !seenRequestUuids.has(request.uuid) && 
                  request.content;
         });
         
-        if (newPostRequests.length > 0) {
-          console.log(`🎉 Found ${newPostRequests.length} NEW POST request(s)!`);
+        // 🔧 FIXED: Show correct count
+        console.log(`🔍 Total requests in webhook: ${allRequests.length}`);
+        console.log(`🔍 Already seen requests: ${seenRequestUuids.size}`);
+        console.log(`🔍 Actually NEW POST requests: ${actualNewPostRequests.length}`);
+        
+        if (actualNewPostRequests.length > 0) {
+          console.log(`🎉 Found ${actualNewPostRequests.length} NEW POST request(s)!`);
           
-          for (const request of newPostRequests) {
+          for (const request of actualNewPostRequests) {
             try {
               const content = JSON.parse(request.content);
               
@@ -791,7 +797,7 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
                 };
                 
                 newMusicGPTRequests.push(newRequest);
-                seenRequestUuids.add(request.uuid);
+                seenRequestUuids.add(request.uuid); // 🔧 FIXED: Mark as seen immediately
                 
                 console.log(`\n🎵 ===============================================`);
                 console.log(`🎵 NEW MUSICGPT REQUEST #${newMusicGPTRequests.length} DETECTED!`);
@@ -885,13 +891,15 @@ async function monitorWebhookForMusicGPT(webhookToken, maxRetries = 30, pollInte
                 }
               } else {
                 console.log('⚠️ Non-MusicGPT request detected, skipping');
+                seenRequestUuids.add(request.uuid); // 🔧 FIXED: Still mark as seen to avoid counting again
               }
             } catch (parseError) {
               console.log('⚠️ Could not parse request content:', parseError.message);
+              seenRequestUuids.add(request.uuid); // 🔧 FIXED: Mark as seen even if parse fails
             }
           }
         } else {
-          console.log('🔍 No NEW requests found');
+          console.log('🔍 No NEW requests found (all already seen)');
         }
       } else {
         console.log('🔍 No requests at all');
