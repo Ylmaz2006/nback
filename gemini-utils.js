@@ -3691,7 +3691,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentene word that describes the type style and content of the video Do not provide any explanation or extra words "
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style  the video Do not provide any explanation or extra words OR ANY İNFO AOUT CONTENT examle:daily vlog type is vog and daily is the subtype "
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
@@ -3761,9 +3761,7 @@ async function analyzeVideoForDualMusicOutputs(videoBuffer, mimeType = 'video/mp
     console.log('ðŸ"‡ Audio handling: STRIPPED (visual analysis only)');
 
     // Use the specialized dual output prompt with YouTube URL integration
-    let fullPrompt = `Analyze the uploaded video's visuals, dialogues, and pacing. Then produce exactly 2 lines, each ≤280 characters:
-1. Prompt — concise description of the video's emotional tone, vibe, and type, written neatly and clearly. No musical terms here.
-2. Music Style — BPM, key, genre, primary instruments, and progression (intro → build-up → climax → outro), including appropriate musical terms for tempo, dynamics, articulation, and mood.`;
+    let fullPrompt = `analyze the vıdeo and the song at the youtube url the song at the youtbe url wıllbe sent to musıcgpt remıx to be remıxed analyse the vıdeo and capture the vıbe tone and emotıon of the vıdeo make thıs for the youtube url as well then for 1 or 2 sentence maxımum say how the musıc could be well fıtted to the vıdeo by syıng how to change the vıbe emotıon style and tone of the songat the youtube url just 1 or 2 sentence`;
 
     // âœ… ADD YouTube URL to prompt if provided
     if (youtubeUrl) {
