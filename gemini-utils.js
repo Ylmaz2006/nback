@@ -3691,7 +3691,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style  the video Do not provide any explanation or extra words OR ANY İNFO AOUT CONTENT examle:daily vlog type is vog and daily is the subtype "
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style  the video Do not provide any explanation or extra words OR ANY İNFO AOUT CONTENT examle:daily vlog type is vog and daily is the subtype this search will be upload to youtbe api so please make as when it is searched youtbe videos appear "
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
