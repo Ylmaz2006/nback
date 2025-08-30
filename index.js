@@ -5776,20 +5776,16 @@ if (youtubeUrl.includes('watch?v=vmHs2-Fylcw')) {
 // Create FormData for multipart/form-data request (required by API)
 const FormData = require('form-data');
 const formData = new FormData();
-
-// 🎵 CORRECTED: Enhanced instrumental prompt for Remix endpoint
-const instrumentalPrompt = `Create an instrumental version with no vocals. ${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}. Remove all vocals and make it purely instrumental background music.`;
-
 // Add parameters as form fields
 formData.append('audio_url', youtubeVideos[0].url);
-formData.append('prompt', instrumentalPrompt);
+formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - make it only instrumental`);
 formData.append('webhook_url', webhookUrl);
-console.log('📤 MusicGPT Remix Payload (FormData):');
-console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
-console.log('🎵 INSTRUMENTAL Remix Prompt:', instrumentalPrompt);
-console.log('🎭 Original Music Style:', dualAnalysisResult.music_style);
-console.log('🔗 Webhook URL:', webhookUrl);
-console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
+        console.log('📤 MusicGPT Remix Payload (FormData):');
+        console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
+        console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
+        console.log('🎭 Music Style:', dualAnalysisResult.music_style);
+        console.log('🔗 Webhook URL:', webhookUrl);
+
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
         console.log('📤 Calling MusicGPT Remix API with FormData...');
