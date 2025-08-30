@@ -3611,11 +3611,7 @@ function extractGenreFromAnalysis(analysis) {
 }
 
 // âœ… NEW: Specialized prompt for generating TWO 280-char outputs
-const DUAL_OUTPUT_MUSIC_PROMPT = `Analyze the uploaded videoS visuals, dialogues, and pacing. Then produce exactly 2 lines, each â‰¤280 characters:
-1. Prompt â€” concise description of the videoS emotional tone, vibe, and type, written neatly and clearly. No musical terms here.
-2. Music Style â€” BPM, key, genre, primary instruments, and progression (intro â†’ build-up â†’ climax â†’ outro), including appropriate musical terms for tempo, dynamics, articulation, and mood.
-Rules: Do not exceed 280 characters for either line. Avoid repetition, vague terms, or extra commentary. Output in the exact format below:
-RULE2:IF THERE IS CUSTOM PROMPT ENTERED CUSTOM PROMPT DETERMINES THE PROMPT OR MUSIC STYLE IF VIDEO ANALYZES ANGRY AND BETRAYA VIBE BUT CUSTOM PROMPT SAYS HAPPY VIB HAPY VIBE WILL BE USED FOR PROMPT LIN
+const DUAL_OUTPUT_MUSIC_PROMPT = `analyze the vıdeo and the song at the youtube url the song at the youtbe url wıllbe sent to musıcgpt remıx to be remıxed analyse the vıdeo and capture the vıbe tone and emotıon of the vıdeo make thıs for the youtube url as well then for 1 or 2 sentence maxımum say how the musıc could be well fıtted to the vıdeo by syıng how to change the vıbe emotıon style and tone of the songat the youtube url just 1 or 2 sentence
 `;
 
 // âœ… NEW: Extract dual outputs from Gemini response
