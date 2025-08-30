@@ -5716,7 +5716,7 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       finalVideoBuffer = videoBuffer;
       console.log('📊 Buffer size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
     } else {
-      // Enhanced download logic (existing code)
+      // Enhanced download logic
       console.log('📥 Downloading video from GCS with retry logic...');
       const fileName = extractFileNameFromUrl(videoUrl);
       console.log('📁 File name:', fileName);
@@ -5743,6 +5743,7 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
             console.log('🔗 Using provided signed URL');
           } else {
             console.log('🔗 Generating new signed URL...');
+            const { getSignedDownloadUrl } = require('./gcs-utils');
             downloadUrl = await getSignedDownloadUrl(fileName, 1);
             console.log('✅ Signed URL generated');
           }
@@ -5820,6 +5821,7 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
     const { analyzeVideoForYouTubeSearchDescription } = require('./gemini-utils');
     const ytDescResult = await analyzeVideoForYouTubeSearchDescription(finalVideoBuffer, 'video/mp4');
 
+    // 🔧 FIX: Initialize youtubeVideos as empty array to prevent forEach error
     let youtubeVideos = [];
     let youtubeSearchDescription = '';
     
@@ -5828,51 +5830,77 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       console.log('🟦 YOUTUBE SEARCH DESCRIPTION:', youtubeSearchDescription);
       
       // Search YouTube immediately
-      const { searchYouTubeVideos } = require('./youtube-utils');
-      youtubeVideos = await searchYouTubeVideos(youtubeSearchDescription, 5);
-      console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
-      youtubeVideos.forEach((v, idx) => {
-        console.log(`${idx+1}. ${v.title} - ${v.url}`);
-      });
+      try {
+        const { searchYouTubeVideos } = require('./youtube-utils');
+        const searchResult = await searchYouTubeVideos(youtubeSearchDescription, 5);
+        
+        // 🔧 FIX: Ensure youtubeVideos is always an array
+        if (Array.isArray(searchResult)) {
+          youtubeVideos = searchResult;
+        } else if (searchResult && Array.isArray(searchResult.videos)) {
+          youtubeVideos = searchResult.videos;
+        } else {
+          console.warn('⚠️ YouTube search returned unexpected format:', typeof searchResult);
+          youtubeVideos = [];
+        }
+        
+        if (youtubeVideos.length > 0) {
+          console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
+          youtubeVideos.forEach((v, idx) => {
+            console.log(`${idx+1}. ${v.title} - ${v.url}`);
+          });
+        } else {
+          console.warn('⚠️ No YouTube videos found for search');
+        }
+        
+      } catch (searchError) {
+        console.error('❌ YouTube search failed:', searchError.message);
+        youtubeVideos = []; // Ensure it's still an empty array
+      }
 
-      // Upload first video to AcrCloud ONLY ONCE (removed duplicate later)
-  // Upload first video to AcrCloud to detect actual songs
-// Upload first video to AcrCloud to detect actual songs
-if (youtubeVideos.length > 0) {
-  const firstUrl = youtubeVideos[0].url;
-  console.log('📤 Uploading first YouTube URL to AcrCloud for song detection:', firstUrl);
-  const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
-  const acrResult = await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
-  
-  // 🔧 FIXED: Check the correct response structure
-  if (acrResult.success && acrResult.detectedSongs && acrResult.detectedSongs.length > 0) {
-    console.log('\n🎵 ===============================================');
-    console.log('🎵 USING DETECTED SONG URL FOR MUSICGPT REMIX');
-    console.log('🎵 ===============================================');
-    
-    const detectedSong = acrResult.detectedSongs[0];
-    console.log('🎵 Detected song:', detectedSong.title);
-    console.log('🎵 Artist:', detectedSong.artist);
-    console.log('🎵 YouTube URL:', detectedSong.url);
-    
-    // Use detected song URL instead of original search results
-    youtubeVideos = [{
-      title: detectedSong.title,
-      url: detectedSong.url,
-      artist: detectedSong.artist
-    }];
-    
-    console.log(`✅ Using detected song URL for remix: ${detectedSong.url}`);
-  } else {
-    console.log('⚠️ ACRCloud result:', acrResult.error || 'No songs detected');
-    console.log('🔍 Using original search results as fallback');
-    console.log('🔍 Will use search result URL:', youtubeVideos[0]?.url);
-  }
-} else {
-  console.log('⚠️ No YouTube videos found.');
-}
+      // Upload first video to AcrCloud to detect actual songs
+      if (youtubeVideos.length > 0) {
+        const firstUrl = youtubeVideos[0].url;
+        console.log('📤 Uploading first YouTube URL to AcrCloud for song detection:', firstUrl);
+        
+        try {
+          const { recognizeMusicFromYouTube } = require('./acrcloud-utils');
+          const acrResult = await recognizeMusicFromYouTube(firstUrl, youtubeVideos[0].title);
+          
+          // Check the correct response structure
+          if (acrResult.success && acrResult.detectedSongs && acrResult.detectedSongs.length > 0) {
+            console.log('\n🎵 ===============================================');
+            console.log('🎵 USING DETECTED SONG URL FOR MUSICGPT REMIX');
+            console.log('🎵 ===============================================');
+            
+            const detectedSong = acrResult.detectedSongs[0];
+            console.log('🎵 Detected song:', detectedSong.title);
+            console.log('🎵 Artist:', detectedSong.artist);
+            console.log('🎵 YouTube URL:', detectedSong.url);
+            
+            // Use detected song URL instead of original search results
+            youtubeVideos = [{
+              title: detectedSong.title,
+              url: detectedSong.url,
+              artist: detectedSong.artist
+            }];
+            
+            console.log(`✅ Using detected song URL for remix: ${detectedSong.url}`);
+          } else {
+            console.log('⚠️ ACRCloud result:', acrResult.error || 'No songs detected');
+            console.log('🔍 Using original search results as fallback');
+            console.log('🔍 Will use search result URL:', youtubeVideos[0]?.url);
+          }
+        } catch (acrError) {
+          console.error('❌ ACRCloud processing failed:', acrError.message);
+          console.log('🔍 Continuing with original YouTube search results');
+        }
+      } else {
+        console.log('⚠️ No YouTube videos found.');
+      }
     } else {
       console.warn('⚠️ Failed to get YouTube search description:', ytDescResult.error);
+      youtubeVideos = []; // Ensure it's an empty array
     }
 
     // STEP 2: Analyze video for dual outputs WITH YouTube URL
@@ -5910,7 +5938,8 @@ Generate TWO separate 280-character outputs with maximum musical detail.`,
     console.log('='.repeat(80));
 
     let musicResult = null;
-if (generateMusic) {
+    
+    if (generateMusic) {
       // STEP 3: Send dual outputs to MusicGPT REMIX with webhook monitoring
       console.log('\n3️⃣ ===============================================');
       console.log('3️⃣ SENDING TO MUSICGPT REMIX WITH WEBHOOK MONITORING');
@@ -5930,41 +5959,37 @@ if (generateMusic) {
         console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
         console.log('🎵 Original track:', youtubeVideos[0].title);
 
-console.log('🔗 Webhook URL:', webhookUrl);
-console.log('🔑 Webhook Token:', webhookToken);
-console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
-console.log('🎵 Original track:', youtubeVideos[0].title);
+        // Final URL being sent to MusicGPT
+        console.log('🎵 Final URL being sent to MusicGPT:', youtubeVideos[0].url);
+        console.log('🎵 Track title:', youtubeVideos[0].title);
 
-// 🔧 ADD THIS VALIDATION CODE HERE:
-// Before sending to MusicGPT, log which URL we're actually using
-console.log('🎵 Final URL being sent to MusicGPT:', youtubeVideos[0].url);
-console.log('🎵 Track title:', youtubeVideos[0].title);
+        // Add length validation
+        const youtubeUrl = youtubeVideos[0].url;
+        if (youtubeUrl.includes('watch?v=vmHs2-Fylcw')) {
+          console.log('✅ Using detected song URL (likely shorter and suitable for remix)');
+        } else {
+          console.log('⚠️ Using original search result URL (may be too long for remix)');
+        }
 
-// Add length validation
-const youtubeUrl = youtubeVideos[0].url;
-if (youtubeUrl.includes('watch?v=vmHs2-Fylcw')) {
-  console.log('✅ Using detected song URL (likely shorter and suitable for remix)');
-} else {
-  console.log('⚠️ Using original search result URL (may be too long for remix)');
-}
+        // Create FormData for multipart/form-data request (required by API)
+        const FormData = require('form-data');
+        const formData = new FormData();
 
-// Create FormData for multipart/form-data request (required by API)
-const FormData = require('form-data');
-const formData = new FormData();
+        // Enhanced instrumental prompt for Remix endpoint
+        const instrumentalPrompt = `Create an instrumental version with no vocals. ${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}. Remove all vocals and make it purely instrumental background music.`;
 
-// 🎵 CORRECTED: Enhanced instrumental prompt for Remix endpoint
-const instrumentalPrompt = `Create an instrumental version with no vocals. ${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}. Remove all vocals and make it purely instrumental background music.`;
-
-// Add parameters as form fields
-formData.append('audio_url', youtubeVideos[0].url);
-formData.append('prompt', instrumentalPrompt);
-formData.append('webhook_url', webhookUrl);
-console.log('📤 MusicGPT Remix Payload (FormData):');
-console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
-console.log('🎵 INSTRUMENTAL Remix Prompt:', instrumentalPrompt);
-console.log('🎭 Original Music Style:', dualAnalysisResult.music_style);
-console.log('🔗 Webhook URL:', webhookUrl);
-console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
+        // Add parameters as form fields
+        formData.append('audio_url', youtubeVideos[0].url);
+        formData.append('prompt', instrumentalPrompt);
+        formData.append('webhook_url', webhookUrl);
+        
+        console.log('📤 MusicGPT Remix Payload (FormData):');
+        console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
+        console.log('🎵 INSTRUMENTAL Remix Prompt:', instrumentalPrompt);
+        console.log('🎭 Original Music Style:', dualAnalysisResult.music_style);
+        console.log('🔗 Webhook URL:', webhookUrl);
+        console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
+        
         const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
 
         console.log('📤 Calling MusicGPT Remix API with FormData...');
@@ -6038,28 +6063,34 @@ console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
               console.log('🎵 ===============================================');
               
               const mp3Files = [];
-              allRequests.forEach((request, index) => {
-                // Update to handle Remix responses
-                if (request.content.conversion_path && request.content.conversion_type === "Remix") {
-                  mp3Files.push({
-                    url: request.content.conversion_path,
-                    title: `Remixed: ${youtubeVideos[0].title}`,
-                    mp3Duration: request.content.conversion_duration || null,
-                    lyrics: request.content.lyrics,
-                    originalYouTubeUrl: youtubeVideos[0].url,
-                    originalYouTubeTitle: youtubeVideos[0].title,
-                    videoDuration: videoDurationSeconds,
-                    requestNumber: index + 1,
-                    type: 'remix'
-                  });
-                  console.log(`🎵 MP3 #${index + 1}: ${request.content.conversion_path}`);
-                  console.log(`   Title: Remixed: ${youtubeVideos[0].title}`);
-                  console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
-                  console.log(`   Video Duration: ${videoDurationSeconds}s`);
-                  console.log(`   Original YouTube: ${youtubeVideos[0].title}`);
-                  console.log(`   Lyrics: ${request.content.lyrics ? 'Available' : 'No lyrics'}`);
-                }
-              });
+              
+              // 🔧 FIX: Ensure allRequests is an array before forEach
+              if (Array.isArray(allRequests)) {
+                allRequests.forEach((request, index) => {
+                  // Update to handle Remix responses
+                  if (request.content.conversion_path && request.content.conversion_type === "Remix") {
+                    mp3Files.push({
+                      url: request.content.conversion_path,
+                      title: `Remixed: ${youtubeVideos[0].title}`,
+                      mp3Duration: request.content.conversion_duration || null,
+                      lyrics: request.content.lyrics,
+                      originalYouTubeUrl: youtubeVideos[0].url,
+                      originalYouTubeTitle: youtubeVideos[0].title,
+                      videoDuration: videoDurationSeconds,
+                      requestNumber: index + 1,
+                      type: 'remix'
+                    });
+                    console.log(`🎵 MP3 #${index + 1}: ${request.content.conversion_path}`);
+                    console.log(`   Title: Remixed: ${youtubeVideos[0].title}`);
+                    console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
+                    console.log(`   Video Duration: ${videoDurationSeconds}s`);
+                    console.log(`   Original YouTube: ${youtubeVideos[0].title}`);
+                    console.log(`   Lyrics: ${request.content.lyrics ? 'Available' : 'No lyrics'}`);
+                  }
+                });
+              } else {
+                console.warn('⚠️ allRequests is not an array:', typeof allRequests);
+              }
               
               console.log(`📊 Total MP3 files found: ${mp3Files.length}`);
               
@@ -6141,7 +6172,7 @@ console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
       }
     }
 
-    // Final logging and response preparation (NO DUPLICATE YOUTUBE PROCESSING)
+    // Final logging and response preparation
     console.log('\n🎊 ===============================================');
     console.log('🎊 ENHANCED WORKFLOW WITH WEBHOOK MONITORING COMPLETE');
     console.log('🎊 ===============================================');
@@ -6189,6 +6220,25 @@ console.log('🎼 Vocal Removal: EXPLICITLY REQUESTED in prompt');
     throw new Error(`Video analysis and remix generation failed: ${error.message}`);
   }
 }
+
+// Helper function to extract webhook token from URL
+function extractWebhookToken(webhookUrl) {
+  const match = webhookUrl.match(/webhook\.site\/([a-f0-9-]+)/);
+  return match ? match[1] : null;
+}
+
+// Helper function to extract file name from URL
+function extractFileNameFromUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+    return pathParts[pathParts.length - 1] || 'video.mp4';
+  } catch (error) {
+    console.warn('Could not extract filename from URL:', error.message);
+    return 'video.mp4';
+  }
+}
+
 function extractTimingFromGeminiAnalysis(analysisText, mp3Files, clipDuration) {
   console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ EXTRACTING TIMING FROM GEMINI ANALYSIS...');
   console.log('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¾ Analysis text length:', analysisText.length);
@@ -6382,11 +6432,6 @@ function displayGeminiTimingResults(recommendations) {
   console.log('ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ ===============================================');
 }
 
-module.exports = { 
-  handleVideoAnalysisAndMusicGeneration,
-  extractTimingFromGeminiAnalysis,
-  displayGeminiTimingResults
-};
 
 // Modified process-video route using the shared analysis function instead of ClipTune
 // REPLACE your existing /api/process-video route in index.js with this fixed version
