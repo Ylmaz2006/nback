@@ -5863,73 +5863,105 @@ Generate TWO separate 280-character outputs with maximum musical detail.`,
           
         } else {
           // 🔧 FIXED: Proper Remix request with FormData
-          console.log('🎵 Found YouTube videos - proceeding with Remix');
-          console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
-          
-          // ✅ CRITICAL: Validate YouTube URL format
-          const youtubeUrl = youtubeVideos[0].url;
-          if (!youtubeUrl.includes('youtube.com/watch?v=') && !youtubeUrl.includes('youtu.be/')) {
-            console.warn(`⚠️ Invalid YouTube URL format: ${youtubeUrl}`);
-            console.log('🔄 Falling back to regular MusicAI...');
-            
-            // Use fallback instead of throwing error
-            const fallbackPayload = {
-              music_style: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - create instrumental music`,
-              webhook_url: webhookUrl
-            };
-            
-            musicgptResponse = await axios.post(
-              'https://api.musicgpt.com/api/public/v1/MusicAI',
-              fallbackPayload,
-              {
-                headers: {
-                  'accept': 'application/json',
-                  'Authorization': MUSICGPT_API_KEY,
-                  'Content-Type': 'application/json'
-                },
-                timeout: 1000 * 60 * 2
-              }
-            );
-          } else {
-            console.log('🔧 Creating proper FormData for Remix endpoint...');
-            
-            // ✅ FIXED: Use proper FormData construction
-            const FormData = require('form-data');
-            const formData = new FormData();
-            
-            // 🔧 CRITICAL: Add required Remix parameters
-            formData.append('audio_url', youtubeUrl);
-            formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - create instrumental remix`);
-            formData.append('webhook_url', webhookUrl);
-            
-            console.log('📤 Remix Request Details:');
-            console.log('🎵 Audio URL (YouTube):', youtubeUrl);
-            console.log('🎭 Remix Prompt Length:', (dualAnalysisResult.prompt + dualAnalysisResult.music_style).length);
-            console.log('🔗 Webhook URL:', webhookUrl);
-            
-            // Debug the request
-            console.log('🔍 FormData Debug:');
-            console.log('   - audio_url: [FormData field]');
-            console.log('   - prompt: [FormData field]');
-            console.log('   - webhook_url: [FormData field]');
-            
-            console.log('📤 Calling MusicGPT Remix API...');
-            
-            musicgptResponse = await axios.post(
-              'https://api.musicgpt.com/api/public/v1/Remix',
-              formData,
-              {
-                headers: {
-                  'accept': 'application/json',
-                  'Authorization': MUSICGPT_API_KEY,
-                  ...formData.getHeaders() // ✅ CRITICAL: This sets proper multipart headers
-                },
-                timeout: 1000 * 60 * 2,
-                maxContentLength: Infinity,
-                maxBodyLength: Infinity
-              }
-            );
-          }
+   // CORRECTED: Proper Remix request with fixed FormData
+console.log('Found YouTube videos - proceeding with Remix');
+console.log('Using YouTube URL for remixing:', youtubeVideos[0].url);
+
+const youtubeUrl = youtubeVideos[0].url;
+if (!youtubeUrl.includes('youtube.com/watch?v=') && !youtubeUrl.includes('youtu.be/')) {
+  console.warn(`Invalid YouTube URL format: ${youtubeUrl}`);
+  console.log('Falling back to regular MusicAI...');
+  
+  const fallbackPayload = {
+    music_style: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - create instrumental music`,
+    webhook_url: webhookUrl
+  };
+  
+  musicgptResponse = await axios.post(
+    'https://api.musicgpt.com/api/public/v1/MusicAI',
+    fallbackPayload,
+    {
+      headers: {
+        'accept': 'application/json',
+        'Authorization': MUSICGPT_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      timeout: 1000 * 60 * 2
+    }
+  );
+} else {
+  console.log('Creating proper FormData for Remix endpoint...');
+  
+  // FIXED: Proper FormData construction
+  const FormData = require('form-data');
+  const formData = new FormData();
+  
+  // Prepare prompt with length limit
+  const fullPrompt = `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - create instrumental remix`;
+  const finalPrompt = fullPrompt.length > 500 ? fullPrompt.substring(0, 500) : fullPrompt;
+  
+  // Add required fields exactly as per documentation
+  formData.append('audio_url', youtubeUrl);
+  formData.append('prompt', finalPrompt);
+  formData.append('webhook_url', webhookUrl);
+  formData.append('gender', 'neutral'); // Optional but recommended
+  
+  console.log('Remix Request Details:');
+  console.log('Audio URL (YouTube):', youtubeUrl);
+  console.log('Remix Prompt Length:', finalPrompt.length);
+  console.log('Webhook URL:', webhookUrl);
+  
+  console.log('Calling MusicGPT Remix API...');
+  
+  musicgptResponse = await axios.post(
+    'https://api.musicgpt.com/api/public/v1/Remix',
+    formData,
+    {
+      headers: {
+        'accept': 'application/json',
+        'Authorization': MUSICGPT_API_KEY,
+        // CRITICAL FIX: Only use FormData headers, no Content-Type: application/json
+        ...formData.getHeaders()
+      },
+      timeout: 1000 * 60 * 2,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      validateStatus: function (status) {
+        return status < 500; // Accept 4xx to see actual errors
+      }
+    }
+  );
+  
+  // Add detailed response logging
+  console.log('MusicGPT Remix Response Status:', musicgptResponse.status);
+  console.log('MusicGPT Remix Response Data:', JSON.stringify(musicgptResponse.data, null, 2));
+  
+  // Handle non-200 responses
+  if (musicgptResponse.status !== 200) {
+    console.error('Remix API returned non-200 status:', musicgptResponse.status);
+    console.error('Response data:', musicgptResponse.data);
+    
+    // Fall back to MusicAI if Remix fails
+    console.log('Falling back to MusicAI due to Remix failure...');
+    const fallbackPayload = {
+      music_style: finalPrompt,
+      webhook_url: webhookUrl
+    };
+    
+    musicgptResponse = await axios.post(
+      'https://api.musicgpt.com/api/public/v1/MusicAI',
+      fallbackPayload,
+      {
+        headers: {
+          'accept': 'application/json',
+          'Authorization': MUSICGPT_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        timeout: 1000 * 60 * 2
+      }
+    );
+  }
+}
         }
 
         const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
