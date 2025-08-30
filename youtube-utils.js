@@ -53,7 +53,6 @@ async function downloadYouTubeAudio(youtubeUrl) {
     }
   });
 }
-
 // 🆕 NEW: Search with pagination support
 async function searchYouTubeVideos(query, maxResults = 5, pageToken = null) {
   const url = `https://www.googleapis.com/youtube/v3/search`;
@@ -74,7 +73,18 @@ async function searchYouTubeVideos(query, maxResults = 5, pageToken = null) {
 
   try {
     console.log(`🔍 Searching YouTube: "${query}" (Page: ${pageToken || 'first'})`);
+    
+    if (!YOUTUBE_API_KEY) {
+      console.warn('⚠️ YouTube API key not configured');
+      return []; // Return empty array instead of object
+    }
+    
     const response = await axios.get(url, { params });
+    
+    if (!response.data || !response.data.items) {
+      console.warn('⚠️ YouTube API returned no items');
+      return []; // Return empty array
+    }
     
     const videos = response.data.items.map(item => ({
       title: item.snippet.title,
@@ -84,18 +94,15 @@ async function searchYouTubeVideos(query, maxResults = 5, pageToken = null) {
       description: item.snippet.description
     }));
 
-    return {
-      videos,
-      nextPageToken: response.data.nextPageToken || null,
-      totalResults: response.data.pageInfo.totalResults
-    };
+    console.log(`✅ YouTube search found ${videos.length} videos`);
+    return videos; // Return array directly (not object)
+    
   } catch (error) {
-    console.error('YouTube Search Error:', error.message);
-    return {
-      videos: [],
-      nextPageToken: null,
-      totalResults: 0
-    };
+    console.error('❌ YouTube Search Error:', error.message);
+    if (error.response?.status === 403) {
+      console.error('❌ YouTube API quota exceeded or invalid key');
+    }
+    return []; // Always return empty array on error
   }
 }
 

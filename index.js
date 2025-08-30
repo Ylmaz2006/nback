@@ -5675,26 +5675,43 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       youtubeSearchDescription = ytDescResult.searchDescription;
       console.log('🟦 YOUTUBE SEARCH DESCRIPTION:', youtubeSearchDescription);
       
-      // Search YouTube with proper error handling
-      try {
-        const { searchYouTubeVideos } = require('./youtube-utils');
-        const searchResult = await searchYouTubeVideos(youtubeSearchDescription, 5);
-        
-        // 🔧 VALIDATE RESULT IS AN ARRAY
-        if (Array.isArray(searchResult)) {
-          youtubeVideos = searchResult;
-          console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
-          youtubeVideos.forEach((v, idx) => {
-            console.log(`${idx+1}. ${v.title} - ${v.url}`);
-          });
-        } else {
-          console.warn('⚠️ YouTube search did not return an array:', typeof searchResult);
-          youtubeVideos = []; // Ensure it's an empty array
-        }
-      } catch (youtubeError) {
-        console.error('❌ YouTube search failed:', youtubeError.message);
-        youtubeVideos = []; // Fallback to empty array
-      }
+// Search YouTube with proper error handling
+try {
+  const { searchYouTubeVideos } = require('./youtube-utils');
+  const searchResult = await searchYouTubeVideos(youtubeSearchDescription, 5);
+  
+  // 🔧 IMPROVED: Handle both old and new API response formats
+  if (Array.isArray(searchResult)) {
+    // Old format: direct array
+    youtubeVideos = searchResult;
+  } else if (searchResult && Array.isArray(searchResult.videos)) {
+    // New format: object with videos array
+    youtubeVideos = searchResult.videos;
+  } else if (searchResult && searchResult.items && Array.isArray(searchResult.items)) {
+    // YouTube API direct response format
+    youtubeVideos = searchResult.items.map(item => ({
+      title: item.snippet.title,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      videoId: item.id.videoId
+    }));
+  } else {
+    console.warn('⚠️ YouTube search returned unexpected format:', typeof searchResult);
+    console.log('📊 Response keys:', searchResult ? Object.keys(searchResult) : 'null');
+    youtubeVideos = []; // Ensure it's an empty array
+  }
+  
+  if (youtubeVideos.length > 0) {
+    console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
+    youtubeVideos.forEach((v, idx) => {
+      console.log(`${idx+1}. ${v.title} - ${v.url}`);
+    });
+  } else {
+    console.log('🔎 No YouTube videos found for:', youtubeSearchDescription);
+  }
+} catch (youtubeError) {
+  console.error('❌ YouTube search failed:', youtubeError.message);
+  youtubeVideos = []; // Fallback to empty array
+}
 
       // Upload first video to AcrCloud ONLY if we have results
       if (youtubeVideos.length > 0) {
