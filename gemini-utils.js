@@ -3691,7 +3691,49 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the content and style and type of this video. Respond with maximum 1 sentenCE word that describes the type style and contentof the video this sentence will be used to find similar videos by youtube data api Do not provide any explanation or extra words examle:daily vlog type is vog and daily is the subtype this search will be upload to youtbe api so please make as when it is searched youtbe videos appearalso say what ou ant such as you ant commercial video say commercial video not just commercıal .no extr words or starting words just vibe style tpe "
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the uploaded video and generate YouTube search keywords based on the following criteria:
+
+**ANALYSIS REQUIREMENTS:**
+1. **Content Type & Genre**: Identify the video's category (tutorial, vlog, entertainment, educational, gaming, music, etc.)
+
+2. **Tone Analysis**: Determine the overall tone:
+   - Emotional tone (happy, serious, excited, calm, dramatic, humorous, etc.)
+   - Communication style (casual, professional, energetic, laid-back, etc.)
+   - Pace (fast-paced, slow, moderate)
+
+3. **Visual Style**: Analyze visual elements:
+   - Cinematography style (handheld, steady, cinematic, documentary-style)
+   - Color palette and mood
+   - Setting/environment (indoor, outdoor, studio, etc.)
+
+4. **Audio Analysis**: Evaluate audio characteristics:
+   - Music genre/style (if present)
+   - Speaking style and energy level
+   - Sound effects or ambient audio
+
+5. **Target Audience**: Infer the intended audience demographic and interests
+
+**OUTPUT FORMAT:**
+Generate 15-20 YouTube search keywords that would help find videos with similar:
+- Content type and theme
+- Emotional tone and energy
+- Visual and audio style
+- Target audience appeal
+
+**KEYWORD CATEGORIES TO INCLUDE:**
+- Primary content descriptors (3-5 keywords)
+- Tone/mood keywords (2-3 keywords)
+- Style/aesthetic keywords (2-3 keywords)
+- Genre/category keywords (2-3 keywords)
+- Audience/demographic keywords (2-3 keywords)
+- Related topic keywords (3-5 keywords)
+
+**FORMATTING:**
+Provide keywords as a comma-separated list, with each keyword being 1-3 words long, suitable for YouTube Data API search queries.
+
+Example format: "tutorial, beginner friendly, calm voice, educational, step by step, how to, relaxed pace, indoor lighting, casual style"
+
+Please analyze the video thoroughly and provide keywords that capture both the explicit content and the implicit mood/style characteristics."
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
