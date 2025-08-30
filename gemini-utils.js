@@ -3691,49 +3691,7 @@ function extractDualMusicOutputs(geminiResponse) {
     };
   }
 }
-const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"Analyze the uploaded video and generate YouTube search keywords based on the following criteria:
-
-**ANALYSIS REQUIREMENTS:**
-1. **Content Type & Genre**: Identify the video's category (tutorial, vlog, entertainment, educational, gaming, music, etc.)
-
-2. **Tone Analysis**: Determine the overall tone:
-   - Emotional tone (happy, serious, excited, calm, dramatic, humorous, etc.)
-   - Communication style (casual, professional, energetic, laid-back, etc.)
-   - Pace (fast-paced, slow, moderate)
-
-3. **Visual Style**: Analyze visual elements:
-   - Cinematography style (handheld, steady, cinematic, documentary-style)
-   - Color palette and mood
-   - Setting/environment (indoor, outdoor, studio, etc.)
-
-4. **Audio Analysis**: Evaluate audio characteristics:
-   - Music genre/style (if present)
-   - Speaking style and energy level
-   - Sound effects or ambient audio
-
-5. **Target Audience**: Infer the intended audience demographic and interests
-
-**OUTPUT FORMAT:**
-Generate 15-20 YouTube search keywords that would help find videos with similar:
-- Content type and theme
-- Emotional tone and energy
-- Visual and audio style
-- Target audience appeal
-
-**KEYWORD CATEGORIES TO INCLUDE:**
-- Primary content descriptors (3-5 keywords)
-- Tone/mood keywords (2-3 keywords)
-- Style/aesthetic keywords (2-3 keywords)
-- Genre/category keywords (2-3 keywords)
-- Audience/demographic keywords (2-3 keywords)
-- Related topic keywords (3-5 keywords)
-
-**FORMATTING:**
-Provide keywords as a comma-separated list, with each keyword being 1-3 words long, suitable for YouTube Data API search queries.
-
-Example format: "tutorial, beginner friendly, calm voice, educational, step by step, how to, relaxed pace, indoor lighting, casual style"
-
-Please analyze the video thoroughly and provide keywords that capture both the explicit content and the implicit mood/style characteristics."
+const YOUTUBE_SEARCH_DESCRIPTION_PROMPT = `"analyze the content of the video give and give the type f the video just the typ of video to search at youtube data api no other words just the type"
 `;
 
 async function analyzeVideoForYouTubeSearchDescription(videoBuffer, mimeType = 'video/mp4', options = {}) {
