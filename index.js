@@ -5675,43 +5675,43 @@ async function handleVideoAnalysisAndMusicGeneration(videoUrl, options = {}, vid
       youtubeSearchDescription = ytDescResult.searchDescription;
       console.log('🟦 YOUTUBE SEARCH DESCRIPTION:', youtubeSearchDescription);
       
-// Search YouTube with proper error handling
-try {
-  const { searchYouTubeVideos } = require('./youtube-utils');
-  const searchResult = await searchYouTubeVideos(youtubeSearchDescription, 5);
-  
-  // 🔧 IMPROVED: Handle both old and new API response formats
-  if (Array.isArray(searchResult)) {
-    // Old format: direct array
-    youtubeVideos = searchResult;
-  } else if (searchResult && Array.isArray(searchResult.videos)) {
-    // New format: object with videos array
-    youtubeVideos = searchResult.videos;
-  } else if (searchResult && searchResult.items && Array.isArray(searchResult.items)) {
-    // YouTube API direct response format
-    youtubeVideos = searchResult.items.map(item => ({
-      title: item.snippet.title,
-      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-      videoId: item.id.videoId
-    }));
-  } else {
-    console.warn('⚠️ YouTube search returned unexpected format:', typeof searchResult);
-    console.log('📊 Response keys:', searchResult ? Object.keys(searchResult) : 'null');
-    youtubeVideos = []; // Ensure it's an empty array
-  }
-  
-  if (youtubeVideos.length > 0) {
-    console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
-    youtubeVideos.forEach((v, idx) => {
-      console.log(`${idx+1}. ${v.title} - ${v.url}`);
-    });
-  } else {
-    console.log('🔎 No YouTube videos found for:', youtubeSearchDescription);
-  }
-} catch (youtubeError) {
-  console.error('❌ YouTube search failed:', youtubeError.message);
-  youtubeVideos = []; // Fallback to empty array
-}
+      // Search YouTube with proper error handling
+      try {
+        const { searchYouTubeVideos } = require('./youtube-utils');
+        const searchResult = await searchYouTubeVideos(youtubeSearchDescription, 5);
+        
+        // 🔧 IMPROVED: Handle both old and new API response formats
+        if (Array.isArray(searchResult)) {
+          // Old format: direct array
+          youtubeVideos = searchResult;
+        } else if (searchResult && Array.isArray(searchResult.videos)) {
+          // New format: object with videos array
+          youtubeVideos = searchResult.videos;
+        } else if (searchResult && searchResult.items && Array.isArray(searchResult.items)) {
+          // YouTube API direct response format
+          youtubeVideos = searchResult.items.map(item => ({
+            title: item.snippet.title,
+            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+            videoId: item.id.videoId
+          }));
+        } else {
+          console.warn('⚠️ YouTube search returned unexpected format:', typeof searchResult);
+          console.log('📊 Response keys:', searchResult ? Object.keys(searchResult) : 'null');
+          youtubeVideos = []; // Ensure it's an empty array
+        }
+        
+        if (youtubeVideos.length > 0) {
+          console.log('🔎 Top YouTube Results for:', youtubeSearchDescription);
+          youtubeVideos.forEach((v, idx) => {
+            console.log(`${idx+1}. ${v.title} - ${v.url}`);
+          });
+        } else {
+          console.log('🔎 No YouTube videos found for:', youtubeSearchDescription);
+        }
+      } catch (youtubeError) {
+        console.error('❌ YouTube search failed:', youtubeError.message);
+        youtubeVideos = []; // Fallback to empty array
+      }
 
       // Upload first video to AcrCloud ONLY if we have results
       if (youtubeVideos.length > 0) {
@@ -5820,285 +5820,236 @@ Generate TWO separate 280-character outputs with maximum musical detail.`,
           youtubeVideos = [];
         }
         
+        // 🆕 FIXED: Always proceed with remix, use fallback tracks if needed
         if (youtubeVideos.length === 0) {
-          console.log('⚠️ No YouTube videos available for remixing');
-          console.log('🔄 Switching to standard MusicGPT generation instead of remix');
+          console.log('⚠️ No YouTube videos found from search');
+          console.log('🔄 Using fallback track for remix instead');
           
-          // Fallback to standard music generation
-          const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
+          // 🆕 FIXED: Use a popular fallback track for remix
+          const fallbackTracks = [
+            'https://www.youtube.com/watch?v=dQw4w9WgXcQ', // Rick Astley - Never Gonna Give You Up
+            'https://www.youtube.com/watch?v=ZbZSe6N_BXs', // Pharrell Williams - Happy
+            'https://www.youtube.com/watch?v=kJQP7kiw5Fk', // Luis Fonsi - Despacito
+            'https://www.youtube.com/watch?v=RgKAFK5djSk', // Wiz Khalifa - See You Again
+            'https://www.youtube.com/watch?v=hT_nvWreIhg'  // OneRepublic - Counting Stars
+          ];
           
-          const standardPayload = {
-            music_style: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - make it only instrumental`,
-            webhook_url: "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981"
-          };
-
-          console.log('📤 Using standard MusicAI endpoint instead of Remix');
+          // Use a random fallback track
+          const randomTrack = fallbackTracks[Math.floor(Math.random() * fallbackTracks.length)];
           
-          const musicgptResponse = await axios.post(
-            'https://api.musicgpt.com/api/public/v1/MusicAI',
-            standardPayload,
-            {
-              headers: {
-                'accept': 'application/json',
-                'Authorization': MUSICGPT_API_KEY,
-                'Content-Type': 'application/json'
-              },
-              timeout: 1000 * 60 * 2
-            }
-          );
+          youtubeVideos = [{
+            title: 'Fallback Track for Remix',
+            url: randomTrack,
+            artist: 'Various'
+          }];
+          
+          console.log(`🎵 Using fallback track for remix: ${randomTrack}`);
+          console.log('✅ Will proceed with remix request using fallback track');
+        }
 
-          const musicData = musicgptResponse.data;
+        // Continue with remix logic for ALL cases
+        const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
+        const webhookToken = "a54d685c-b636-4641-a883-edd74a6b7981";
+        
+        console.log('🔗 Webhook URL:', webhookUrl);
+        console.log('🔑 Webhook Token:', webhookToken);
+        console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
+        console.log('🎵 Original track:', youtubeVideos[0].title);
 
-          if (musicData.audio_url) {
-            musicResult = {
-              success: true,
-              status: 'completed_immediately',
-              music: musicData,
-              audio_url: musicData.audio_url,
-              processingTime: '0s',
-              generationType: 'standard_musicai'
-            };
-          } else if (musicData.task_id || musicData.conversion_id) {
-            const taskId = musicData.task_id || musicData.conversion_id;
-            
-            if (enableWebhookMonitoring) {
-              const webhookToken = "a54d685c-b636-4641-a883-edd74a6b7981";
-              const maxRetries = Math.floor((maxPollMinutes * 60) / 10);
-              const webhookResult = await monitorWebhookForMusicGPT(webhookToken, maxRetries, 10000, 3);
-              
-              if (webhookResult.success) {
-                musicResult = {
-                  success: true,
-                  status: 'completed_via_webhook',
-                  music: webhookResult.webhookData,
-                  audio_url: webhookResult.webhookData.conversion_path,
-                  allMP3Files: webhookResult.allMP3Files || [],
-                  webhookInfo: webhookResult,
-                  generationType: 'standard_musicai_webhook'
-                };
-              } else {
-                musicResult = {
-                  success: false,
-                  status: 'webhook_timeout',
-                  task_id: taskId,
-                  generationType: 'standard_musicai_timeout'
-                };
-              }
-            } else {
-              musicResult = {
-                success: true,
-                status: 'processing',
-                task_id: taskId,
-                generationType: 'standard_musicai_async'
-              };
-            }
+        // Create FormData for multipart/form-data request (required by API)
+        const FormData = require('form-data');
+        const formData = new FormData();
+        
+        // Add parameters as form fields
+        formData.append('audio_url', youtubeVideos[0].url);
+        formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - make it only instrumental`);
+        formData.append('webhook_url', webhookUrl);
+        
+        console.log('📤 MusicGPT Remix Payload (FormData):');
+        console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
+        console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
+        console.log('🎭 Music Style:', dualAnalysisResult.music_style);
+        console.log('🔗 Webhook URL:', webhookUrl);
+
+        const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
+
+        console.log('📤 Calling MusicGPT Remix API with FormData...');
+        
+        const musicgptStartTime = Date.now();
+
+        // 🆕 FIXED: Always use Remix endpoint
+        const musicgptResponse = await axios.post(
+          'https://api.musicgpt.com/api/public/v1/Remix',
+          formData,
+          {
+            headers: {
+              'accept': 'application/json',
+              'Authorization': MUSICGPT_API_KEY,
+              ...formData.getHeaders() // This sets Content-Type: multipart/form-data
+            },
+            timeout: 1000 * 60 * 2,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
           }
+        );
+
+        const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
+
+        console.log('✅ MusicGPT Remix API Response:');
+        console.log('📊 Status:', musicgptResponse.status);
+        console.log('📄 Response:', JSON.stringify(musicgptResponse.data, null, 2));
+
+        const musicData = musicgptResponse.data;
+
+        if (musicData.audio_url) {
+          console.log('\n🎉 REMIX GENERATED IMMEDIATELY!');
+          console.log('🎵 Audio URL:', musicData.audio_url);
           
-        } else {
-          // Continue with remix logic
-          const webhookUrl = "https://webhook.site/a54d685c-b636-4641-a883-edd74a6b7981";
-          const webhookToken = "a54d685c-b636-4641-a883-edd74a6b7981";
+          musicResult = {
+            success: true,
+            status: 'completed_immediately',
+            music: musicData,
+            audio_url: musicData.audio_url,
+            originalYouTubeUrl: youtubeVideos[0].url,
+            originalYouTubeTitle: youtubeVideos[0].title,
+            processingTime: musicgptProcessingTime + 's',
+            generationType: 'remix_immediate'
+          };
           
-          console.log('🔗 Webhook URL:', webhookUrl);
-          console.log('🔑 Webhook Token:', webhookToken);
-          console.log('🎵 Using YouTube URL for remixing:', youtubeVideos[0].url);
-          console.log('🎵 Original track:', youtubeVideos[0].title);
-
-          // Create FormData for multipart/form-data request (required by API)
-          const FormData = require('form-data');
-          const formData = new FormData();
+        } else if (musicData.task_id || musicData.conversion_id || musicData.conversion_id_1) {
+          const taskId = musicData.task_id || musicData.conversion_id_1 || musicData.conversion_id;
           
-          // Add parameters as form fields
-          formData.append('audio_url', youtubeVideos[0].url);
-          formData.append('prompt', `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style} - make it only instrumental`);
-          formData.append('webhook_url', webhookUrl);
+          console.log('⏳ MusicGPT remix generation started - beginning webhook monitoring...');
+          console.log('🆔 Task ID:', taskId);
+          console.log('⏰ ETA:', musicData.eta || 120, 'seconds');
           
-          console.log('📤 MusicGPT Remix Payload (FormData):');
-          console.log('🎵 Audio URL (YouTube):', youtubeVideos[0].url);
-          console.log('🎵 Remix Prompt:', dualAnalysisResult.prompt);
-          console.log('🎭 Music Style:', dualAnalysisResult.music_style);
-          console.log('🔗 Webhook URL:', webhookUrl);
-
-          const MUSICGPT_API_KEY = 'h4pNTSEuPxiKPKJX3UhYDZompmM5KfVhBSDAy0EHiZ09l13xQcWhxtI2aZf5N66E48yPm2D6fzMMDD96U5uAtA';
-
-          console.log('📤 Calling MusicGPT Remix API with FormData...');
-          
-          const musicgptStartTime = Date.now();
-
-          // Send as multipart/form-data
-          const musicgptResponse = await axios.post(
-            'https://api.musicgpt.com/api/public/v1/Remix',
-            formData,
-            {
-              headers: {
-                'accept': 'application/json',
-                'Authorization': MUSICGPT_API_KEY,
-                ...formData.getHeaders() // This sets Content-Type: multipart/form-data
-              },
-              timeout: 1000 * 60 * 2,
-              maxContentLength: Infinity,
-              maxBodyLength: Infinity
-            }
-          );
-
-          const musicgptProcessingTime = ((Date.now() - musicgptStartTime) / 1000).toFixed(2);
-
-          console.log('✅ MusicGPT Remix API Response:');
-          console.log('📊 Status:', musicgptResponse.status);
-          console.log('📄 Response:', JSON.stringify(musicgptResponse.data, null, 2));
-
-          const musicData = musicgptResponse.data;
-
-          if (musicData.audio_url) {
-            console.log('\n🎉 REMIX GENERATED IMMEDIATELY!');
-            console.log('🎵 Audio URL:', musicData.audio_url);
+          if (enableWebhookMonitoring && webhookToken) {
+            console.log('\n🔗 ===============================================');
+            console.log('🔗 STARTING REAL-TIME WEBHOOK MONITORING');
+            console.log('🔗 ===============================================');
             
-            musicResult = {
-              success: true,
-              status: 'completed_immediately',
-              music: musicData,
-              audio_url: musicData.audio_url,
-              originalYouTubeUrl: youtubeVideos[0].url,
-              originalYouTubeTitle: youtubeVideos[0].title,
-              processingTime: musicgptProcessingTime + 's',
-              generationType: 'remix_immediate'
-            };
+            const maxRetries = Math.floor((maxPollMinutes * 60) / 10);
+            const minRequestsToWaitFor = 3;
+            const webhookResult = await monitorWebhookForMusicGPT(webhookToken, maxRetries, 10000, minRequestsToWaitFor);
             
-          } else if (musicData.task_id || musicData.conversion_id || musicData.conversion_id_1) {
-            const taskId = musicData.task_id || musicData.conversion_id_1 || musicData.conversion_id;
-            
-            console.log('⏳ MusicGPT remix generation started - beginning webhook monitoring...');
-            console.log('🆔 Task ID:', taskId);
-            console.log('⏰ ETA:', musicData.eta || 120, 'seconds');
-            
-            if (enableWebhookMonitoring && webhookToken) {
-              console.log('\n🔗 ===============================================');
-              console.log('🔗 STARTING REAL-TIME WEBHOOK MONITORING');
-              console.log('🔗 ===============================================');
+            if (webhookResult.success) {
+              console.log('\n🎉 ===============================================');
+              console.log('🎉 WEBHOOK MONITORING SUCCESS!');
+              console.log('🎉 ===============================================');
               
-              const maxRetries = Math.floor((maxPollMinutes * 60) / 10);
-              const minRequestsToWaitFor = 3;
-              const webhookResult = await monitorWebhookForMusicGPT(webhookToken, maxRetries, 10000, minRequestsToWaitFor);
+              const webhookData = webhookResult.webhookData;
+              const allRequests = webhookResult.allRequests;
               
-              if (webhookResult.success) {
-                console.log('\n🎉 ===============================================');
-                console.log('🎉 WEBHOOK MONITORING SUCCESS!');
-                console.log('🎉 ===============================================');
-                
-                const webhookData = webhookResult.webhookData;
-                const allRequests = webhookResult.allRequests;
-                
-                console.log('\n🎵 ===============================================');
-                console.log('🎵 EXTRACTING MP3 FILES FROM WEBHOOK DATA');
-                console.log('🎵 ===============================================');
-                
-                const mp3Files = [];
-                allRequests.forEach((request, index) => {
-                  // Update to handle Remix responses
-                  if (request.content.conversion_path && request.content.conversion_type === "Remix") {
-                    mp3Files.push({
-                      url: request.content.conversion_path,
-                      title: `Remixed: ${youtubeVideos[0].title}`,
-                      mp3Duration: request.content.conversion_duration || null,
-                      lyrics: request.content.lyrics,
-                      originalYouTubeUrl: youtubeVideos[0].url,
-                      originalYouTubeTitle: youtubeVideos[0].title,
-                      videoDuration: videoDurationSeconds,
-                      requestNumber: index + 1,
-                      type: 'remix'
-                    });
-                    console.log(`🎵 MP3 #${index + 1}: ${request.content.conversion_path}`);
-                    console.log(`   Title: Remixed: ${youtubeVideos[0].title}`);
-                    console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
-                    console.log(`   Video Duration: ${videoDurationSeconds}s`);
-                    console.log(`   Original YouTube: ${youtubeVideos[0].title}`);
-                    console.log(`   Lyrics: ${request.content.lyrics ? 'Available' : 'No lyrics'}`);
-                  }
-                });
-                
-                console.log(`📊 Total MP3 files found: ${mp3Files.length}`);
-                
-                // Create timing analysis if we have multiple MP3s
-                let timingAnalysis = null;
-                if (mp3Files.length >= 2) {
-                  timingAnalysis = {
-                    success: true,
-                    analysis: `Found ${mp3Files.length} remix variations. Each track should cover the full video duration of ${videoDurationSeconds} seconds.`,
-                    recommendations: mp3Files.map((mp3, index) => ({
-                      trackNumber: index + 1,
-                      title: mp3.title,
-                      url: mp3.url,
-                      recommendedStart: 0,
-                      recommendedEnd: videoDurationSeconds,
-                      recommendedDuration: videoDurationSeconds,
-                      originalDuration: mp3.mp3Duration,
-                      extractedSuccessfully: true
-                    }))
-                  };
+              console.log('\n🎵 ===============================================');
+              console.log('🎵 EXTRACTING MP3 FILES FROM WEBHOOK DATA');
+              console.log('🎵 ===============================================');
+              
+              const mp3Files = [];
+              allRequests.forEach((request, index) => {
+                // Update to handle Remix responses
+                if (request.content.conversion_path && request.content.conversion_type === "Remix") {
+                  mp3Files.push({
+                    url: request.content.conversion_path,
+                    title: `Remixed: ${youtubeVideos[0].title}`,
+                    mp3Duration: request.content.conversion_duration || null,
+                    lyrics: request.content.lyrics,
+                    originalYouTubeUrl: youtubeVideos[0].url,
+                    originalYouTubeTitle: youtubeVideos[0].title,
+                    videoDuration: videoDurationSeconds,
+                    requestNumber: index + 1,
+                    type: 'remix'
+                  });
+                  console.log(`🎵 MP3 #${index + 1}: ${request.content.conversion_path}`);
+                  console.log(`   Title: Remixed: ${youtubeVideos[0].title}`);
+                  console.log(`   MP3 Duration: ${request.content.conversion_duration || 'Unknown'}s`);
+                  console.log(`   Video Duration: ${videoDurationSeconds}s`);
+                  console.log(`   Original YouTube: ${youtubeVideos[0].title}`);
+                  console.log(`   Lyrics: ${request.content.lyrics ? 'Available' : 'No lyrics'}`);
                 }
-                
-                musicResult = {
+              });
+              
+              console.log(`📊 Total MP3 files found: ${mp3Files.length}`);
+              
+              // Create timing analysis if we have multiple MP3s
+              let timingAnalysis = null;
+              if (mp3Files.length >= 2) {
+                timingAnalysis = {
                   success: true,
-                  status: 'completed_via_webhook',
-                  music: webhookData,
-                  audio_url: webhookData.conversion_path,
-                  audio_url_wav: webhookData.conversion_path_wav,
-                  duration: webhookData.conversion_duration,
-                  title: webhookData.title,
-                  lyrics: webhookData.lyrics,
-                  album_cover: webhookData.album_cover_path,
-                  task_id: webhookData.task_id,
-                  conversion_id: webhookData.conversion_id,
-                  originalYouTubeUrl: youtubeVideos[0].url,
-                  originalYouTubeTitle: youtubeVideos[0].title,
-                  remixPrompt: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`,
-                  processingTime: musicgptProcessingTime + 's',
-                  webhookInfo: {
-                    monitoringAttempts: webhookResult.totalPolls,
-                    timestamp: webhookResult.requestInfo.timestamp,
-                    uuid: webhookResult.requestInfo.uuid,
-                    totalRequestsFound: webhookResult.totalRequestsFound
-                  },
-                  allMP3Files: mp3Files,
-                  timingAnalysis: timingAnalysis,
-                  generationType: 'remix_webhook'
-                };
-                
-              } else {
-                // Webhook timeout handling
-                musicResult = {
-                  success: false,
-                  status: 'webhook_timeout',
-                  task_id: taskId,
-                  eta: musicData.eta,
-                  processingTime: musicgptProcessingTime + 's',
-                  error: 'Webhook monitoring timed out',
-                  webhookInfo: {
-                    monitoringAttempts: webhookResult.totalPolls,
-                    timeoutMinutes: maxPollMinutes
-                  },
-                  generationType: 'remix_timeout'
+                  analysis: `Found ${mp3Files.length} remix variations. Each track should cover the full video duration of ${videoDurationSeconds} seconds.`,
+                  recommendations: mp3Files.map((mp3, index) => ({
+                    trackNumber: index + 1,
+                    title: mp3.title,
+                    url: mp3.url,
+                    recommendedStart: 0,
+                    recommendedEnd: videoDurationSeconds,
+                    recommendedDuration: videoDurationSeconds,
+                    originalDuration: mp3.mp3Duration,
+                    extractedSuccessfully: true
+                  }))
                 };
               }
               
-            } else {
               musicResult = {
                 success: true,
-                status: 'webhook_processing_no_monitoring',
-                music: musicData,
-                taskId: taskId,
-                eta: musicData.eta || 120,
+                status: 'completed_via_webhook',
+                music: webhookData,
+                audio_url: webhookData.conversion_path,
+                audio_url_wav: webhookData.conversion_path_wav,
+                duration: webhookData.conversion_duration,
+                title: webhookData.title,
+                lyrics: webhookData.lyrics,
+                album_cover: webhookData.album_cover_path,
+                task_id: webhookData.task_id,
+                conversion_id: webhookData.conversion_id,
                 originalYouTubeUrl: youtubeVideos[0].url,
                 originalYouTubeTitle: youtubeVideos[0].title,
+                remixPrompt: `${dualAnalysisResult.prompt} ${dualAnalysisResult.music_style}`,
                 processingTime: musicgptProcessingTime + 's',
-                message: 'Remix generation started. Webhook monitoring disabled.',
-                generationType: 'remix_async'
+                webhookInfo: {
+                  monitoringAttempts: webhookResult.totalPolls,
+                  timestamp: webhookResult.requestInfo.timestamp,
+                  uuid: webhookResult.requestInfo.uuid,
+                  totalRequestsFound: webhookResult.totalRequestsFound
+                },
+                allMP3Files: mp3Files,
+                timingAnalysis: timingAnalysis,
+                generationType: 'remix_webhook'
+              };
+              
+            } else {
+              // Webhook timeout handling
+              musicResult = {
+                success: false,
+                status: 'webhook_timeout',
+                task_id: taskId,
+                eta: musicData.eta,
+                processingTime: musicgptProcessingTime + 's',
+                error: 'Webhook monitoring timed out',
+                webhookInfo: {
+                  monitoringAttempts: webhookResult.totalPolls,
+                  timeoutMinutes: maxPollMinutes
+                },
+                generationType: 'remix_timeout'
               };
             }
             
           } else {
-            throw new Error('Unexpected MusicGPT Remix response format');
+            musicResult = {
+              success: true,
+              status: 'webhook_processing_no_monitoring',
+              music: musicData,
+              taskId: taskId,
+              eta: musicData.eta || 120,
+              originalYouTubeUrl: youtubeVideos[0].url,
+              originalYouTubeTitle: youtubeVideos[0].title,
+              processingTime: musicgptProcessingTime + 's',
+              message: 'Remix generation started. Webhook monitoring disabled.',
+              generationType: 'remix_async'
+            };
           }
+          
+        } else {
+          throw new Error('Unexpected MusicGPT Remix response format');
         }
 
       } catch (musicError) {
